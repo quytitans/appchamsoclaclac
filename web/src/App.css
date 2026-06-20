@@ -1,0 +1,607 @@
+:root {
+  --main-pink: #ffd1dc;
+  --dark-pink: #ff8fab;
+  --deep-pink: #ff5d8f;
+  --soft-bg: #fff5f7;
+  --text-dark: #5a3d4b;
+  --text-muted: #a87d8e;
+  --white: #ffffff;
+  --radius: 18px;
+  --shadow: 0 4px 12px rgba(255, 143, 171, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--soft-bg);
+  color: var(--text-dark);
+  font-family: "Quicksand", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  background: var(--soft-bg);
+  padding-bottom: 24px;
+}
+
+.screen {
+  padding: 16px;
+  animation: fade-in 0.2s ease-in;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Home screen */
+.home-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 48px;
+  text-align: center;
+}
+
+.home-corner-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.change-pin-button {
+  border: none;
+  background: var(--white);
+  color: var(--deep-pink);
+  padding: 7px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+
+.logout-button {
+  color: #c62828;
+}
+
+.home-hero {
+  margin-bottom: 40px;
+}
+
+.home-emoji {
+  font-size: 56px;
+}
+
+.app-title {
+  font-size: 28px;
+  color: var(--deep-pink);
+  margin: 8px 0 4px;
+}
+
+.app-subtitle {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.home-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.big-card-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px;
+  border: none;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--main-pink), var(--dark-pink));
+  color: var(--white);
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  width: 100%;
+}
+
+.big-card-button:active {
+  transform: scale(0.97);
+}
+
+.big-card-icon {
+  font-size: 36px;
+}
+
+/* Header */
+.screen-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.screen-header h2 {
+  margin: 0;
+  flex: 1;
+  color: var(--deep-pink);
+  font-size: 19px;
+}
+
+.back-button {
+  border: none;
+  background: var(--white);
+  color: var(--deep-pink);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+}
+
+.nav-switch-button {
+  border: none;
+  background: var(--white);
+  color: var(--deep-pink);
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Type selector */
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.type-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  border: 2px solid var(--main-pink);
+  background: var(--white);
+  color: var(--text-dark);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.type-chip.active {
+  background: var(--dark-pink);
+  border-color: var(--dark-pink);
+  color: var(--white);
+}
+
+.type-chip-icon {
+  font-size: 20px;
+}
+
+/* Form */
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.field input,
+.field textarea {
+  border: 2px solid var(--main-pink);
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 18px;
+  font-weight: 600;
+  background: var(--white);
+  color: var(--text-dark);
+  width: 100%;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--deep-pink);
+}
+
+.toggle-group {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-option {
+  flex: 1;
+  padding: 13px;
+  border-radius: 12px;
+  border: 2px solid var(--main-pink);
+  background: var(--white);
+  color: var(--text-dark);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.toggle-option.active {
+  background: var(--dark-pink);
+  border-color: var(--dark-pink);
+  color: var(--white);
+}
+
+.save-button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--deep-pink);
+  color: var(--white);
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+}
+
+.message {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.message.success {
+  background: #e3f9e5;
+  color: #2e7d32;
+}
+
+.message.error {
+  background: #fde8e8;
+  color: #c62828;
+}
+
+/* Stats screen */
+.date-filter {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.date-filter label {
+  display: block;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.date-nav input {
+  flex: 1;
+  border: none;
+  text-align: center;
+  font-family: "Quicksand", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--deep-pink);
+}
+
+.date-nav-button {
+  flex-shrink: 0;
+  border: none;
+  background: var(--main-pink);
+  color: var(--text-dark);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.loading-text {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.kpi-icon {
+  font-size: 24px;
+}
+
+.kpi-title {
+  font-weight: 700;
+  color: var(--deep-pink);
+  margin: 5px 0;
+  font-size: 15px;
+}
+
+.kpi-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dark);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.kpi-line-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.timeline-grid {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+}
+
+.timeline-column {
+  flex: 0 0 140px;
+  background: var(--white);
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: var(--shadow);
+}
+
+.timeline-column-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-weight: 700;
+  color: var(--deep-pink);
+  font-size: 13px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.timeline-column-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-card {
+  display: block;
+  width: 100%;
+  border: none;
+  font-family: inherit;
+  background: var(--main-pink);
+  border-radius: 12px;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.timeline-card-time {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.timeline-card-detail {
+  font-size: 11px;
+  color: var(--text-dark);
+  margin-top: 2px;
+}
+
+/* Mỗi cột timeline có 1 màu hồng riêng để phân loại, vẫn cùng tông hồng cho hài hòa */
+.timeline-card.card-hutsua {
+  background: #ffd6e0;
+}
+
+.timeline-card.feeding-binh {
+  background: #ffb8cc;
+}
+
+.timeline-card.feeding-me {
+  background: #ff7fa6;
+}
+
+.timeline-card.feeding-me .timeline-card-time,
+.timeline-card.feeding-me .timeline-card-detail {
+  color: var(--white);
+}
+
+.timeline-card.card-vesinh {
+  background: #f4a6c6;
+}
+
+.timeline-card.card-thechat {
+  background: #e8a0be;
+}
+
+.timeline-card.card-custom {
+  background: #ffa3c4;
+}
+
+.timeline-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* Edit/Delete modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(90, 61, 75, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--soft-bg);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 16px;
+  box-shadow: 0 -4px 20px rgba(255, 93, 143, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--deep-pink);
+  font-size: 18px;
+}
+
+.modal-close {
+  border: none;
+  background: var(--white);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  box-shadow: var(--shadow);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions .save-button {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+}
+
+.delete-button {
+  flex: 1;
+  padding: 16px;
+  border: 2px solid #e57373;
+  border-radius: var(--radius);
+  background: var(--white);
+  color: #c62828;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.delete-button:disabled {
+  opacity: 0.6;
+}
+
+/* PIN lock */
+.pin-lock-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 64px;
+  text-align: center;
+}
+
+.pin-step-label {
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 4px 0 0;
+}
+
+.pin-input-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.pin-box {
+  width: 54px;
+  height: 64px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  border: 2px solid var(--main-pink);
+  border-radius: 14px;
+  background: var(--white);
+  color: var(--text-dark);
+}
+
+.pin-box:focus {
+  outline: none;
+  border-color: var(--deep-pink);
+}
