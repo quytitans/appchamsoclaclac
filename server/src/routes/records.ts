@@ -8,12 +8,16 @@ const VALID_TYPES: RecordType[] = [
   "hut_sua",
   "ti_me",
   "ti_binh",
+  "non_tro",
   "di_nang",
   "di_nhe",
   "can_nang",
   "chieu_cao",
   "custom",
 ];
+
+const VALID_SIDES = ["trai", "phai", "ca_hai"];
+const VALID_NON_TRO_LEVELS = ["nhe", "trung_binh", "nhieu", "rat_nhieu"];
 
 function validateBody(body: CreateRecordBody): string | null {
   if (!body.type || !VALID_TYPES.includes(body.type)) return "Loại hoạt động không hợp lệ";
@@ -25,16 +29,20 @@ function validateBody(body: CreateRecordBody): string | null {
   switch (body.type) {
     case "hut_sua":
       if (!body.time) return "Thiếu giờ hút sữa";
-      if (body.side !== "trai" && body.side !== "phai") return "Thiếu vị trí hút sữa";
+      if (!body.side || !VALID_SIDES.includes(body.side)) return "Thiếu vị trí hút sữa";
       if (typeof body.volumeMl !== "number") return "Thiếu dung tích";
       break;
     case "ti_me":
       if (!body.time) return "Thiếu giờ ti mẹ";
-      if (body.side !== "trai" && body.side !== "phai") return "Thiếu vị trí ti mẹ";
+      if (!body.side || !VALID_SIDES.includes(body.side)) return "Thiếu vị trí ti mẹ";
       break;
     case "ti_binh":
       if (!body.time) return "Thiếu giờ ti bình";
       if (typeof body.volumeMl !== "number") return "Thiếu dung tích";
+      break;
+    case "non_tro":
+      if (!body.time) return "Thiếu giờ nôn chớ";
+      if (!body.status || !VALID_NON_TRO_LEVELS.includes(body.status)) return "Thiếu mức độ nôn chớ";
       break;
     case "di_nang":
       if (!body.time) return "Thiếu giờ đi nặng";

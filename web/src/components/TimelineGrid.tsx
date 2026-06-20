@@ -13,8 +13,14 @@ interface Column {
   colorClass: string;
 }
 
-const SIDE_LABEL: Record<string, string> = { trai: "Trái", phai: "Phải" };
+const SIDE_LABEL: Record<string, string> = { trai: "Trái", phai: "Phải", ca_hai: "Cả 2 bên" };
 const DI_NANG_LABEL: Record<string, string> = { binh_thuong: "Bình thường", co_van_de: "Có vấn đề" };
+const NON_TRO_LABEL: Record<string, string> = {
+  nhe: "Nhẹ",
+  trung_binh: "Trung bình",
+  nhieu: "Nhiều",
+  rat_nhieu: "Rất nhiều",
+};
 
 function byTime(a: RecordItem, b: RecordItem): number {
   return (a.time ?? "").localeCompare(b.time ?? "");
@@ -23,13 +29,6 @@ function byTime(a: RecordItem, b: RecordItem): number {
 function buildColumns(records: RecordItem[]): Column[] {
   return [
     {
-      key: "hut_sua",
-      title: "Hút sữa",
-      icon: "🍼",
-      items: records.filter((r) => r.type === "hut_sua"),
-      colorClass: "card-hutsua",
-    },
-    {
       key: "an",
       title: "Bé Ăn",
       icon: "🍽️",
@@ -37,11 +36,25 @@ function buildColumns(records: RecordItem[]): Column[] {
       colorClass: "",
     },
     {
+      key: "hut_sua",
+      title: "Hút sữa",
+      icon: "🍼",
+      items: records.filter((r) => r.type === "hut_sua"),
+      colorClass: "card-hutsua",
+    },
+    {
       key: "ve_sinh",
       title: "Vệ sinh",
       icon: "🧷",
       items: records.filter((r) => r.type === "di_nang" || r.type === "di_nhe"),
       colorClass: "card-vesinh",
+    },
+    {
+      key: "non_tro",
+      title: "Nôn chớ",
+      icon: "🤮",
+      items: records.filter((r) => r.type === "non_tro"),
+      colorClass: "card-nontro",
     },
     {
       key: "the_chat",
@@ -74,6 +87,8 @@ function cardText(record: RecordItem): string {
       return `Ti mẹ | ${SIDE_LABEL[record.side ?? ""] ?? ""}`;
     case "ti_binh":
       return `Ti bình | ${record.volume_ml}ml`;
+    case "non_tro":
+      return `Nôn chớ | ${NON_TRO_LABEL[record.status ?? ""] ?? ""}`;
     case "di_nang":
       return `Đi nặng | ${DI_NANG_LABEL[record.status ?? ""] ?? ""}`;
     case "di_nhe":
@@ -106,7 +121,7 @@ export default function TimelineGrid({ records, onSelectRecord }: Props) {
                 className={`timeline-card ${col.colorClass} ${feedingShadeClass(item)}`}
                 onClick={() => onSelectRecord(item)}
               >
-                <div className="timeline-card-time">{item.time ?? ""}</div>
+                <span className="timeline-card-time">{item.time ?? ""}</span>
                 <div className="timeline-card-detail">{cardText(item)}</div>
               </button>
             ))}

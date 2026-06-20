@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchRecords, fetchStats } from "../api";
 import { shiftDateStr, todayDateStr } from "../dateUtils";
 import type { RecordItem, StatsResponse } from "../types";
+import AppHeader from "../components/AppHeader";
 import TimelineGrid from "../components/TimelineGrid";
 import EditRecordModal from "../components/EditRecordModal";
 import type { Screen } from "../App";
@@ -38,6 +39,7 @@ export default function StatsScreen({ onNavigate }: Props) {
 
   return (
     <div className="screen stats-screen">
+      <AppHeader onGoHome={() => onNavigate("HOME")} />
       <header className="screen-header">
         <button className="back-button" onClick={() => onNavigate("HOME")}>
           ←

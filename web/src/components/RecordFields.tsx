@@ -6,11 +6,19 @@ import type { RecordType } from "../types";
 const SIDE_OPTIONS = [
   { value: "trai", label: "Bên Trái" },
   { value: "phai", label: "Bên Phải" },
+  { value: "ca_hai", label: "Cả 2 bên" },
 ];
 
 const DI_NANG_OPTIONS = [
   { value: "binh_thuong", label: "Bình thường" },
   { value: "co_van_de", label: "Có vấn đề" },
+];
+
+const NON_TRO_OPTIONS = [
+  { value: "nhe", label: "Nhẹ" },
+  { value: "trung_binh", label: "Trung bình" },
+  { value: "nhieu", label: "Nhiều" },
+  { value: "rat_nhieu", label: "Rất nhiều" },
 ];
 
 interface Props {
@@ -81,6 +89,18 @@ export default function RecordFields({ type, state, onChange }: Props) {
               value={state.volumeMl}
               onChange={onNonNegativeChange("volumeMl", onChange)}
             />
+          </Field>
+        </>
+      );
+
+    case "non_tro":
+      return (
+        <>
+          <Field label="Giờ nôn chớ">
+            <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
+          </Field>
+          <Field label="Mức độ">
+            <ToggleGroup options={NON_TRO_OPTIONS} value={state.status} onChange={(v) => onChange("status", v)} />
           </Field>
         </>
       );

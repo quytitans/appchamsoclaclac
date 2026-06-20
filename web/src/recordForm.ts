@@ -36,7 +36,8 @@ export function recordToFormState(record: RecordItem): RecordFormState {
     time: record.time ?? "",
     side: record.side ?? undefined,
     volumeMl: record.volume_ml != null ? String(record.volume_ml) : "",
-    status: record.type === "di_nang" ? record.status ?? undefined : undefined,
+    status:
+      record.type === "di_nang" || record.type === "non_tro" ? record.status ?? undefined : undefined,
     weightKg: record.weight_kg != null ? String(record.weight_kg) : "",
     heightCm: record.height_cm != null ? String(record.height_cm) : "",
     customName: record.custom_name ?? "",
@@ -58,6 +59,9 @@ export function buildRecordPayload(type: RecordType, state: RecordFormState): Cr
     case "ti_binh":
       if (!state.volumeMl) return null;
       return { ...base, time: state.time, volumeMl: Number(state.volumeMl) };
+    case "non_tro":
+      if (!state.status) return null;
+      return { ...base, time: state.time, status: state.status };
     case "di_nang":
       if (!state.status) return null;
       return { ...base, time: state.time, status: state.status };

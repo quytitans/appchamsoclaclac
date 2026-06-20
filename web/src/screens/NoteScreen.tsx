@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AppHeader from "../components/AppHeader";
 import RecordFields from "../components/RecordFields";
 import { createRecord } from "../api";
 import { ACTIVITY_META, NOTE_TYPE_ORDER } from "../constants";
@@ -48,6 +49,7 @@ export default function NoteScreen({ onNavigate }: Props) {
 
   return (
     <div className="screen note-screen">
+      <AppHeader onGoHome={() => onNavigate("HOME")} />
       <header className="screen-header">
         <button className="back-button" onClick={() => onNavigate("HOME")}>
           ←
