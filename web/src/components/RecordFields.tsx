@@ -43,9 +43,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "hut_sua":
       return (
         <>
-          <Field label="Giờ hút">
-            <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
-          </Field>
+          <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ hút" onChange={onChange} />
           <Field label="Vị trí">
             <ToggleGroup options={SIDE_OPTIONS} value={state.side} onChange={(v) => onChange("side", v)} />
           </Field>
@@ -65,9 +63,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "ti_me":
       return (
         <>
-          <Field label="Giờ ti mẹ">
-            <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
-          </Field>
+          <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ ti mẹ" onChange={onChange} />
           <Field label="Vị trí">
             <ToggleGroup options={SIDE_OPTIONS} value={state.side} onChange={(v) => onChange("side", v)} />
           </Field>
@@ -77,9 +73,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "ti_binh":
       return (
         <>
-          <Field label="Giờ ti bình">
-            <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
-          </Field>
+          <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ ti bình" onChange={onChange} />
           <Field label="Dung tích (ml)">
             <input
               type="number"
@@ -96,9 +90,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "non_tro":
       return (
         <>
-          <Field label="Giờ nôn chớ">
-            <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
-          </Field>
+          <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ nôn chớ" onChange={onChange} />
           <Field label="Mức độ">
             <ToggleGroup options={NON_TRO_OPTIONS} value={state.status} onChange={(v) => onChange("status", v)} />
           </Field>
@@ -108,9 +100,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "di_nang":
       return (
         <>
-          <Field label="Giờ đi nặng">
-            <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
-          </Field>
+          <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ đi nặng" onChange={onChange} />
           <Field label="Trạng thái">
             <ToggleGroup options={DI_NANG_OPTIONS} value={state.status} onChange={(v) => onChange("status", v)} />
           </Field>
@@ -118,11 +108,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
       );
 
     case "di_nhe":
-      return (
-        <Field label="Giờ đi nhẹ">
-          <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
-        </Field>
-      );
+      return <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ đi nhẹ" onChange={onChange} />;
 
     case "can_nang":
       return (
@@ -167,9 +153,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "custom":
       return (
         <>
-          <Field label="Giờ">
-            <input type="time" value={state.time} onChange={(e) => onChange("time", e.target.value)} />
-          </Field>
+          <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ" onChange={onChange} />
           <Field label="Tên hoạt động">
             <input
               type="text"
@@ -200,6 +184,29 @@ export default function RecordFields({ type, state, onChange }: Props) {
         </>
       );
   }
+}
+
+function DateTimeRow({
+  date,
+  time,
+  timeLabel,
+  onChange,
+}: {
+  date: string;
+  time: string;
+  timeLabel: string;
+  onChange: Props["onChange"];
+}) {
+  return (
+    <div className="field-row">
+      <Field label="Ngày">
+        <input type="date" value={date} onChange={(e) => onChange("date", e.target.value)} />
+      </Field>
+      <Field label={timeLabel}>
+        <input type="time" value={time} onChange={(e) => onChange("time", e.target.value)} />
+      </Field>
+    </div>
+  );
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
