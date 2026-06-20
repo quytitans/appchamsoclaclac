@@ -1,4 +1,4 @@
-import type { CreateRecordPayload, RecordItem, StatsResponse } from "./types";
+import type { CreateRecordPayload, MonthStatsResponse, RecordItem, StatsResponse } from "./types";
 
 const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/+/g, "/");
 
@@ -59,4 +59,10 @@ export function changePin(currentPin: string, newPin: string): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ currentPin, newPin }),
   }).then((res) => handleResponse<void>(res));
+}
+
+export function fetchMonthStats(month: string): Promise<MonthStatsResponse> {
+  return fetch(`${API_BASE}/stats/month?month=${encodeURIComponent(month)}`).then((res) =>
+    handleResponse<MonthStatsResponse>(res)
+  );
 }

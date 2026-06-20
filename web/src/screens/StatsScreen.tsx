@@ -5,6 +5,7 @@ import type { RecordItem, StatsResponse } from "../types";
 import AppHeader from "../components/AppHeader";
 import TimelineGrid from "../components/TimelineGrid";
 import EditRecordModal from "../components/EditRecordModal";
+import MonthView from "./MonthView";
 import type { Screen } from "../App";
 
 interface Props {
@@ -17,6 +18,7 @@ interface KpiLine {
 }
 
 export default function StatsScreen({ onNavigate }: Props) {
+  const [activeTab, setActiveTab] = useState<"day" | "month">("day");
   const [date, setDate] = useState(todayDateStr());
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -50,66 +52,87 @@ export default function StatsScreen({ onNavigate }: Props) {
         </button>
       </header>
 
-      <div className="date-filter">
-        <label>Ngày xem</label>
-        <div className="date-nav">
-          <button className="date-nav-button" onClick={() => setDate((d) => shiftDateStr(d, -1))}>
-            ‹
-          </button>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          <button className="date-nav-button" onClick={() => setDate((d) => shiftDateStr(d, 1))}>
-            ›
-          </button>
-        </div>
+      <div className="stats-tabs">
+        <button
+          className={`stats-tab ${activeTab === "day" ? "active" : ""}`}
+          onClick={() => setActiveTab("day")}
+        >
+          View Theo Ngày
+        </button>
+        <button
+          className={`stats-tab ${activeTab === "month" ? "active" : ""}`}
+          onClick={() => setActiveTab("month")}
+        >
+          View Theo Tháng
+        </button>
       </div>
 
-      {loading && <p className="loading-text">Đang tải...</p>}
+      {activeTab === "month" && <MonthView />}
 
-      {!loading && stats && (
+      {activeTab === "day" && (
         <>
-          <section className="kpi-grid">
-            <KpiCard
-              icon="🍼"
-              title="Hút sữa"
-              lines={[
-                { icon: "🔹", text: `${stats.pumping.count} lần` },
-                { icon: "💧", text: `${stats.pumping.totalMl} ml` },
-                { icon: "✨", text: `Trung Bình ${stats.pumping.avgMl.toFixed(0)} ml/lần` },
-              ]}
-            />
-            <KpiCard
-              icon="🍽️"
-              title="Bé Ăn"
-              lines={[
-                { icon: "🤱", text: `${stats.breastfeed.count} lần ti mẹ` },
-                { icon: "🍼", text: `${stats.bottle.count} lần ti bình | ${stats.bottle.totalMl} ml` },
-                { icon: "✨", text: `Trung Bình ${stats.bottle.avgMl.toFixed(0)} ml/lần ti bình` },
-                { icon: "⏰", text: `Cách nhau TB: ${formatInterval(stats.feeding.avgIntervalMinutes)}` },
-              ]}
-            />
-            <KpiCard
-              icon="🧷"
-              title="Vệ sinh"
-              lines={[
-                { icon: "💩", text: `${stats.poop.count} lần đi nặng` },
-                { icon: "💦", text: `${stats.pee.count} lần đi nhẹ` },
-              ]}
-            />
-            <KpiCard
-              icon="⚖️"
-              title="Cân nặng"
-              lines={[
-                {
-                  icon: "⚖️",
-                  text: stats.weight.current != null ? `${stats.weight.current} kg` : "Chưa có dữ liệu",
-                },
-                { icon: "📈", text: `Tuần qua: ${formatDelta(stats.weight.deltaWeek)}` },
-                { icon: "📈", text: `Tháng qua: ${formatDelta(stats.weight.deltaMonth)}` },
-              ]}
-            />
-          </section>
+          <div className="date-filter">
+            <label>Ngày xem</label>
+            <div className="date-nav">
+              <button className="date-nav-button" onClick={() => setDate((d) => shiftDateStr(d, -1))}>
+                ‹
+              </button>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <button className="date-nav-button" onClick={() => setDate((d) => shiftDateStr(d, 1))}>
+                ›
+              </button>
+            </div>
+          </div>
 
-          <TimelineGrid records={records} onSelectRecord={setEditingRecord} />
+          {loading && <p className="loading-text">Đang tải...</p>}
+
+          {!loading && stats && (
+            <>
+              <section className="kpi-grid">
+                <KpiCard
+                  icon="🍼"
+                  title="Hút sữa"
+                  lines={[
+                    { icon: "🔹", text: `${stats.pumping.count} lần` },
+                    { icon: "💧", text: `${stats.pumping.totalMl} ml` },
+                    { icon: "✨", text: `Trung Bình ${stats.pumping.avgMl.toFixed(0)} ml/lần` },
+                  ]}
+                />
+                <KpiCard
+                  icon="🍽️"
+                  title="Bé Ăn"
+                  lines={[
+                    { icon: "🤱", text: `${stats.breastfeed.count} lần ti mẹ` },
+                    { icon: "🍼", text: `${stats.bottle.count} lần ti bình | ${stats.bottle.totalMl} ml` },
+                    { icon: "✨", text: `Trung Bình ${stats.bottle.avgMl.toFixed(0)} ml/lần ti bình` },
+                    { icon: "⏰", text: `Cách nhau TB: ${formatInterval(stats.feeding.avgIntervalMinutes)}` },
+                  ]}
+                />
+                <KpiCard
+                  icon="🧷"
+                  title="Vệ sinh"
+                  lines={[
+                    { icon: "💩", text: `${stats.poop.count} lần đi nặng` },
+                    { icon: "💦", text: `${stats.pee.count} lần đi nhẹ` },
+                  ]}
+                />
+                <KpiCard
+                  icon="⚖️"
+                  title="Cân nặng"
+                  lines={[
+                    {
+                      icon: "⚖️",
+                      text: stats.weight.current != null ? `${stats.weight.current} kg` : "Chưa có dữ liệu",
+                    },
+                    { icon: "📈", text: `Tuần qua: ${formatDelta(stats.weight.deltaWeek)}` },
+                    { icon: "📈", text: `Tháng qua: ${formatDelta(stats.weight.deltaMonth)}` },
+                  ]}
+                />
+              </section>
+
+              <TimelineGrid records={records} onSelectRecord={setEditingRecord} />
+            </>
+          )}
         </>
       )}
 
@@ -145,6 +168,20 @@ function formatInterval(minutes: number | null): string {
   return h > 0 ? `${h} giờ ${m} phút` : `${m} phút`;
 }
 
+function highlightNumbers(text: string) {
+  const match = text.match(/-?\d+(\.\d+)?/);
+  if (!match || match.index == null) return text;
+  const before = text.slice(0, match.index);
+  const after = text.slice(match.index + match[0].length);
+  return (
+    <>
+      {before}
+      <span className="kpi-value">{match[0]}</span>
+      {after}
+    </>
+  );
+}
+
 function KpiCard({ icon, title, lines }: { icon: string; title: string; lines: KpiLine[] }) {
   return (
     <div className="kpi-card">
@@ -153,7 +190,7 @@ function KpiCard({ icon, title, lines }: { icon: string; title: string; lines: K
       {lines.map((line, idx) => (
         <div key={idx} className="kpi-line">
           <span className="kpi-line-icon">{line.icon}</span>
-          {line.text}
+          {highlightNumbers(line.text)}
         </div>
       ))}
     </div>

@@ -57,3 +57,24 @@ export interface StatsResponse {
     deltaMonth: number | null;
   };
 }
+
+export interface MonthDayStats {
+  date: string;
+  feedCount: number;
+  bottleMl: number;
+  bottleAvgMl: number;
+  weightKg: number | null;
+  heightCm: number | null;
+}
+
+export interface WeeklyGrowth {
+  label: string;
+  deltaKg: number | null;
+}
+
+export interface MonthStatsResponse {
+  month: string;
+  days: MonthDayStats[];
+  weeklyGrowth: WeeklyGrowth[];
+  monthlyGrowthKg: number | null;
+}

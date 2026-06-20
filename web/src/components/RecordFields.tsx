@@ -146,17 +146,22 @@ export default function RecordFields({ type, state, onChange }: Props) {
 
     case "chieu_cao":
       return (
-        <Field label="Kích thước (cm)">
-          <input
-            type="number"
-            min={0}
-            step="0.1"
-            inputMode="decimal"
-            placeholder="VD: 60"
-            value={state.heightCm}
-            onChange={onNonNegativeChange("heightCm", onChange)}
-          />
-        </Field>
+        <>
+          <Field label="Ngày đo">
+            <input type="date" value={state.date} onChange={(e) => onChange("date", e.target.value)} />
+          </Field>
+          <Field label="Kích thước (cm)">
+            <input
+              type="number"
+              min={0}
+              step="0.1"
+              inputMode="decimal"
+              placeholder="VD: 60"
+              value={state.heightCm}
+              onChange={onNonNegativeChange("heightCm", onChange)}
+            />
+          </Field>
+        </>
       );
 
     case "custom":

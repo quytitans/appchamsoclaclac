@@ -57,13 +57,6 @@ function buildColumns(records: RecordItem[]): Column[] {
       colorClass: "card-nontro",
     },
     {
-      key: "the_chat",
-      title: "Thể chất",
-      icon: "⚖️",
-      items: records.filter((r) => r.type === "can_nang" || r.type === "chieu_cao"),
-      colorClass: "card-thechat",
-    },
-    {
       key: "custom",
       title: "Tùy chọn",
       icon: "➕",

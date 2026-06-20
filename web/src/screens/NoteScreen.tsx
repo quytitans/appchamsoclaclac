@@ -16,7 +16,8 @@ export default function NoteScreen({ onNavigate }: Props) {
   const [type, setType] = useState<RecordType>("hut_sua");
   const [form, setForm] = useState(() => emptyRecordFormState(todayDateStr(), nowTimeStr()));
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   function handleChange<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -24,27 +25,36 @@ export default function NoteScreen({ onNavigate }: Props) {
 
   function handleTypeChange(newType: RecordType) {
     setType(newType);
-    setMessage(null);
+    setError(null);
     setForm(emptyRecordFormState(todayDateStr(), nowTimeStr()));
   }
 
   async function handleSave() {
     const payload = buildRecordPayload(type, form);
     if (!payload) {
-      setMessage({ kind: "error", text: "Vui lòng nhập đầy đủ thông tin bắt buộc" });
+      setError("Vui lòng nhập đầy đủ thông tin bắt buộc");
       return;
     }
     setSaving(true);
-    setMessage(null);
+    setError(null);
     try {
       await createRecord(payload);
-      setMessage({ kind: "success", text: "Đã lưu thành công! 🎉" });
-      setForm(emptyRecordFormState(todayDateStr(), nowTimeStr()));
+      setShowSuccess(true);
     } catch (err) {
-      setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" });
+      setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleContinueEntering() {
+    setForm(emptyRecordFormState(todayDateStr(), nowTimeStr()));
+    setShowSuccess(false);
+  }
+
+  function handleGoToStats() {
+    setShowSuccess(false);
+    onNavigate("STATS");
   }
 
   return (
@@ -77,11 +87,30 @@ export default function NoteScreen({ onNavigate }: Props) {
         <RecordFields type={type} state={form} onChange={handleChange} />
       </div>
 
-      {message && <div className={`message ${message.kind}`}>{message.text}</div>}
+      {error && <div className="message error">{error}</div>}
 
       <button className="save-button" onClick={handleSave} disabled={saving}>
         {saving ? "Đang lưu..." : "Lưu"}
       </button>
+
+      {showSuccess && (
+        <div className="modal-overlay">
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🎉 Đã lưu thành công!</h3>
+            </div>
+            <p className="pin-step-label">Bạn muốn làm gì tiếp theo?</p>
+            <div className="modal-actions">
+              <button className="secondary-button" onClick={handleContinueEntering}>
+                📝 Nhập tiếp
+              </button>
+              <button className="save-button" onClick={handleGoToStats}>
+                📊 Xem thống kê
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
