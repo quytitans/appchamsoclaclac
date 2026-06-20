@@ -25,9 +25,10 @@ interface Props {
   year: number;
   monthNum: number;
   renderCell: (day: number) => ReactNode;
+  onSelectDay?: (day: number) => void;
 }
 
-export default function MonthCalendar({ year, monthNum, renderCell }: Props) {
+export default function MonthCalendar({ year, monthNum, renderCell, onSelectDay }: Props) {
   const weeks = buildCalendarWeeks(year, monthNum);
 
   return (
@@ -42,10 +43,14 @@ export default function MonthCalendar({ year, monthNum, renderCell }: Props) {
           day == null ? (
             <div key={`${wi}-${di}`} className="calendar-cell empty" />
           ) : (
-            <div key={`${wi}-${di}`} className="calendar-cell">
+            <button
+              key={`${wi}-${di}`}
+              className="calendar-cell"
+              onClick={() => onSelectDay?.(day)}
+            >
               <div className="calendar-day-num">{day}</div>
               {renderCell(day)}
-            </div>
+            </button>
           )
         )
       )}

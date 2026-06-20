@@ -26,6 +26,8 @@ function byTime(a: RecordItem, b: RecordItem): number {
   return (a.time ?? "").localeCompare(b.time ?? "");
 }
 
+const COVERED_TYPES = new Set(["ti_me", "ti_binh", "hut_sua", "di_nang", "di_nhe", "non_tro"]);
+
 function buildColumns(records: RecordItem[]): Column[] {
   return [
     {
@@ -57,10 +59,10 @@ function buildColumns(records: RecordItem[]): Column[] {
       colorClass: "card-nontro",
     },
     {
-      key: "custom",
-      title: "Tùy chọn",
-      icon: "➕",
-      items: records.filter((r) => r.type === "custom"),
+      key: "khac",
+      title: "Các vấn đề khác",
+      icon: "📌",
+      items: records.filter((r) => !COVERED_TYPES.has(r.type)),
       colorClass: "card-custom",
     },
   ];

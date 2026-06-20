@@ -10,7 +10,11 @@ function formatGrowth(kg: number | null): string {
   return `${sign}${kg.toFixed(2)} kg`;
 }
 
-export default function MonthView() {
+interface Props {
+  onSelectDate: (dateStr: string) => void;
+}
+
+export default function MonthView({ onSelectDate }: Props) {
   const [month, setMonth] = useState(currentMonthStr());
   const [data, setData] = useState<MonthStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +34,10 @@ export default function MonthView() {
   const year = Number(yearStr);
   const monthNum = Number(monthNumStr);
   const dayMap = new Map((data?.days ?? []).map((d) => [Number(d.date.slice(-2)), d]));
+
+  function handleSelectDay(day: number) {
+    onSelectDate(`${month}-${String(day).padStart(2, "0")}`);
+  }
 
   return (
     <div className="month-view">
@@ -57,6 +65,7 @@ export default function MonthView() {
             <MonthCalendar
               year={year}
               monthNum={monthNum}
+              onSelectDay={handleSelectDay}
               renderCell={(day) => {
                 const stat = dayMap.get(day);
                 if (!stat) return null;
@@ -89,6 +98,7 @@ export default function MonthView() {
             <MonthCalendar
               year={year}
               monthNum={monthNum}
+              onSelectDay={handleSelectDay}
               renderCell={(day) => {
                 const stat = dayMap.get(day);
                 if (!stat) return null;

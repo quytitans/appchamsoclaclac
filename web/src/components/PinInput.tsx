@@ -42,7 +42,7 @@ export default function PinInput({ length = 4, onComplete, resetKey }: Props) {
           ref={(el) => {
             inputsRef.current[index] = el;
           }}
-          type="tel"
+          type="password"
           inputMode="numeric"
           maxLength={1}
           autoFocus={index === 0}

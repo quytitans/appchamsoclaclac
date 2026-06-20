@@ -67,7 +67,14 @@ export default function StatsScreen({ onNavigate }: Props) {
         </button>
       </div>
 
-      {activeTab === "month" && <MonthView />}
+      {activeTab === "month" && (
+        <MonthView
+          onSelectDate={(dateStr) => {
+            setDate(dateStr);
+            setActiveTab("day");
+          }}
+        />
+      )}
 
       {activeTab === "day" && (
         <>
