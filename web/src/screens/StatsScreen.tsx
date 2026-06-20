@@ -116,18 +116,6 @@ export default function StatsScreen({ onNavigate }: Props) {
                     { icon: "💦", text: `${stats.pee.count} lần đi nhẹ` },
                   ]}
                 />
-                <KpiCard
-                  icon="⚖️"
-                  title="Cân nặng"
-                  lines={[
-                    {
-                      icon: "⚖️",
-                      text: stats.weight.current != null ? `${stats.weight.current} kg` : "Chưa có dữ liệu",
-                    },
-                    { icon: "📈", text: `Tuần qua: ${formatDelta(stats.weight.deltaWeek)}` },
-                    { icon: "📈", text: `Tháng qua: ${formatDelta(stats.weight.deltaMonth)}` },
-                  ]}
-                />
               </section>
 
               <TimelineGrid records={records} onSelectRecord={setEditingRecord} />
@@ -153,12 +141,6 @@ export default function StatsScreen({ onNavigate }: Props) {
       )}
     </div>
   );
-}
-
-function formatDelta(delta: number | null): string {
-  if (delta == null) return "Chưa có dữ liệu";
-  const sign = delta >= 0 ? "+" : "";
-  return `${sign}${delta.toFixed(2)} kg`;
 }
 
 function formatInterval(minutes: number | null): string {
