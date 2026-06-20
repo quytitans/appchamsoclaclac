@@ -1,6 +1,6 @@
 import type { CreateRecordPayload, RecordItem, StatsResponse } from "./types";
 
-const API_BASE = "/api";
+const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/+/g, "/");
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
