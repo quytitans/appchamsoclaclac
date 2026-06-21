@@ -109,3 +109,35 @@ function seedAccount(id: string, babyName: string, pin: string, isAdmin: boolean
 
 seedAccount("laclac", "Lạc Lạc", "1111", false);
 seedAccount("admin", "Admin", "7556", true);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS vaccines (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT NOT NULL,
+    disease_name TEXT NOT NULL,
+    vaccine_name TEXT NOT NULL,
+    total_doses INTEGER,
+    duration_type TEXT NOT NULL,
+    expiry_month INTEGER,
+    expiry_year INTEGER,
+    next_dose_date TEXT,
+    sort_order INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccines_account ON vaccines(account)`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS vaccine_doses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    vaccine_id INTEGER NOT NULL,
+    dose_number INTEGER NOT NULL,
+    location TEXT,
+    date TEXT NOT NULL,
+    note TEXT,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccine_doses_vaccine_id ON vaccine_doses(vaccine_id)`);

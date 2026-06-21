@@ -1,10 +1,16 @@
 import type {
   AccountSummary,
   CreateRecordPayload,
+  DosePayload,
+  LatestGrowth,
   MonthStatsResponse,
   RecordItem,
   Session,
   StatsResponse,
+  VaccineDetail,
+  VaccineDose,
+  VaccinePayload,
+  VaccineSummary,
 } from "./types";
 
 const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/+/g, "/");
@@ -56,6 +62,12 @@ export function fetchMonthStats(month: string, account: string): Promise<MonthSt
   return fetch(
     `${API_BASE}/stats/month?month=${encodeURIComponent(month)}&account=${encodeURIComponent(account)}`
   ).then((res) => handleResponse<MonthStatsResponse>(res));
+}
+
+export function fetchLatestGrowth(account: string): Promise<LatestGrowth> {
+  return fetch(`${API_BASE}/stats/latest-growth?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<LatestGrowth>(res)
+  );
 }
 
 export function login(account: string, pin: string): Promise<Session> {
@@ -115,4 +127,81 @@ export function adminSetActive(token: string, targetAccount: string, active: boo
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, targetAccount, active }),
   }).then((res) => handleResponse<void>(res));
+}
+
+export function fetchVaccines(account: string): Promise<VaccineSummary[]> {
+  return fetch(`${API_BASE}/vaccines?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<VaccineSummary[]>(res)
+  );
+}
+
+export function fetchVaccineDetail(id: number, account: string): Promise<VaccineDetail> {
+  return fetch(`${API_BASE}/vaccines/${id}?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<VaccineDetail>(res)
+  );
+}
+
+export function createVaccine(payload: VaccinePayload): Promise<VaccineSummary> {
+  return fetch(`${API_BASE}/vaccines`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<VaccineSummary>(res));
+}
+
+export function updateVaccine(id: number, payload: VaccinePayload): Promise<VaccineSummary> {
+  return fetch(`${API_BASE}/vaccines/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<VaccineSummary>(res));
+}
+
+export function deleteVaccine(id: number, account: string): Promise<void> {
+  return fetch(`${API_BASE}/vaccines/${id}?account=${encodeURIComponent(account)}`, {
+    method: "DELETE",
+  }).then((res) => handleResponse<void>(res));
+}
+
+export function reorderVaccine(id: number, account: string, direction: "up" | "down"): Promise<void> {
+  return fetch(`${API_BASE}/vaccines/${id}/reorder`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ account, direction }),
+  }).then((res) => handleResponse<void>(res));
+}
+
+export function confirmVaccineDose(id: number, account: string, date: string): Promise<VaccineSummary> {
+  return fetch(`${API_BASE}/vaccines/${id}/confirm-dose`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ account, date }),
+  }).then((res) => handleResponse<VaccineSummary>(res));
+}
+
+export function addVaccineDose(vaccineId: number, payload: DosePayload): Promise<VaccineDose> {
+  return fetch(`${API_BASE}/vaccines/${vaccineId}/doses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<VaccineDose>(res));
+}
+
+export function updateVaccineDose(
+  vaccineId: number,
+  doseId: number,
+  payload: DosePayload
+): Promise<VaccineDose> {
+  return fetch(`${API_BASE}/vaccines/${vaccineId}/doses/${doseId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<VaccineDose>(res));
+}
+
+export function deleteVaccineDose(vaccineId: number, doseId: number, account: string): Promise<void> {
+  return fetch(
+    `${API_BASE}/vaccines/${vaccineId}/doses/${doseId}?account=${encodeURIComponent(account)}`,
+    { method: "DELETE" }
+  ).then((res) => handleResponse<void>(res));
 }

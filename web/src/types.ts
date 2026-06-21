@@ -94,3 +94,59 @@ export interface MonthStatsResponse {
   weeklyGrowth: WeeklyGrowth[];
   monthlyGrowthKg: number | null;
 }
+
+export interface LatestGrowth {
+  weightKg: number | null;
+  heightCm: number | null;
+}
+
+export type VaccineDurationType = "lifetime" | "limited";
+
+export interface VaccineDose {
+  id: number;
+  vaccine_id: number;
+  dose_number: number;
+  location: string | null;
+  date: string;
+  note: string | null;
+  created_at: string;
+}
+
+export interface VaccineSummary {
+  id: number;
+  account: string;
+  disease_name: string;
+  vaccine_name: string;
+  total_doses: number | null;
+  duration_type: VaccineDurationType;
+  expiry_month: number | null;
+  expiry_year: number | null;
+  next_dose_date: string | null;
+  sort_order: number;
+  created_at: string;
+  doseCount: number;
+  latestDose: VaccineDose | null;
+}
+
+export interface VaccineDetail extends Omit<VaccineSummary, "doseCount" | "latestDose"> {
+  doses: VaccineDose[];
+}
+
+export interface VaccinePayload {
+  account: string;
+  diseaseName: string;
+  vaccineName: string;
+  totalDoses?: number;
+  durationType: VaccineDurationType;
+  expiryMonth?: number;
+  expiryYear?: number;
+  nextDoseDate?: string;
+}
+
+export interface DosePayload {
+  account: string;
+  doseNumber: number;
+  location?: string;
+  date: string;
+  note?: string;
+}

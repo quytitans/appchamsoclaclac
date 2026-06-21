@@ -5,6 +5,7 @@ import "./db/index.js";
 import { recordsRouter } from "./routes/records.js";
 import { statsRouter } from "./routes/stats.js";
 import { authRouter } from "./routes/auth.js";
+import { vaccinesRouter } from "./routes/vaccines.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/api/records", recordsRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/vaccines", vaccinesRouter);
 
 const webDist = path.join(__dirname, "..", "..", "web", "dist");
 app.use(express.static(webDist));

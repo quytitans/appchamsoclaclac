@@ -35,6 +35,28 @@ function getLatestWeightOnOrBefore(account: string, dateStr: string): number | n
   return row ? row.weight_kg : null;
 }
 
+function getLatestHeight(account: string): number | null {
+  const row = db
+    .prepare(
+      `SELECT height_cm FROM records
+       WHERE type = 'chieu_cao' AND height_cm IS NOT NULL AND account = ?
+       ORDER BY date DESC, created_at DESC LIMIT 1`
+    )
+    .get(account) as { height_cm: number } | undefined;
+  return row ? row.height_cm : null;
+}
+
+function getLatestWeight(account: string): number | null {
+  const row = db
+    .prepare(
+      `SELECT weight_kg FROM records
+       WHERE type = 'can_nang' AND weight_kg IS NOT NULL AND account = ?
+       ORDER BY date DESC, created_at DESC LIMIT 1`
+    )
+    .get(account) as { weight_kg: number } | undefined;
+  return row ? row.weight_kg : null;
+}
+
 statsRouter.get("/", (req, res) => {
   const account = req.query.account as string | undefined;
   if (!isValidAccountId(account)) {
@@ -102,6 +124,18 @@ statsRouter.get("/", (req, res) => {
       deltaWeek: currentWeight != null && weightAWeekAgo != null ? currentWeight - weightAWeekAgo : null,
       deltaMonth: currentWeight != null && weightAMonthAgo != null ? currentWeight - weightAMonthAgo : null,
     },
+  });
+});
+
+statsRouter.get("/latest-growth", (req, res) => {
+  const account = req.query.account as string | undefined;
+  if (!isValidAccountId(account)) {
+    res.status(400).json({ error: "Thiếu tham số account" });
+    return;
+  }
+  res.json({
+    weightKg: getLatestWeight(account),
+    heightCm: getLatestHeight(account),
   });
 });
 

@@ -54,3 +54,29 @@ export interface AccountRow {
   is_active: number;
   created_at: string;
 }
+
+export type VaccineDurationType = "lifetime" | "limited";
+
+export interface VaccineRow {
+  id: number;
+  account: string;
+  disease_name: string;
+  vaccine_name: string;
+  total_doses: number | null;
+  duration_type: VaccineDurationType;
+  expiry_month: number | null;
+  expiry_year: number | null;
+  next_dose_date: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface VaccineDoseRow {
+  id: number;
+  vaccine_id: number;
+  dose_number: number;
+  location: string | null;
+  date: string;
+  note: string | null;
+  created_at: string;
+}
