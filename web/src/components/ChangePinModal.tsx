@@ -1,12 +1,15 @@
 import { useState } from "react";
 import PinInput from "./PinInput";
-import { changePin, verifyPin } from "../api";
+import { changePin } from "../api";
+import type { Session } from "../types";
 
 interface Props {
+  session: Session;
   onClose: () => void;
+  onSessionUpdate: (session: Session) => void;
 }
 
-export default function ChangePinModal({ onClose }: Props) {
+export default function ChangePinModal({ session, onClose, onSessionUpdate }: Props) {
   const [step, setStep] = useState<"current" | "new">("current");
   const [currentPin, setCurrentPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -14,35 +17,23 @@ export default function ChangePinModal({ onClose }: Props) {
   const [success, setSuccess] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  async function handleCurrentComplete(pin: string) {
-    setBusy(true);
+  function handleCurrentComplete(pin: string) {
+    setCurrentPin(pin);
     setError(null);
-    try {
-      const res = await verifyPin(pin);
-      if (res.valid) {
-        setCurrentPin(pin);
-        setStep("new");
-      } else {
-        setError("Mã PIN hiện tại không đúng");
-        setResetKey((k) => k + 1);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
-      setResetKey((k) => k + 1);
-    } finally {
-      setBusy(false);
-    }
+    setStep("new");
   }
 
   async function handleNewComplete(pin: string) {
     setBusy(true);
     setError(null);
     try {
-      await changePin(currentPin, pin);
+      const newSession = await changePin(session.account, currentPin, pin);
+      onSessionUpdate(newSession);
       setSuccess(true);
       setTimeout(onClose, 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
+      setStep("current");
       setResetKey((k) => k + 1);
     } finally {
       setBusy(false);

@@ -1,14 +1,42 @@
 import { useState } from "react";
 import type { Screen } from "../App";
+import type { Session } from "../types";
 import ChangePinModal from "../components/ChangePinModal";
 
 interface Props {
+  session: Session;
   onNavigate: (screen: Screen) => void;
   onLogout: () => void;
+  onSessionUpdate: (session: Session) => void;
 }
 
-export default function HomeScreen({ onNavigate, onLogout }: Props) {
+export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpdate }: Props) {
   const [showChangePin, setShowChangePin] = useState(false);
+
+  if (session.isAdmin) {
+    return (
+      <div className="screen home-screen">
+        <div className="home-corner-actions">
+          <button className="change-pin-button logout-button" onClick={onLogout}>
+            🚪 Đăng Xuất
+          </button>
+        </div>
+
+        <div className="home-hero">
+          <div className="home-emoji">👑</div>
+          <h1 className="app-title">Admin</h1>
+          <p className="app-subtitle">Trang quản trị hệ thống</p>
+        </div>
+
+        <div className="home-actions">
+          <button className="big-card-button" onClick={() => onNavigate("ADMIN")}>
+            <span className="big-card-icon">⚙️</span>
+            <span className="big-card-label">Quản Trị Tài Khoản</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen home-screen">
@@ -23,7 +51,7 @@ export default function HomeScreen({ onNavigate, onLogout }: Props) {
 
       <div className="home-hero">
         <div className="home-emoji">🍼</div>
-        <h1 className="app-title">Lạc Lạc Bé Yêu</h1>
+        <h1 className="app-title">{session.babyName} Bé Yêu</h1>
         <p className="app-subtitle">Ghi nhật ký mỗi ngày của bé</p>
       </div>
 
@@ -38,7 +66,13 @@ export default function HomeScreen({ onNavigate, onLogout }: Props) {
         </button>
       </div>
 
-      {showChangePin && <ChangePinModal onClose={() => setShowChangePin(false)} />}
+      {showChangePin && (
+        <ChangePinModal
+          session={session}
+          onClose={() => setShowChangePin(false)}
+          onSessionUpdate={onSessionUpdate}
+        />
+      )}
     </div>
   );
 }

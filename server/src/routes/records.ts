@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
+import { isValidAccountId } from "../hash.js";
 import type { CreateRecordBody, RecordRow, RecordType } from "../types.js";
 
 export const recordsRouter = Router();
@@ -20,6 +21,7 @@ const VALID_SIDES = ["trai", "phai", "ca_hai"];
 const VALID_NON_TRO_LEVELS = ["nhe", "trung_binh", "nhieu", "rat_nhieu"];
 
 function validateBody(body: CreateRecordBody): string | null {
+  if (!isValidAccountId(body.account)) return "Thiếu hoặc sai tài khoản";
   if (!body.type || !VALID_TYPES.includes(body.type)) return "Loại hoạt động không hợp lệ";
   if (!body.date) return "Thiếu ngày";
   if (typeof body.volumeMl === "number" && body.volumeMl < 0) return "Dung tích không được âm";
@@ -73,8 +75,8 @@ recordsRouter.post("/", (req, res) => {
   }
 
   const stmt = db.prepare(`
-    INSERT INTO records (type, date, time, side, volume_ml, status, weight_kg, height_cm, custom_name, custom_value, note, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO records (type, date, time, side, volume_ml, status, weight_kg, height_cm, custom_name, custom_value, note, created_at, account)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = stmt.run(
     body.type,
@@ -88,7 +90,8 @@ recordsRouter.post("/", (req, res) => {
     body.customName ?? null,
     body.customValue ?? null,
     body.note ?? null,
-    new Date().toISOString()
+    new Date().toISOString(),
+    body.account as string
   );
 
   const row = db
@@ -99,13 +102,14 @@ recordsRouter.post("/", (req, res) => {
 
 recordsRouter.get("/", (req, res) => {
   const date = req.query.date as string | undefined;
-  if (!date) {
-    res.status(400).json({ error: "Thiếu tham số date" });
+  const account = req.query.account as string | undefined;
+  if (!date || !isValidAccountId(account)) {
+    res.status(400).json({ error: "Thiếu tham số date hoặc account" });
     return;
   }
   const rows = db
-    .prepare("SELECT * FROM records WHERE date = ? ORDER BY time ASC, created_at ASC")
-    .all(date) as unknown as RecordRow[];
+    .prepare("SELECT * FROM records WHERE date = ? AND account = ? ORDER BY time ASC, created_at ASC")
+    .all(date, account) as unknown as RecordRow[];
   res.json(rows);
 });
 
@@ -118,7 +122,8 @@ recordsRouter.put("/:id", (req, res) => {
     return;
   }
 
-  const existing = db.prepare("SELECT id FROM records WHERE id = ?").get(id);
+  const account = body.account as string;
+  const existing = db.prepare("SELECT id FROM records WHERE id = ? AND account = ?").get(id, account);
   if (!existing) {
     res.status(404).json({ error: "Không tìm thấy bản ghi" });
     return;
@@ -126,7 +131,7 @@ recordsRouter.put("/:id", (req, res) => {
 
   db.prepare(
     `UPDATE records SET type = ?, date = ?, time = ?, side = ?, volume_ml = ?, status = ?, weight_kg = ?, height_cm = ?, custom_name = ?, custom_value = ?, note = ?
-     WHERE id = ?`
+     WHERE id = ? AND account = ?`
   ).run(
     body.type,
     body.date,
@@ -139,7 +144,8 @@ recordsRouter.put("/:id", (req, res) => {
     body.customName ?? null,
     body.customValue ?? null,
     body.note ?? null,
-    id
+    id,
+    account
   );
 
   const row = db.prepare("SELECT * FROM records WHERE id = ?").get(id) as unknown as RecordRow;
@@ -148,6 +154,11 @@ recordsRouter.put("/:id", (req, res) => {
 
 recordsRouter.delete("/:id", (req, res) => {
   const id = Number(req.params.id);
-  db.prepare("DELETE FROM records WHERE id = ?").run(id);
+  const account = req.query.account as string | undefined;
+  if (!isValidAccountId(account)) {
+    res.status(400).json({ error: "Thiếu tham số account" });
+    return;
+  }
+  db.prepare("DELETE FROM records WHERE id = ? AND account = ?").run(id, account);
   res.status(204).end();
 });

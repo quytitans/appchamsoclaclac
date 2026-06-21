@@ -27,6 +27,7 @@ export interface RecordRow {
   custom_value: string | null;
   note: string | null;
   created_at: string;
+  account: string;
 }
 
 export interface CreateRecordBody {
@@ -41,4 +42,15 @@ export interface CreateRecordBody {
   customName?: string;
   customValue?: string;
   note?: string;
+  account?: string;
+}
+
+export interface AccountRow {
+  id: string;
+  baby_name: string;
+  pin_hash: string;
+  session_token: string;
+  is_admin: number;
+  is_active: number;
+  created_at: string;
 }

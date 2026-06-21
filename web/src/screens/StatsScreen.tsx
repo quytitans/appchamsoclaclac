@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchRecords, fetchStats } from "../api";
 import { shiftDateStr, todayDateStr } from "../dateUtils";
-import type { RecordItem, StatsResponse } from "../types";
+import type { RecordItem, Session, StatsResponse } from "../types";
 import AppHeader from "../components/AppHeader";
 import TimelineGrid from "../components/TimelineGrid";
 import EditRecordModal from "../components/EditRecordModal";
@@ -9,6 +9,7 @@ import MonthView from "./MonthView";
 import type { Screen } from "../App";
 
 interface Props {
+  session: Session;
   onNavigate: (screen: Screen) => void;
 }
 
@@ -17,7 +18,7 @@ interface KpiLine {
   text: string;
 }
 
-export default function StatsScreen({ onNavigate }: Props) {
+export default function StatsScreen({ session, onNavigate }: Props) {
   const [activeTab, setActiveTab] = useState<"day" | "month">("day");
   const [date, setDate] = useState(todayDateStr());
   const [stats, setStats] = useState<StatsResponse | null>(null);
@@ -27,13 +28,13 @@ export default function StatsScreen({ onNavigate }: Props) {
 
   const loadData = useCallback(() => {
     setLoading(true);
-    return Promise.all([fetchStats(date), fetchRecords(date)])
+    return Promise.all([fetchStats(date, session.account), fetchRecords(date, session.account)])
       .then(([statsRes, recordsRes]) => {
         setStats(statsRes);
         setRecords(recordsRes);
       })
       .finally(() => setLoading(false));
-  }, [date]);
+  }, [date, session.account]);
 
   useEffect(() => {
     loadData();
@@ -69,6 +70,7 @@ export default function StatsScreen({ onNavigate }: Props) {
 
       {activeTab === "month" && (
         <MonthView
+          account={session.account}
           onSelectDate={(dateStr) => {
             setDate(dateStr);
             setActiveTab("day");
@@ -135,6 +137,7 @@ export default function StatsScreen({ onNavigate }: Props) {
         <EditRecordModal
           key={editingRecord.id}
           record={editingRecord}
+          account={session.account}
           onClose={() => setEditingRecord(null)}
           onUpdated={() => {
             setEditingRecord(null);

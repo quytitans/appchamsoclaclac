@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { hashPin } from "../hash.js";
+import { hashPin, randomToken } from "../hash.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dbPath = path.join(__dirname, "..", "..", "database.sqlite");
@@ -36,9 +36,26 @@ db.exec(`
   )
 `);
 
-const existingPin = db.prepare("SELECT value FROM settings WHERE key = 'pin_hash'").get();
-if (!existingPin) {
-  db.prepare("INSERT INTO settings (key, value) VALUES ('pin_hash', ?)").run(hashPin("0000"));
+db.exec(`
+  CREATE TABLE IF NOT EXISTS accounts (
+    id TEXT PRIMARY KEY,
+    baby_name TEXT NOT NULL,
+    pin_hash TEXT NOT NULL,
+    session_token TEXT NOT NULL,
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  )
+`);
+
+{
+  const existingAccountColumns = db
+    .prepare("PRAGMA table_info(accounts)")
+    .all()
+    .map((row: any) => row.name as string);
+  if (!existingAccountColumns.includes("is_active")) {
+    db.exec(`ALTER TABLE accounts ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`);
+  }
 }
 
 // Cơ chế tự kiểm tra & cập nhật cột khi schema thay đổi (không dùng tool migration ngoài).
@@ -56,6 +73,7 @@ const REQUIRED_COLUMNS: Record<string, string> = {
   custom_value: "TEXT",
   note: "TEXT",
   created_at: "TEXT",
+  account: "TEXT",
 };
 
 function syncSchema() {
@@ -72,3 +90,22 @@ function syncSchema() {
 }
 
 syncSchema();
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_records_account ON records(account)`);
+
+// Dữ liệu tạo trước khi có khái niệm account đều thuộc về 1 em bé duy nhất
+// đang dùng app (laclac) — gán account cho các bản ghi cũ chưa có account.
+// Idempotent: chỉ ảnh hưởng các dòng còn NULL, chạy lại không gây thay đổi gì thêm.
+db.exec(`UPDATE records SET account = 'laclac' WHERE account IS NULL`);
+
+function seedAccount(id: string, babyName: string, pin: string, isAdmin: boolean) {
+  const existing = db.prepare("SELECT id FROM accounts WHERE id = ?").get(id);
+  if (existing) return;
+  db.prepare(
+    `INSERT INTO accounts (id, baby_name, pin_hash, session_token, is_admin, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(id, babyName, hashPin(pin), randomToken(), isAdmin ? 1 : 0, new Date().toISOString());
+}
+
+seedAccount("laclac", "Lạc Lạc", "1111", false);
+seedAccount("admin", "Admin", "7556", true);

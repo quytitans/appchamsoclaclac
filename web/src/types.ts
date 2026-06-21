@@ -41,6 +41,22 @@ export interface CreateRecordPayload {
   customName?: string;
   customValue?: string;
   note?: string;
+  account: string;
+}
+
+export interface Session {
+  token: string;
+  account: string;
+  babyName: string;
+  isAdmin: boolean;
+}
+
+export interface AccountSummary {
+  account: string;
+  babyName: string;
+  isAdmin: boolean;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface StatsResponse {

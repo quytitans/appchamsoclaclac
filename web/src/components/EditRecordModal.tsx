@@ -7,12 +7,13 @@ import type { RecordItem } from "../types";
 
 interface Props {
   record: RecordItem;
+  account: string;
   onClose: () => void;
   onUpdated: () => void;
   onDeleted: () => void;
 }
 
-export default function EditRecordModal({ record, onClose, onUpdated, onDeleted }: Props) {
+export default function EditRecordModal({ record, account, onClose, onUpdated, onDeleted }: Props) {
   const [form, setForm] = useState(() => recordToFormState(record));
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -31,7 +32,7 @@ export default function EditRecordModal({ record, onClose, onUpdated, onDeleted 
     setSaving(true);
     setMessage(null);
     try {
-      await updateRecord(record.id, payload);
+      await updateRecord(record.id, { ...payload, account });
       onUpdated();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
@@ -45,7 +46,7 @@ export default function EditRecordModal({ record, onClose, onUpdated, onDeleted 
     setDeleting(true);
     setMessage(null);
     try {
-      await deleteRecord(record.id);
+      await deleteRecord(record.id, account);
       onDeleted();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Đã có lỗi xảy ra");

@@ -47,7 +47,10 @@ export function recordToFormState(record: RecordItem): RecordFormState {
   };
 }
 
-export function buildRecordPayload(type: RecordType, state: RecordFormState): CreateRecordPayload | null {
+export function buildRecordPayload(
+  type: RecordType,
+  state: RecordFormState
+): Omit<CreateRecordPayload, "account"> | null {
   const base = { type, date: state.date };
   switch (type) {
     case "hut_sua":

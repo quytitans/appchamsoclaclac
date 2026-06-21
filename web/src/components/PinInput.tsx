@@ -46,6 +46,10 @@ export default function PinInput({ length = 4, onComplete, resetKey }: Props) {
           inputMode="numeric"
           maxLength={1}
           autoFocus={index === 0}
+          autoComplete="new-password"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           className="pin-box"
           value={value}
           onChange={(e) => handleChange(index, e.target.value)}

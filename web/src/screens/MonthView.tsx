@@ -11,20 +11,21 @@ function formatGrowth(kg: number | null): string {
 }
 
 interface Props {
+  account: string;
   onSelectDate: (dateStr: string) => void;
 }
 
-export default function MonthView({ onSelectDate }: Props) {
+export default function MonthView({ account, onSelectDate }: Props) {
   const [month, setMonth] = useState(currentMonthStr());
   const [data, setData] = useState<MonthStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(() => {
     setLoading(true);
-    return fetchMonthStats(month)
+    return fetchMonthStats(month, account)
       .then(setData)
       .finally(() => setLoading(false));
-  }, [month]);
+  }, [month, account]);
 
   useEffect(() => {
     loadData();

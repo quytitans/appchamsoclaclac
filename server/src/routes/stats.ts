@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
+import { isValidAccountId } from "../hash.js";
 import type { RecordRow } from "../types.js";
 
 export const statsRouter = Router();
@@ -23,48 +24,59 @@ function computeAvgIntervalMinutes(times: string[]): number | null {
   return totalGap / (minutes.length - 1);
 }
 
-function getLatestWeightOnOrBefore(dateStr: string): number | null {
+function getLatestWeightOnOrBefore(account: string, dateStr: string): number | null {
   const row = db
     .prepare(
       `SELECT weight_kg FROM records
-       WHERE type = 'can_nang' AND weight_kg IS NOT NULL AND date <= ?
+       WHERE type = 'can_nang' AND weight_kg IS NOT NULL AND date <= ? AND account = ?
        ORDER BY date DESC, created_at DESC LIMIT 1`
     )
-    .get(dateStr) as { weight_kg: number } | undefined;
+    .get(dateStr, account) as { weight_kg: number } | undefined;
   return row ? row.weight_kg : null;
 }
 
 statsRouter.get("/", (req, res) => {
+  const account = req.query.account as string | undefined;
+  if (!isValidAccountId(account)) {
+    res.status(400).json({ error: "Thiếu tham số account" });
+    return;
+  }
   const date = (req.query.date as string) || new Date().toISOString().slice(0, 10);
 
   const pumping = db
-    .prepare(`SELECT COUNT(*) AS count, COALESCE(SUM(volume_ml), 0) AS total FROM records WHERE type = 'hut_sua' AND date = ?`)
-    .get(date) as { count: number; total: number };
+    .prepare(
+      `SELECT COUNT(*) AS count, COALESCE(SUM(volume_ml), 0) AS total FROM records WHERE type = 'hut_sua' AND date = ? AND account = ?`
+    )
+    .get(date, account) as { count: number; total: number };
 
   const breastfeed = db
-    .prepare(`SELECT COUNT(*) AS count FROM records WHERE type = 'ti_me' AND date = ?`)
-    .get(date) as { count: number };
+    .prepare(`SELECT COUNT(*) AS count FROM records WHERE type = 'ti_me' AND date = ? AND account = ?`)
+    .get(date, account) as { count: number };
 
   const bottle = db
-    .prepare(`SELECT COUNT(*) AS count, COALESCE(SUM(volume_ml), 0) AS total FROM records WHERE type = 'ti_binh' AND date = ?`)
-    .get(date) as { count: number; total: number };
+    .prepare(
+      `SELECT COUNT(*) AS count, COALESCE(SUM(volume_ml), 0) AS total FROM records WHERE type = 'ti_binh' AND date = ? AND account = ?`
+    )
+    .get(date, account) as { count: number; total: number };
 
   const poop = db
-    .prepare(`SELECT COUNT(*) AS count FROM records WHERE type = 'di_nang' AND date = ?`)
-    .get(date) as { count: number };
+    .prepare(`SELECT COUNT(*) AS count FROM records WHERE type = 'di_nang' AND date = ? AND account = ?`)
+    .get(date, account) as { count: number };
 
   const pee = db
-    .prepare(`SELECT COUNT(*) AS count FROM records WHERE type = 'di_nhe' AND date = ?`)
-    .get(date) as { count: number };
+    .prepare(`SELECT COUNT(*) AS count FROM records WHERE type = 'di_nhe' AND date = ? AND account = ?`)
+    .get(date, account) as { count: number };
 
   const feedingTimes = db
-    .prepare(`SELECT time FROM records WHERE date = ? AND type IN ('ti_me', 'ti_binh') AND time IS NOT NULL`)
-    .all(date) as { time: string }[];
+    .prepare(
+      `SELECT time FROM records WHERE date = ? AND account = ? AND type IN ('ti_me', 'ti_binh') AND time IS NOT NULL`
+    )
+    .all(date, account) as { time: string }[];
   const avgFeedingIntervalMinutes = computeAvgIntervalMinutes(feedingTimes.map((r) => r.time));
 
-  const currentWeight = getLatestWeightOnOrBefore(date);
-  const weightAWeekAgo = getLatestWeightOnOrBefore(shiftDate(date, -7));
-  const weightAMonthAgo = getLatestWeightOnOrBefore(shiftDate(date, -30));
+  const currentWeight = getLatestWeightOnOrBefore(account, date);
+  const weightAWeekAgo = getLatestWeightOnOrBefore(account, shiftDate(date, -7));
+  const weightAMonthAgo = getLatestWeightOnOrBefore(account, shiftDate(date, -30));
 
   res.json({
     date,
@@ -94,7 +106,12 @@ statsRouter.get("/", (req, res) => {
 });
 
 statsRouter.get("/month", (req, res) => {
+  const account = req.query.account as string | undefined;
   const month = req.query.month as string | undefined;
+  if (!isValidAccountId(account)) {
+    res.status(400).json({ error: "Thiếu tham số account" });
+    return;
+  }
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
     res.status(400).json({ error: "Thiếu hoặc sai tham số month (định dạng YYYY-MM)" });
     return;
@@ -108,8 +125,8 @@ statsRouter.get("/month", (req, res) => {
   const lastDay = `${month}-${String(daysInMonth).padStart(2, "0")}`;
 
   const rows = db
-    .prepare(`SELECT * FROM records WHERE date BETWEEN ? AND ?`)
-    .all(firstDay, lastDay) as unknown as RecordRow[];
+    .prepare(`SELECT * FROM records WHERE date BETWEEN ? AND ? AND account = ?`)
+    .all(firstDay, lastDay, account) as unknown as RecordRow[];
 
   const byDate = new Map<string, RecordRow[]>();
   for (const row of rows) {
@@ -144,16 +161,16 @@ statsRouter.get("/month", (req, res) => {
     const end = Math.min(start + 6, daysInMonth);
     const endDate = `${month}-${String(end).padStart(2, "0")}`;
     const startDate = `${month}-${String(start).padStart(2, "0")}`;
-    const weightAtEnd = getLatestWeightOnOrBefore(endDate);
-    const weightBeforeStart = getLatestWeightOnOrBefore(shiftDate(startDate, -1));
+    const weightAtEnd = getLatestWeightOnOrBefore(account, endDate);
+    const weightBeforeStart = getLatestWeightOnOrBefore(account, shiftDate(startDate, -1));
     weeklyGrowth.push({
       label: `Tuần ${Math.ceil(start / 7)} (${start}-${end})`,
       deltaKg: weightAtEnd != null && weightBeforeStart != null ? weightAtEnd - weightBeforeStart : null,
     });
   }
 
-  const weightAtMonthEnd = getLatestWeightOnOrBefore(lastDay);
-  const weightBeforeMonth = getLatestWeightOnOrBefore(shiftDate(firstDay, -1));
+  const weightAtMonthEnd = getLatestWeightOnOrBefore(account, lastDay);
+  const weightBeforeMonth = getLatestWeightOnOrBefore(account, shiftDate(firstDay, -1));
   const monthlyGrowthKg =
     weightAtMonthEnd != null && weightBeforeMonth != null ? weightAtMonthEnd - weightBeforeMonth : null;
 

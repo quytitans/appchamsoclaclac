@@ -5,14 +5,15 @@ import { createRecord } from "../api";
 import { ACTIVITY_META, NOTE_TYPE_ORDER } from "../constants";
 import { nowTimeStr, todayDateStr } from "../dateUtils";
 import { buildRecordPayload, emptyRecordFormState } from "../recordForm";
-import type { RecordType } from "../types";
+import type { RecordType, Session } from "../types";
 import type { Screen } from "../App";
 
 interface Props {
+  session: Session;
   onNavigate: (screen: Screen) => void;
 }
 
-export default function NoteScreen({ onNavigate }: Props) {
+export default function NoteScreen({ session, onNavigate }: Props) {
   const [type, setType] = useState<RecordType>("hut_sua");
   const [form, setForm] = useState(() => emptyRecordFormState(todayDateStr(), nowTimeStr()));
   const [saving, setSaving] = useState(false);
@@ -38,7 +39,7 @@ export default function NoteScreen({ onNavigate }: Props) {
     setSaving(true);
     setError(null);
     try {
-      await createRecord(payload);
+      await createRecord({ ...payload, account: session.account });
       setShowSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
