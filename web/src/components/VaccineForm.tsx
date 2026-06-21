@@ -16,7 +16,7 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  async function handleSave() {
+  function handleSaveClick() {
     if (!fields.diseaseName.trim() || !fields.vaccineName.trim()) {
       setMessage({ kind: "error", text: "Vui lòng nhập tên bệnh và tên vắc-xin" });
       return;
@@ -25,6 +25,11 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
       setMessage({ kind: "error", text: "Vui lòng nhập tháng/năm hết hạn tác dụng" });
       return;
     }
+    setMessage(null);
+    setShowConfirm(true);
+  }
+
+  async function handleConfirm() {
     setSaving(true);
     setMessage(null);
     try {
@@ -39,24 +44,18 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
       });
       setCurrentId(created.id);
       onCreated?.(created.id);
-      setShowConfirm(true);
+      setShowConfirm(false);
+      onConfirmedSaved?.();
     } catch (err) {
+      setShowConfirm(false);
       setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" });
     } finally {
       setSaving(false);
     }
   }
 
-  function handleConfirm() {
-    setShowConfirm(false);
-    onConfirmedSaved?.();
-  }
-
   function handleCancel() {
     setShowConfirm(false);
-    setMessage(null);
-    setFields(emptyVaccineFields());
-    setCurrentId(null);
   }
 
   return (
@@ -65,7 +64,7 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
 
       {message && <div className={`message ${message.kind}`}>{message.text}</div>}
 
-      <button className="save-button" onClick={handleSave} disabled={saving}>
+      <button className="save-button" onClick={handleSaveClick} disabled={saving}>
         {saving ? "Đang lưu..." : "Lưu thông tin vắc-xin"}
       </button>
 
@@ -75,15 +74,17 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
         <div className="modal-overlay">
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🎉 Đã lưu thành công!</h3>
+              <h3>📋 Xác nhận lưu vắc-xin?</h3>
             </div>
-            <p className="pin-step-label">Thông tin vắc-xin đã được lưu vào sổ tiêm chủng. Chuyển sang xem sổ tiêm chủng?</p>
+            <p className="pin-step-label">
+              Lưu "{fields.vaccineName.trim()}" vào sổ tiêm chủng và chuyển sang xem sổ tiêm chủng?
+            </p>
             <div className="modal-actions">
-              <button className="secondary-button" onClick={handleCancel}>
+              <button className="secondary-button" onClick={handleCancel} disabled={saving}>
                 Hủy
               </button>
-              <button className="save-button" onClick={handleConfirm}>
-                Đồng Ý
+              <button className="save-button" onClick={handleConfirm} disabled={saving}>
+                {saving ? "Đang lưu..." : "Xác nhận"}
               </button>
             </div>
           </div>
