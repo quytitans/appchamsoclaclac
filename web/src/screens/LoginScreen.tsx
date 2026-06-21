@@ -38,7 +38,7 @@ export default function LoginScreen({ onLogin }: Props) {
   return (
     <div className="screen pin-lock-screen">
       <div className="home-emoji">🔒</div>
-      <h1 className="app-title">Lạc Lạc Bé Yêu</h1>
+      <h1 className="app-title">Trộm Vía Trộm Vía</h1>
       <p className="app-subtitle">Chọn tài khoản và nhập mã PIN</p>
 
       <div className="account-toggle">
