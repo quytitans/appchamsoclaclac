@@ -124,7 +124,11 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
             <span className="kpi-line-icon">⏳</span>
             Thời hạn:{" "}
             <span className="kpi-value">
-              {detail.duration_type === "lifetime" ? "Cả đời" : `Đến ${detail.expiry_month}/${detail.expiry_year}`}
+              {detail.duration_type === "lifetime"
+                ? "Cả đời"
+                : detail.duration_type === "yearly"
+                ? "Tiêm lại hàng năm"
+                : `Đến ${detail.expiry_month}/${detail.expiry_year}`}
             </span>
           </div>
           <div className="kpi-line">

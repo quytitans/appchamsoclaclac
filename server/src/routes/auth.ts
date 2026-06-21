@@ -193,3 +193,33 @@ authRouter.post("/admin/set-active", (req, res) => {
   );
   res.json({ success: true });
 });
+
+authRouter.post("/admin/delete-account", (req, res) => {
+  const { token, targetAccount } = req.body as { token?: string; targetAccount?: string };
+  const admin = requireAdmin(token);
+  if (!admin) {
+    res.status(403).json({ error: "Không có quyền truy cập" });
+    return;
+  }
+  if (!targetAccount) {
+    res.status(400).json({ error: "Thiếu tài khoản cần xóa" });
+    return;
+  }
+  if (targetAccount === admin.id) {
+    res.status(400).json({ error: "Không thể xóa tài khoản đang đăng nhập" });
+    return;
+  }
+  const target = getAccount(targetAccount);
+  if (!target) {
+    res.status(404).json({ error: "Không tìm thấy tài khoản" });
+    return;
+  }
+  const vaccineIds = db.prepare("SELECT id FROM vaccines WHERE account = ?").all(target.id) as { id: number }[];
+  for (const v of vaccineIds) {
+    db.prepare("DELETE FROM vaccine_doses WHERE vaccine_id = ?").run(v.id);
+  }
+  db.prepare("DELETE FROM vaccines WHERE account = ?").run(target.id);
+  db.prepare("DELETE FROM records WHERE account = ?").run(target.id);
+  db.prepare("DELETE FROM accounts WHERE id = ?").run(target.id);
+  res.json({ success: true });
+});

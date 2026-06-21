@@ -129,6 +129,14 @@ export function adminSetActive(token: string, targetAccount: string, active: boo
   }).then((res) => handleResponse<void>(res));
 }
 
+export function adminDeleteAccount(token: string, targetAccount: string): Promise<void> {
+  return fetch(`${API_BASE}/auth/admin/delete-account`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, targetAccount }),
+  }).then((res) => handleResponse<void>(res));
+}
+
 export function fetchVaccines(account: string): Promise<VaccineSummary[]> {
   return fetch(`${API_BASE}/vaccines?account=${encodeURIComponent(account)}`).then((res) =>
     handleResponse<VaccineSummary[]>(res)

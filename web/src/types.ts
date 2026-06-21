@@ -100,7 +100,7 @@ export interface LatestGrowth {
   heightCm: number | null;
 }
 
-export type VaccineDurationType = "lifetime" | "limited";
+export type VaccineDurationType = "lifetime" | "limited" | "yearly";
 
 export interface VaccineDose {
   id: number;

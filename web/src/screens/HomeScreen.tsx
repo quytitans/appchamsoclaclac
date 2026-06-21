@@ -69,14 +69,16 @@ export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpd
       </div>
 
       <div className="home-actions">
-        <button className="big-card-button" onClick={() => onNavigate("NOTE")}>
-          <span className="big-card-icon">📝</span>
-          <span className="big-card-label">Note Thông Tin</span>
-        </button>
-        <button className="big-card-button" onClick={() => onNavigate("STATS")}>
-          <span className="big-card-icon">📊</span>
-          <span className="big-card-label">Xem Thống Kê</span>
-        </button>
+        <div className="home-actions-group">
+          <button className="big-card-button" onClick={() => onNavigate("NOTE")}>
+            <span className="big-card-icon">📝</span>
+            <span className="big-card-label">Note Thông Tin</span>
+          </button>
+          <button className="big-card-button" onClick={() => onNavigate("STATS")}>
+            <span className="big-card-icon">📊</span>
+            <span className="big-card-label">Xem Thống Kê</span>
+          </button>
+        </div>
         <div className="vaccine-button-slot">
           {hasOverdueVaccine && (
             <div className="vaccine-home-warning">⚠️ Có mũi tiêm đến hạn hoặc quá hạn!</div>

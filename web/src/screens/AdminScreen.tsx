@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppHeader from "../components/AppHeader";
 import ChangePinModal from "../components/ChangePinModal";
-import { adminCreateAccount, adminListAccounts, adminResetPin, adminSetActive } from "../api";
+import {
+  adminCreateAccount,
+  adminDeleteAccount,
+  adminListAccounts,
+  adminResetPin,
+  adminSetActive,
+} from "../api";
 import type { AccountSummary, Session } from "../types";
 import type { Screen } from "../App";
 
@@ -27,6 +33,10 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
   const [resetPin, setResetPin] = useState("");
   const [resetting, setResetting] = useState(false);
   const [togglingAccount, setTogglingAccount] = useState<string | null>(null);
+
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AccountSummary | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filteredAccounts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -60,6 +70,7 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
       setBabyName("");
       setNewAccountId("");
       setNewAccountPin("");
+      setShowCreateForm(false);
       loadAccounts();
     } catch (err) {
       setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" });
@@ -104,6 +115,22 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
     }
   }
 
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setMessage(null);
+    try {
+      await adminDeleteAccount(session.token, deleteTarget.account);
+      setMessage({ kind: "success", text: `Đã xóa tài khoản "${deleteTarget.account}"` });
+      setDeleteTarget(null);
+      loadAccounts();
+    } catch (err) {
+      setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="screen admin-screen">
       <AppHeader onGoHome={() => onNavigate("HOME")} />
@@ -112,45 +139,58 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
           ←
         </button>
         <h2>Quản Trị Tài Khoản</h2>
-        <button className="nav-switch-button" onClick={() => setShowChangePin(true)}>
-          🔒 PIN của tôi
+        <button className="nav-switch-button" onClick={() => onNavigate("HOME")}>
+          🏠 Trang chủ
         </button>
       </header>
 
       {message && <div className={`message ${message.kind}`}>{message.text}</div>}
 
-      <section className="month-section">
-        <h3 className="month-section-title">➕ Tạo tài khoản mới</h3>
-        <div className="note-form">
-          <div className="field">
-            <label className="field-label">Tên bé</label>
-            <input type="text" placeholder="VD: Bé Kem" value={babyName} onChange={(e) => setBabyName(e.target.value)} />
-          </div>
-          <div className="field">
-            <label className="field-label">Tài khoản</label>
-            <input
-              type="text"
-              placeholder="VD: bekem"
-              value={newAccountId}
-              onChange={(e) => setNewAccountId(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label className="field-label">Mã PIN (4 số)</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={4}
-              placeholder="VD: 1234"
-              value={newAccountPin}
-              onChange={(e) => setNewAccountPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            />
-          </div>
-        </div>
-        <button className="save-button" onClick={handleCreate} disabled={creating}>
-          {creating ? "Đang tạo..." : "Tạo tài khoản"}
+      <div className="admin-quick-actions">
+        <button className="big-card-button admin-quick-button" onClick={() => setShowCreateForm((s) => !s)}>
+          <span className="big-card-icon">➕</span>
+          <span className="big-card-label">Tạo User Mới</span>
         </button>
-      </section>
+        <button className="big-card-button admin-quick-button" onClick={() => setShowChangePin(true)}>
+          <span className="big-card-icon">🔒</span>
+          <span className="big-card-label">Đổi PIN Admin</span>
+        </button>
+      </div>
+
+      {showCreateForm && (
+        <section className="month-section">
+          <h3 className="month-section-title">➕ Tạo tài khoản mới</h3>
+          <div className="note-form">
+            <div className="field">
+              <label className="field-label">Tên bé</label>
+              <input type="text" placeholder="VD: Bé Kem" value={babyName} onChange={(e) => setBabyName(e.target.value)} />
+            </div>
+            <div className="field">
+              <label className="field-label">Tài khoản</label>
+              <input
+                type="text"
+                placeholder="VD: bekem"
+                value={newAccountId}
+                onChange={(e) => setNewAccountId(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label className="field-label">Mã PIN (4 số)</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="VD: 1234"
+                value={newAccountPin}
+                onChange={(e) => setNewAccountPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              />
+            </div>
+          </div>
+          <button className="save-button" onClick={handleCreate} disabled={creating}>
+            {creating ? "Đang tạo..." : "Tạo tài khoản"}
+          </button>
+        </section>
+      )}
 
       <section className="month-section">
         <h3 className="month-section-title">👥 Danh sách tài khoản</h3>
@@ -209,6 +249,14 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
                   <button className="nav-switch-button" onClick={() => setResetTarget(a.account)}>
                     Đổi PIN
                   </button>
+                  <button
+                    className="account-delete-button"
+                    onClick={() => setDeleteTarget(a)}
+                    aria-label="Xóa tài khoản"
+                    title="Xóa"
+                  >
+                    🗑️
+                  </button>
                 </div>
               )}
             </div>
@@ -221,6 +269,28 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
           onClose={() => setShowChangePin(false)}
           onSessionUpdate={onSessionUpdate}
         />
+      )}
+
+      {deleteTarget && (
+        <div className="modal-overlay">
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🗑️ Xóa tài khoản?</h3>
+            </div>
+            <p className="pin-step-label">
+              Tài khoản "{deleteTarget.babyName}" (@{deleteTarget.account}) và toàn bộ dữ liệu của tài khoản này sẽ bị
+              xóa vĩnh viễn.
+            </p>
+            <div className="modal-actions">
+              <button className="secondary-button" onClick={() => setDeleteTarget(null)}>
+                Hủy
+              </button>
+              <button className="save-button vaccine-delete-confirm" onClick={handleDelete} disabled={deleting}>
+                {deleting ? "Đang xóa..." : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

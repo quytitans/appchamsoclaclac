@@ -145,6 +145,15 @@ body {
   gap: 16px;
 }
 
+.home-actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 3px dashed var(--deep-pink);
+  border-radius: 22px;
+  padding: 14px;
+}
+
 .vaccine-button-slot {
   display: flex;
   flex-direction: column;
@@ -1032,6 +1041,38 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.account-delete-button {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: #ffebee;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.admin-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-quick-button {
+  padding: 16px 8px;
+  font-size: 14px;
+  gap: 6px;
+}
+
+.admin-quick-button .big-card-icon {
+  font-size: 24px;
 }
 
 .account-active-toggle {

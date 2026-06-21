@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { confirmVaccineDose, fetchVaccines, reorderVaccine } from "../api";
 import { todayDateStr } from "../dateUtils";
 import VaccineDetailCard from "./VaccineDetailCard";
@@ -18,6 +18,15 @@ export default function VaccineList({ account }: Props) {
   const [confirmDate, setConfirmDate] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [refreshKeys, setRefreshKeys] = useState<Map<number, number>>(new Map());
+  const [search, setSearch] = useState("");
+
+  const filteredVaccines = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return vaccines;
+    return vaccines.filter(
+      (v) => v.vaccine_name.toLowerCase().includes(q) || v.disease_name.toLowerCase().includes(q)
+    );
+  }, [vaccines, search]);
 
   const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const prevRectsRef = useRef<Map<number, DOMRect> | null>(null);
@@ -100,7 +109,15 @@ export default function VaccineList({ account }: Props) {
 
   return (
     <div className="vaccine-list">
-      {vaccines.map((v, idx) => {
+      <input
+        type="text"
+        className="account-search-input"
+        placeholder="🔍 Tìm theo tên vắc-xin..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      {filteredVaccines.length === 0 && <p className="loading-text">Không tìm thấy vắc-xin nào</p>}
+      {filteredVaccines.map((v, idx) => {
         const isOverdue = v.next_dose_date != null && v.next_dose_date <= today;
         return (
           <div
@@ -134,7 +151,7 @@ export default function VaccineList({ account }: Props) {
                 </button>
                 <button
                   className="date-nav-button"
-                  disabled={idx === vaccines.length - 1}
+                  disabled={idx === filteredVaccines.length - 1}
                   onClick={(e) => handleMove(v.id, "down", e)}
                 >
                   ▼

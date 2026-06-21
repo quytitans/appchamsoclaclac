@@ -55,7 +55,7 @@ export interface AccountRow {
   created_at: string;
 }
 
-export type VaccineDurationType = "lifetime" | "limited";
+export type VaccineDurationType = "lifetime" | "limited" | "yearly";
 
 export interface VaccineRow {
   id: number;

@@ -20,7 +20,7 @@ function validateVaccineBody(body: VaccineBody): string | null {
   if (!isValidAccountId(body.account)) return "Thiếu hoặc sai tài khoản";
   if (!body.diseaseName || !body.diseaseName.trim()) return "Thiếu tên bệnh/loại bệnh phòng ngừa";
   if (!body.vaccineName || !body.vaccineName.trim()) return "Thiếu tên thương mại vắc-xin";
-  if (body.durationType !== "lifetime" && body.durationType !== "limited") {
+  if (body.durationType !== "lifetime" && body.durationType !== "limited" && body.durationType !== "yearly") {
     return "Thiếu thời hạn bảo vệ";
   }
   if (body.durationType === "limited") {

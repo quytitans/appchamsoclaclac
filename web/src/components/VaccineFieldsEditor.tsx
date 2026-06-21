@@ -88,6 +88,13 @@ export default function VaccineFieldsEditor({ state, onChange, showNextDoseDate 
           >
             Có thời hạn
           </button>
+          <button
+            type="button"
+            className={`toggle-option ${state.durationType === "yearly" ? "active" : ""}`}
+            onClick={() => onChange({ ...state, durationType: "yearly" })}
+          >
+            Tiêm lại hàng năm
+          </button>
         </div>
       </div>
       {state.durationType === "limited" && (
