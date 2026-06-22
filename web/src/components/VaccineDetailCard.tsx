@@ -18,15 +18,28 @@ function toFields(v: VaccineDetail): VaccineFieldsState {
     vaccineName: v.vaccine_name,
     totalDoses: v.total_doses != null ? String(v.total_doses) : "",
     durationType: v.duration_type,
-    expiryMonth: v.expiry_month != null ? String(v.expiry_month) : "",
-    expiryYear: v.expiry_year != null ? String(v.expiry_year) : "",
+    durationYears: v.duration_years != null ? String(v.duration_years) : "",
     nextDoseDate: v.next_dose_date ?? "",
+    note: v.note ?? "",
   };
+}
+
+function formatDuration(v: VaccineDetail): string {
+  if (v.duration_type === "lifetime") return "Cả đời";
+  if (v.duration_type === "yearly") return "Tiêm lại hàng năm";
+  const hasExpiry = v.expiry_month != null && v.expiry_year != null;
+  if (v.duration_years != null) {
+    return hasExpiry
+      ? `${v.duration_years} năm (Đến ${v.expiry_month}/${v.expiry_year})`
+      : `${v.duration_years} năm (chưa xác định ngày hết hạn — cần nhập mũi 1)`;
+  }
+  return hasExpiry ? `Đến ${v.expiry_month}/${v.expiry_year}` : "Chưa xác định";
 }
 
 export default function VaccineDetailCard({ account, vaccineId, onChanged, refreshSignal }: Props) {
   const [detail, setDetail] = useState<VaccineDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showGeneralInfo, setShowGeneralInfo] = useState(false);
   const [editing, setEditing] = useState(false);
   const [fields, setFields] = useState<VaccineFieldsState | null>(null);
   const [saving, setSaving] = useState(false);
@@ -55,8 +68,8 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
       setMessage({ kind: "error", text: "Vui lòng nhập tên bệnh và tên vắc-xin" });
       return;
     }
-    if (fields.durationType === "limited" && (!fields.expiryMonth || !fields.expiryYear)) {
-      setMessage({ kind: "error", text: "Vui lòng nhập tháng/năm hết hạn tác dụng" });
+    if (fields.durationType === "limited" && !fields.durationYears) {
+      setMessage({ kind: "error", text: "Vui lòng nhập số năm bảo vệ" });
       return;
     }
     setSaving(true);
@@ -68,9 +81,9 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
         vaccineName: fields.vaccineName.trim(),
         totalDoses: fields.totalDoses ? Number(fields.totalDoses) : undefined,
         durationType: fields.durationType,
-        expiryMonth: fields.durationType === "limited" ? Number(fields.expiryMonth) : undefined,
-        expiryYear: fields.durationType === "limited" ? Number(fields.expiryYear) : undefined,
+        durationYears: fields.durationType === "limited" ? Number(fields.durationYears) : undefined,
         nextDoseDate: fields.nextDoseDate || undefined,
+        note: fields.note.trim() || undefined,
       });
       setEditing(false);
       await load();
@@ -104,76 +117,88 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
 
   return (
     <div className="vaccine-detail-card">
-      {!editing ? (
-        <div className="vaccine-summary">
-          <div className="kpi-line">
-            <span className="kpi-line-icon">🦠</span>
-            Bệnh phòng ngừa: <span className="kpi-value">{detail.disease_name}</span>
-          </div>
-          <div className="kpi-line">
-            <span className="kpi-line-icon">💊</span>
-            Vắc-xin: <span className="kpi-value">{detail.vaccine_name}</span>
-          </div>
-          {detail.total_doses != null && (
+      <button className="nav-switch-button vaccine-info-toggle" onClick={() => setShowGeneralInfo((s) => !s)}>
+        ℹ️ Thông tin vắc-xin {showGeneralInfo ? "▲" : "▼"}
+      </button>
+
+      {showGeneralInfo &&
+        (!editing ? (
+          <div className="vaccine-summary">
             <div className="kpi-line">
-              <span className="kpi-line-icon">💉</span>
-              Tổng số mũi: <span className="kpi-value">{detail.total_doses}</span>
+              <span className="kpi-line-icon">🦠</span>
+              Bệnh phòng ngừa: <span className="kpi-value">{detail.disease_name}</span>
             </div>
-          )}
-          <div className="kpi-line">
-            <span className="kpi-line-icon">⏳</span>
-            Thời hạn:{" "}
-            <span className="kpi-value">
-              {detail.duration_type === "lifetime"
-                ? "Cả đời"
-                : detail.duration_type === "yearly"
-                ? "Tiêm lại hàng năm"
-                : `Đến ${detail.expiry_month}/${detail.expiry_year}`}
-            </span>
+            <div className="kpi-line">
+              <span className="kpi-line-icon">💊</span>
+              Vắc-xin: <span className="kpi-value">{detail.vaccine_name}</span>
+            </div>
+            {detail.total_doses != null && (
+              <div className="kpi-line">
+                <span className="kpi-line-icon">💉</span>
+                Tổng số mũi: <span className="kpi-value">{detail.total_doses}</span>
+              </div>
+            )}
+            <div className="kpi-line">
+              <span className="kpi-line-icon">⏳</span>
+              Thời hạn: <span className="kpi-value">{formatDuration(detail)}</span>
+            </div>
+            <div className="kpi-line">
+              <span className="kpi-line-icon">{isOverdue ? "⚠️" : "📅"}</span>
+              Mũi tiếp theo dự kiến:{" "}
+              <span className={`kpi-value ${isOverdue ? "vaccine-overdue-text" : ""}`}>
+                {nextDoseDate ?? "Chưa đặt lịch"}
+              </span>
+            </div>
+            {detail.note && (
+              <div className="kpi-line">
+                <span className="kpi-line-icon">📝</span>
+                Ghi chú: <span className="kpi-value vaccine-note-value">{detail.note}</span>
+              </div>
+            )}
+            <div className="vaccine-summary-actions">
+              <button className="nav-switch-button vaccine-edit-button" onClick={() => setEditing(true)}>
+                ✏️ Sửa
+              </button>
+              <button
+                className="secondary-button vaccine-delete-button"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                🗑️ Xóa
+              </button>
+            </div>
           </div>
-          <div className="kpi-line">
-            <span className="kpi-line-icon">{isOverdue ? "⚠️" : "📅"}</span>
-            Mũi tiếp theo dự kiến:{" "}
-            <span className={`kpi-value ${isOverdue ? "vaccine-overdue-text" : ""}`}>
-              {nextDoseDate ?? "Chưa đặt lịch"}
-            </span>
-          </div>
-          <div className="vaccine-summary-actions">
-            <button className="nav-switch-button vaccine-edit-button" onClick={() => setEditing(true)}>
-              ✏️ Sửa
-            </button>
-            <button
-              className="secondary-button vaccine-delete-button"
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              🗑️ Xóa
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          <VaccineFieldsEditor state={fields} onChange={setFields} showNextDoseDate />
-          <div className="modal-actions">
-            <button
-              className="secondary-button"
-              onClick={() => {
-                setEditing(false);
-                setFields(toFields(detail));
-                setMessage(null);
-              }}
-            >
-              Hủy
-            </button>
-            <button className="save-button" onClick={handleSave} disabled={saving}>
-              {saving ? "Đang lưu..." : "Lưu"}
-            </button>
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <VaccineFieldsEditor state={fields} onChange={setFields} showNextDoseDate />
+            <div className="modal-actions">
+              <button
+                className="secondary-button"
+                onClick={() => {
+                  setEditing(false);
+                  setFields(toFields(detail));
+                  setMessage(null);
+                }}
+              >
+                Hủy
+              </button>
+              <button className="save-button" onClick={handleSave} disabled={saving}>
+                {saving ? "Đang lưu..." : "Lưu"}
+              </button>
+            </div>
+          </>
+        ))}
 
       {message && <div className={`message ${message.kind}`}>{message.text}</div>}
 
-      <DoseHistorySection account={account} vaccineId={vaccineId} onChanged={onChanged} refreshSignal={refreshSignal} />
+      <DoseHistorySection
+        account={account}
+        vaccineId={vaccineId}
+        onChanged={() => {
+          load();
+          onChanged();
+        }}
+        refreshSignal={refreshSignal}
+      />
 
       {showDeleteConfirm && (
         <div className="modal-overlay">

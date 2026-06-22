@@ -64,9 +64,11 @@ export interface VaccineRow {
   vaccine_name: string;
   total_doses: number | null;
   duration_type: VaccineDurationType;
+  duration_years: number | null;
   expiry_month: number | null;
   expiry_year: number | null;
   next_dose_date: string | null;
+  note: string | null;
   sort_order: number;
   created_at: string;
 }

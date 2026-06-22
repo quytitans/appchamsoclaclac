@@ -21,8 +21,8 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
       setMessage({ kind: "error", text: "Vui lòng nhập tên bệnh và tên vắc-xin" });
       return;
     }
-    if (fields.durationType === "limited" && (!fields.expiryMonth || !fields.expiryYear)) {
-      setMessage({ kind: "error", text: "Vui lòng nhập tháng/năm hết hạn tác dụng" });
+    if (fields.durationType === "limited" && !fields.durationYears) {
+      setMessage({ kind: "error", text: "Vui lòng nhập số năm bảo vệ" });
       return;
     }
     setMessage(null);
@@ -39,8 +39,8 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
         vaccineName: fields.vaccineName.trim(),
         totalDoses: fields.totalDoses ? Number(fields.totalDoses) : undefined,
         durationType: fields.durationType,
-        expiryMonth: fields.durationType === "limited" ? Number(fields.expiryMonth) : undefined,
-        expiryYear: fields.durationType === "limited" ? Number(fields.expiryYear) : undefined,
+        durationYears: fields.durationType === "limited" ? Number(fields.durationYears) : undefined,
+        note: fields.note.trim() || undefined,
       });
       setCurrentId(created.id);
       onCreated?.(created.id);

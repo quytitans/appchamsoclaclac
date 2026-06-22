@@ -100,8 +100,8 @@ export default function VaccineList({ account }: Props) {
     }
   }
 
-  if (loading) return <p className="loading-text">Đang tải...</p>;
-  if (vaccines.length === 0) {
+  if (loading && vaccines.length === 0) return <p className="loading-text">Đang tải...</p>;
+  if (!loading && vaccines.length === 0) {
     return <p className="loading-text">Chưa có vắc-xin nào được ghi nhận</p>;
   }
 

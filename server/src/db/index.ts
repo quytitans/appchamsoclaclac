@@ -126,6 +126,19 @@ db.exec(`
   )
 `);
 
+{
+  const existingVaccineColumns = db
+    .prepare("PRAGMA table_info(vaccines)")
+    .all()
+    .map((row: any) => row.name as string);
+  if (!existingVaccineColumns.includes("duration_years")) {
+    db.exec(`ALTER TABLE vaccines ADD COLUMN duration_years INTEGER`);
+  }
+  if (!existingVaccineColumns.includes("note")) {
+    db.exec(`ALTER TABLE vaccines ADD COLUMN note TEXT`);
+  }
+}
+
 db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccines_account ON vaccines(account)`);
 
 db.exec(`

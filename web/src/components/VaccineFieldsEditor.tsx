@@ -5,9 +5,9 @@ export interface VaccineFieldsState {
   vaccineName: string;
   totalDoses: string;
   durationType: VaccineDurationType;
-  expiryMonth: string;
-  expiryYear: string;
+  durationYears: string;
   nextDoseDate: string;
+  note: string;
 }
 
 export function emptyVaccineFields(): VaccineFieldsState {
@@ -16,9 +16,9 @@ export function emptyVaccineFields(): VaccineFieldsState {
     vaccineName: "",
     totalDoses: "",
     durationType: "lifetime",
-    expiryMonth: "",
-    expiryYear: "",
+    durationYears: "",
     nextDoseDate: "",
+    note: "",
   };
 }
 
@@ -28,18 +28,7 @@ interface Props {
   showNextDoseDate?: boolean;
 }
 
-const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1);
-
-function buildYearOptions(currentValue: string): number[] {
-  const thisYear = new Date().getFullYear();
-  const years = new Set<number>();
-  for (let y = thisYear - 1; y <= thisYear + 30; y++) years.add(y);
-  if (currentValue) years.add(Number(currentValue));
-  return Array.from(years).sort((a, b) => a - b);
-}
-
 export default function VaccineFieldsEditor({ state, onChange, showNextDoseDate = false }: Props) {
-  const yearOptions = buildYearOptions(state.expiryYear);
   return (
     <div className="note-form">
       <div className="field">
@@ -98,35 +87,16 @@ export default function VaccineFieldsEditor({ state, onChange, showNextDoseDate 
         </div>
       </div>
       {state.durationType === "limited" && (
-        <div className="field-row">
-          <div className="field">
-            <label className="field-label">Tháng hết hạn</label>
-            <select
-              value={state.expiryMonth ? String(Number(state.expiryMonth)) : ""}
-              onChange={(e) => onChange({ ...state, expiryMonth: e.target.value })}
-            >
-              <option value="">Chọn tháng</option>
-              {MONTH_OPTIONS.map((m) => (
-                <option key={m} value={m}>
-                  Tháng {m}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label className="field-label">Năm hết hạn</label>
-            <select
-              value={state.expiryYear}
-              onChange={(e) => onChange({ ...state, expiryYear: e.target.value })}
-            >
-              <option value="">Chọn năm</option>
-              {yearOptions.map((y) => (
-                <option key={y} value={y}>
-                  Năm {y}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="field">
+          <label className="field-label">Số năm bảo vệ (tính từ mũi 1)</label>
+          <input
+            type="number"
+            min={1}
+            inputMode="numeric"
+            placeholder="VD: 5"
+            value={state.durationYears}
+            onChange={(e) => onChange({ ...state, durationYears: e.target.value.replace(/\D/g, "").slice(0, 2) })}
+          />
         </div>
       )}
       {showNextDoseDate && (
@@ -139,6 +109,15 @@ export default function VaccineFieldsEditor({ state, onChange, showNextDoseDate 
           />
         </div>
       )}
+      <div className="field">
+        <label className="field-label">Ghi chú (không bắt buộc)</label>
+        <textarea
+          rows={4}
+          placeholder="Lưu ý thêm về vắc-xin này..."
+          value={state.note}
+          onChange={(e) => onChange({ ...state, note: e.target.value })}
+        />
+      </div>
     </div>
   );
 }

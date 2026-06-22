@@ -26,6 +26,11 @@ export function shiftMonthStr(month: string, delta: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+export function formatDateVN(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 export function nowTimeStr(): string {
   const d = new Date();
   const hh = String(d.getHours()).padStart(2, "0");

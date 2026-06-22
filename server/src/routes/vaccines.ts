@@ -11,9 +11,9 @@ interface VaccineBody {
   vaccineName?: string;
   totalDoses?: number;
   durationType?: VaccineDurationType;
-  expiryMonth?: number;
-  expiryYear?: number;
+  durationYears?: number;
   nextDoseDate?: string;
+  note?: string;
 }
 
 function validateVaccineBody(body: VaccineBody): string | null {
@@ -24,14 +24,8 @@ function validateVaccineBody(body: VaccineBody): string | null {
     return "Thiếu thời hạn bảo vệ";
   }
   if (body.durationType === "limited") {
-    if (
-      typeof body.expiryMonth !== "number" ||
-      body.expiryMonth < 1 ||
-      body.expiryMonth > 12 ||
-      typeof body.expiryYear !== "number" ||
-      body.expiryYear < 2000
-    ) {
-      return "Thiếu hoặc sai tháng/năm hết hạn";
+    if (typeof body.durationYears !== "number" || body.durationYears < 1) {
+      return "Thiếu hoặc sai số năm bảo vệ";
     }
   }
   if (typeof body.totalDoses === "number" && body.totalDoses < 0) return "Tổng số mũi không được âm";
@@ -50,6 +44,26 @@ function getDosesSummary(vaccineId: number) {
     .all(vaccineId) as unknown as VaccineDoseRow[];
   const latest = doses.length > 0 ? doses[doses.length - 1] : null;
   return { doseCount: doses.length, latestDose: latest };
+}
+
+function recalcExpiry(vaccineId: number) {
+  const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(vaccineId) as
+    | VaccineRow
+    | undefined;
+  if (!vaccine || vaccine.duration_type !== "limited" || vaccine.duration_years == null) return;
+  const dose1 = db
+    .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND dose_number = 1")
+    .get(vaccineId) as VaccineDoseRow | undefined;
+  if (!dose1) {
+    db.prepare("UPDATE vaccines SET expiry_month = NULL, expiry_year = NULL WHERE id = ?").run(vaccineId);
+    return;
+  }
+  const [y, m] = dose1.date.split("-").map(Number);
+  db.prepare("UPDATE vaccines SET expiry_month = ?, expiry_year = ? WHERE id = ?").run(
+    m,
+    y + vaccine.duration_years,
+    vaccineId
+  );
 }
 
 vaccinesRouter.get("/", (req, res) => {
@@ -95,8 +109,8 @@ vaccinesRouter.post("/", (req, res) => {
 
   const result = db
     .prepare(
-      `INSERT INTO vaccines (account, disease_name, vaccine_name, total_doses, duration_type, expiry_month, expiry_year, next_dose_date, sort_order, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO vaccines (account, disease_name, vaccine_name, total_doses, duration_type, duration_years, expiry_month, expiry_year, next_dose_date, note, sort_order, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?)`
     )
     .run(
       body.account as string,
@@ -104,16 +118,16 @@ vaccinesRouter.post("/", (req, res) => {
       body.vaccineName!.trim(),
       body.totalDoses ?? null,
       body.durationType as string,
-      body.durationType === "limited" ? (body.expiryMonth as number) : null,
-      body.durationType === "limited" ? (body.expiryYear as number) : null,
+      body.durationType === "limited" ? (body.durationYears as number) : null,
       body.nextDoseDate || null,
+      body.note?.trim() || null,
       maxOrder.m + 1,
       new Date().toISOString()
     );
 
-  const vaccine = db
-    .prepare("SELECT * FROM vaccines WHERE id = ?")
-    .get(result.lastInsertRowid) as unknown as VaccineRow;
+  const vaccineId = result.lastInsertRowid as number;
+  recalcExpiry(vaccineId);
+  const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(vaccineId) as unknown as VaccineRow;
   res.status(201).json({ ...vaccine, doseCount: 0, latestDose: null });
 });
 
@@ -131,18 +145,19 @@ vaccinesRouter.put("/:id", (req, res) => {
     return;
   }
   db.prepare(
-    `UPDATE vaccines SET disease_name = ?, vaccine_name = ?, total_doses = ?, duration_type = ?, expiry_month = ?, expiry_year = ?, next_dose_date = ?
+    `UPDATE vaccines SET disease_name = ?, vaccine_name = ?, total_doses = ?, duration_type = ?, duration_years = ?, next_dose_date = ?, note = ?
      WHERE id = ?`
   ).run(
     body.diseaseName!.trim(),
     body.vaccineName!.trim(),
     body.totalDoses ?? null,
     body.durationType as string,
-    body.durationType === "limited" ? (body.expiryMonth as number) : null,
-    body.durationType === "limited" ? (body.expiryYear as number) : null,
+    body.durationType === "limited" ? (body.durationYears as number) : null,
     body.nextDoseDate || null,
+    body.note?.trim() || null,
     id
   );
+  recalcExpiry(id);
   const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(id) as unknown as VaccineRow;
   res.json({ ...vaccine, ...getDosesSummary(id) });
 });
@@ -212,6 +227,7 @@ vaccinesRouter.post("/:id/confirm-dose", (req, res) => {
      VALUES (?, ?, NULL, ?, NULL, ?)`
   ).run(id, maxDose.m + 1, date, new Date().toISOString());
   db.prepare("UPDATE vaccines SET next_dose_date = NULL WHERE id = ?").run(id);
+  recalcExpiry(id);
 
   const updatedVaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(id) as unknown as VaccineRow;
   res.json({ ...updatedVaccine, ...getDosesSummary(id) });
@@ -251,6 +267,7 @@ vaccinesRouter.post("/:id/doses", (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?)`
     )
     .run(vaccineId, body.doseNumber as number, body.location || null, body.date as string, body.note || null, new Date().toISOString());
+  recalcExpiry(vaccineId);
   const dose = db.prepare("SELECT * FROM vaccine_doses WHERE id = ?").get(result.lastInsertRowid);
   res.status(201).json(dose);
 });
@@ -283,6 +300,7 @@ vaccinesRouter.put("/:id/doses/:doseId", (req, res) => {
     body.note || null,
     doseId
   );
+  recalcExpiry(vaccineId);
   const dose = db.prepare("SELECT * FROM vaccine_doses WHERE id = ?").get(doseId);
   res.json(dose);
 });
@@ -301,5 +319,6 @@ vaccinesRouter.delete("/:id/doses/:doseId", (req, res) => {
     return;
   }
   db.prepare("DELETE FROM vaccine_doses WHERE id = ? AND vaccine_id = ?").run(doseId, vaccineId);
+  recalcExpiry(vaccineId);
   res.status(204).end();
 });

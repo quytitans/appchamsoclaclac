@@ -119,9 +119,11 @@ export interface VaccineSummary {
   vaccine_name: string;
   total_doses: number | null;
   duration_type: VaccineDurationType;
+  duration_years: number | null;
   expiry_month: number | null;
   expiry_year: number | null;
   next_dose_date: string | null;
+  note: string | null;
   sort_order: number;
   created_at: string;
   doseCount: number;
@@ -138,9 +140,9 @@ export interface VaccinePayload {
   vaccineName: string;
   totalDoses?: number;
   durationType: VaccineDurationType;
-  expiryMonth?: number;
-  expiryYear?: number;
+  durationYears?: number;
   nextDoseDate?: string;
+  note?: string;
 }
 
 export interface DosePayload {

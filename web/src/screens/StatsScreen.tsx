@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchRecords, fetchStats } from "../api";
-import { shiftDateStr, todayDateStr } from "../dateUtils";
+import { formatDateVN, shiftDateStr, todayDateStr } from "../dateUtils";
 import type { RecordItem, Session, StatsResponse } from "../types";
 import AppHeader from "../components/AppHeader";
 import TimelineGrid from "../components/TimelineGrid";
@@ -25,6 +25,17 @@ export default function StatsScreen({ session, onNavigate }: Props) {
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingRecord, setEditingRecord] = useState<RecordItem | null>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  function openDatePicker() {
+    const el = dateInputRef.current;
+    if (!el) return;
+    if (typeof el.showPicker === "function") {
+      el.showPicker();
+    } else {
+      el.click();
+    }
+  }
 
   const loadData = useCallback(() => {
     setLoading(true);
@@ -86,7 +97,16 @@ export default function StatsScreen({ session, onNavigate }: Props) {
               <button className="date-nav-button" onClick={() => setDate((d) => shiftDateStr(d, -1))}>
                 ‹
               </button>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <div className="date-display-wrapper" onClick={openDatePicker}>
+                <span className="date-display-text">{formatDateVN(date)}</span>
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  className="date-display-hidden-input"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
               <button className="date-nav-button" onClick={() => setDate((d) => shiftDateStr(d, 1))}>
                 ›
               </button>

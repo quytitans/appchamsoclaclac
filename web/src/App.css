@@ -459,14 +459,28 @@ body {
   margin-top: 6px;
 }
 
-.date-nav input {
+.date-display-wrapper {
+  position: relative;
   flex: 1;
-  border: none;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.date-display-text {
   font-family: "Quicksand", "Segoe UI", system-ui, sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--deep-pink);
+}
+
+.date-display-hidden-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .date-nav-button {
@@ -1385,6 +1399,14 @@ body {
   padding: 0 14px 16px;
 }
 
+.vaccine-info-toggle {
+  width: 100%;
+  text-align: center;
+  white-space: normal;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
 .vaccine-summary {
   display: flex;
   flex-direction: column;
@@ -1418,4 +1440,11 @@ body {
 
 .vaccine-overdue-text {
   color: #e53935;
+}
+
+.vaccine-note-value {
+  display: block;
+  white-space: pre-line;
+  font-size: 15px;
+  margin-top: 2px;
 }
