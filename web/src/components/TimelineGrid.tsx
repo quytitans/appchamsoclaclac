@@ -68,9 +68,20 @@ function buildColumns(records: RecordItem[]): Column[] {
   ];
 }
 
-function feedingShadeClass(record: RecordItem): string {
-  if (record.type === "ti_me") return "feeding-me";
+function shadeClass(record: RecordItem): string {
+  if (record.type === "ti_me") {
+    if (record.side === "trai") return "feeding-me feeding-me-trai";
+    if (record.side === "phai") return "feeding-me feeding-me-phai";
+    return "feeding-me";
+  }
   if (record.type === "ti_binh") return "feeding-binh";
+  if (record.type === "hut_sua") {
+    if (record.side === "trai") return "hutsua-trai";
+    if (record.side === "phai") return "hutsua-phai";
+    return "";
+  }
+  if (record.type === "di_nang") return "vesinh-nang";
+  if (record.type === "di_nhe") return "vesinh-nhe";
   return "";
 }
 
@@ -113,7 +124,7 @@ export default function TimelineGrid({ records, onSelectRecord }: Props) {
             {col.items.map((item) => (
               <button
                 key={item.id}
-                className={`timeline-card ${col.colorClass} ${feedingShadeClass(item)}`}
+                className={`timeline-card ${col.colorClass} ${shadeClass(item)}`}
                 onClick={() => onSelectRecord(item)}
               >
                 <span className="timeline-card-time">{item.time ?? ""}</span>

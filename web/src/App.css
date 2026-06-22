@@ -639,6 +639,33 @@ body {
   background: #ffa3c4;
 }
 
+/* Hút sữa: phân biệt trái/phải bằng 2 sắc hồng khác nhau trong cùng tông */
+.timeline-card.hutsua-trai {
+  background: #ffb3c9;
+}
+
+.timeline-card.hutsua-phai {
+  background: #ffe3ea;
+}
+
+/* Vệ sinh: phân biệt đi nặng/đi nhẹ bằng 2 sắc hồng khác nhau */
+.timeline-card.vesinh-nang {
+  background: #e98aae;
+}
+
+.timeline-card.vesinh-nhe {
+  background: #fbd2e2;
+}
+
+/* Ti mẹ: phân biệt trái/phải bằng 2 sắc hồng đậm khác nhau, vẫn dùng chữ trắng vì nền đậm */
+.timeline-card.feeding-me-trai {
+  background: #ff7fa6;
+}
+
+.timeline-card.feeding-me-phai {
+  background: #e0467a;
+}
+
 .timeline-empty {
   text-align: center;
   color: var(--text-muted);
@@ -839,6 +866,8 @@ body {
 
 /* Month view */
 .month-label {
+  flex: 1;
+  text-align: center;
   font-weight: 800;
   font-size: 16px;
   color: var(--deep-pink);

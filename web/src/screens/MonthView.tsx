@@ -4,12 +4,6 @@ import { currentMonthStr, shiftMonthStr } from "../dateUtils";
 import type { MonthStatsResponse } from "../types";
 import MonthCalendar from "../components/MonthCalendar";
 
-function formatGrowth(kg: number | null): string {
-  if (kg == null) return "Chưa đủ dữ liệu";
-  const sign = kg >= 0 ? "+" : "";
-  return `${sign}${kg.toFixed(2)} kg`;
-}
-
 interface Props {
   account: string;
   onSelectDate: (dateStr: string) => void;
@@ -118,20 +112,6 @@ export default function MonthView({ account, onSelectDate }: Props) {
               <span>
                 <i className="legend-dot height" /> Chiều cao (cm)
               </span>
-            </div>
-          </section>
-
-          <section className="month-section growth-summary">
-            <h3 className="month-section-title">📈 Tăng trưởng cân nặng</h3>
-            {data.weeklyGrowth.map((w, idx) => (
-              <div key={idx} className="growth-line">
-                <span>{w.label}</span>
-                <span className="growth-value">{formatGrowth(w.deltaKg)}</span>
-              </div>
-            ))}
-            <div className="growth-line growth-total">
-              <span>Cả tháng</span>
-              <span className="growth-value">{formatGrowth(data.monthlyGrowthKg)}</span>
             </div>
           </section>
         </>
