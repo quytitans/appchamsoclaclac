@@ -21,6 +21,8 @@ const NON_TRO_LABEL: Record<string, string> = {
   nhieu: "Nhiều",
   rat_nhieu: "Rất nhiều",
 };
+const TI_ME_AMOUNT_LABEL: Record<string, string> = { it: "Ít", trung_binh: "Trung bình", nhieu: "Nhiều" };
+const DI_NANG_AMOUNT_LABEL: Record<string, string> = { it: "Ít", nhieu: "Nhiều" };
 
 function byTime(a: RecordItem, b: RecordItem): number {
   return (a.time ?? "").localeCompare(b.time ?? "");
@@ -72,6 +74,7 @@ function shadeClass(record: RecordItem): string {
   if (record.type === "ti_me") {
     if (record.side === "trai") return "feeding-me feeding-me-trai";
     if (record.side === "phai") return "feeding-me feeding-me-phai";
+    if (record.side === "ca_hai") return "feeding-me feeding-me-cahai";
     return "feeding-me";
   }
   if (record.type === "ti_binh") return "feeding-binh";
@@ -89,14 +92,20 @@ function cardText(record: RecordItem): string {
   switch (record.type) {
     case "hut_sua":
       return `${SIDE_LABEL[record.side ?? ""] ?? ""} | ${record.volume_ml}ml`;
-    case "ti_me":
-      return `Ti mẹ | ${SIDE_LABEL[record.side ?? ""] ?? ""}`;
+    case "ti_me": {
+      const parts = [SIDE_LABEL[record.side ?? ""] ?? ""];
+      if (record.amount) parts.push(TI_ME_AMOUNT_LABEL[record.amount] ?? record.amount);
+      return `Ti mẹ | ${parts.join(" | ")}`;
+    }
     case "ti_binh":
       return `Ti bình | ${record.volume_ml}ml`;
     case "non_tro":
       return `Nôn chớ | ${NON_TRO_LABEL[record.status ?? ""] ?? ""}`;
-    case "di_nang":
-      return `Đi nặng | ${DI_NANG_LABEL[record.status ?? ""] ?? ""}`;
+    case "di_nang": {
+      const parts = [DI_NANG_LABEL[record.status ?? ""] ?? ""];
+      if (record.amount) parts.push(DI_NANG_AMOUNT_LABEL[record.amount] ?? record.amount);
+      return `Đi nặng | ${parts.join(" | ")}`;
+    }
     case "di_nhe":
       return "Đi nhẹ";
     case "can_nang":

@@ -1,6 +1,8 @@
 import type {
   AccountSummary,
   CreateRecordPayload,
+  DiaryEntry,
+  DiaryEntryPayload,
   DosePayload,
   LatestGrowth,
   MonthStatsResponse,
@@ -212,4 +214,32 @@ export function deleteVaccineDose(vaccineId: number, doseId: number, account: st
     `${API_BASE}/vaccines/${vaccineId}/doses/${doseId}?account=${encodeURIComponent(account)}`,
     { method: "DELETE" }
   ).then((res) => handleResponse<void>(res));
+}
+
+export function fetchDiaryEntries(account: string): Promise<DiaryEntry[]> {
+  return fetch(`${API_BASE}/diary?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<DiaryEntry[]>(res)
+  );
+}
+
+export function createDiaryEntry(payload: DiaryEntryPayload): Promise<DiaryEntry> {
+  return fetch(`${API_BASE}/diary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<DiaryEntry>(res));
+}
+
+export function updateDiaryEntry(id: number, payload: DiaryEntryPayload): Promise<DiaryEntry> {
+  return fetch(`${API_BASE}/diary/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<DiaryEntry>(res));
+}
+
+export function deleteDiaryEntry(id: number, account: string): Promise<void> {
+  return fetch(`${API_BASE}/diary/${id}?account=${encodeURIComponent(account)}`, {
+    method: "DELETE",
+  }).then((res) => handleResponse<void>(res));
 }

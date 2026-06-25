@@ -75,8 +75,8 @@ recordsRouter.post("/", (req, res) => {
   }
 
   const stmt = db.prepare(`
-    INSERT INTO records (type, date, time, side, volume_ml, status, weight_kg, height_cm, custom_name, custom_value, note, created_at, account)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO records (type, date, time, side, volume_ml, status, amount, weight_kg, height_cm, custom_name, custom_value, note, created_at, account)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const result = stmt.run(
     body.type,
@@ -85,6 +85,7 @@ recordsRouter.post("/", (req, res) => {
     body.side ?? null,
     body.volumeMl ?? null,
     body.status ?? null,
+    body.amount ?? null,
     body.weightKg ?? null,
     body.heightCm ?? null,
     body.customName ?? null,
@@ -130,7 +131,7 @@ recordsRouter.put("/:id", (req, res) => {
   }
 
   db.prepare(
-    `UPDATE records SET type = ?, date = ?, time = ?, side = ?, volume_ml = ?, status = ?, weight_kg = ?, height_cm = ?, custom_name = ?, custom_value = ?, note = ?
+    `UPDATE records SET type = ?, date = ?, time = ?, side = ?, volume_ml = ?, status = ?, amount = ?, weight_kg = ?, height_cm = ?, custom_name = ?, custom_value = ?, note = ?
      WHERE id = ? AND account = ?`
   ).run(
     body.type,
@@ -139,6 +140,7 @@ recordsRouter.put("/:id", (req, res) => {
     body.side ?? null,
     body.volumeMl ?? null,
     body.status ?? null,
+    body.amount ?? null,
     body.weightKg ?? null,
     body.heightCm ?? null,
     body.customName ?? null,

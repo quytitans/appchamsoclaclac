@@ -6,6 +6,7 @@ export interface RecordFormState {
   side?: string;
   volumeMl: string;
   status?: string;
+  amount?: string;
   weightKg: string;
   heightCm: string;
   customName: string;
@@ -21,6 +22,7 @@ export function emptyRecordFormState(date: string, time: string): RecordFormStat
     side: undefined,
     volumeMl: "",
     status: undefined,
+    amount: undefined,
     weightKg: "",
     heightCm: "",
     customName: "",
@@ -38,6 +40,7 @@ export function recordToFormState(record: RecordItem): RecordFormState {
     volumeMl: record.volume_ml != null ? String(record.volume_ml) : "",
     status:
       record.type === "di_nang" || record.type === "non_tro" ? record.status ?? undefined : undefined,
+    amount: record.type === "ti_me" || record.type === "di_nang" ? record.amount ?? undefined : undefined,
     weightKg: record.weight_kg != null ? String(record.weight_kg) : "",
     heightCm: record.height_cm != null ? String(record.height_cm) : "",
     customName: record.custom_name ?? "",
@@ -58,7 +61,7 @@ export function buildRecordPayload(
       return { ...base, time: state.time, side: state.side as Side, volumeMl: Number(state.volumeMl) };
     case "ti_me":
       if (!state.side) return null;
-      return { ...base, time: state.time, side: state.side as Side };
+      return { ...base, time: state.time, side: state.side as Side, amount: state.amount || undefined };
     case "ti_binh":
       if (!state.volumeMl) return null;
       return { ...base, time: state.time, volumeMl: Number(state.volumeMl) };
@@ -67,7 +70,7 @@ export function buildRecordPayload(
       return { ...base, time: state.time, status: state.status };
     case "di_nang":
       if (!state.status) return null;
-      return { ...base, time: state.time, status: state.status };
+      return { ...base, time: state.time, status: state.status, amount: state.amount || undefined };
     case "di_nhe":
       return { ...base, time: state.time };
     case "can_nang":

@@ -67,6 +67,7 @@ const REQUIRED_COLUMNS: Record<string, string> = {
   side: "TEXT",
   volume_ml: "REAL",
   status: "TEXT",
+  amount: "TEXT",
   weight_kg: "REAL",
   height_cm: "REAL",
   custom_name: "TEXT",
@@ -154,3 +155,16 @@ db.exec(`
 `);
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccine_doses_vaccine_id ON vaccine_doses(vaccine_id)`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS diary_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT NOT NULL,
+    entry_date TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_diary_entries_account ON diary_entries(account)`);

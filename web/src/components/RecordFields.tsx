@@ -14,6 +14,17 @@ const DI_NANG_OPTIONS = [
   { value: "co_van_de", label: "Có vấn đề" },
 ];
 
+const TI_ME_AMOUNT_OPTIONS = [
+  { value: "it", label: "Ít" },
+  { value: "trung_binh", label: "Trung bình" },
+  { value: "nhieu", label: "Nhiều" },
+];
+
+const DI_NANG_AMOUNT_OPTIONS = [
+  { value: "it", label: "Ít" },
+  { value: "nhieu", label: "Nhiều" },
+];
+
 const NON_TRO_OPTIONS = [
   { value: "nhe", label: "Nhẹ" },
   { value: "trung_binh", label: "Trung bình" },
@@ -67,6 +78,9 @@ export default function RecordFields({ type, state, onChange }: Props) {
           <Field label="Vị trí">
             <ToggleGroup options={SIDE_OPTIONS} value={state.side} onChange={(v) => onChange("side", v)} />
           </Field>
+          <Field label="Lượng ti">
+            <ToggleGroup options={TI_ME_AMOUNT_OPTIONS} value={state.amount} onChange={(v) => onChange("amount", v)} />
+          </Field>
         </>
       );
 
@@ -103,6 +117,9 @@ export default function RecordFields({ type, state, onChange }: Props) {
           <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ đi nặng" onChange={onChange} />
           <Field label="Trạng thái">
             <ToggleGroup options={DI_NANG_OPTIONS} value={state.status} onChange={(v) => onChange("status", v)} />
+          </Field>
+          <Field label="Số lượng">
+            <ToggleGroup options={DI_NANG_AMOUNT_OPTIONS} value={state.amount} onChange={(v) => onChange("amount", v)} />
           </Field>
         </>
       );

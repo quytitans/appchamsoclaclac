@@ -21,6 +21,7 @@ export interface RecordRow {
   side: string | null;
   volume_ml: number | null;
   status: string | null;
+  amount: string | null;
   weight_kg: number | null;
   height_cm: number | null;
   custom_name: string | null;
@@ -37,6 +38,7 @@ export interface CreateRecordBody {
   side?: Side;
   volumeMl?: number;
   status?: string;
+  amount?: string;
   weightKg?: number;
   heightCm?: number;
   customName?: string;
@@ -80,5 +82,14 @@ export interface VaccineDoseRow {
   location: string | null;
   date: string;
   note: string | null;
+  created_at: string;
+}
+
+export interface DiaryEntryRow {
+  id: number;
+  account: string;
+  entry_date: string;
+  title: string;
+  content: string;
   created_at: string;
 }
