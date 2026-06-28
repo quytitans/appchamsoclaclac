@@ -102,6 +102,13 @@ export interface LatestGrowth {
   heightCm: number | null;
 }
 
+export interface UpcomingDose {
+  vaccineId: number;
+  vaccineName: string;
+  doseNumber: number;
+  date: string;
+}
+
 export type VaccineDurationType = "lifetime" | "limited" | "yearly";
 
 export interface VaccineDose {
@@ -155,12 +162,15 @@ export interface DosePayload {
   note?: string;
 }
 
+export type DiaryImportance = "cao" | "rat_cao" | "cuc_ky_cao";
+
 export interface DiaryEntry {
   id: number;
   account: string;
   entry_date: string;
   title: string;
   content: string;
+  importance: string | null;
   created_at: string;
 }
 
@@ -169,4 +179,5 @@ export interface DiaryEntryPayload {
   entryDate: string;
   title: string;
   content: string;
+  importance?: DiaryImportance;
 }

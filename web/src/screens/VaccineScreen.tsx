@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import AppHeader from "../components/AppHeader";
 import VaccineForm from "../components/VaccineForm";
 import VaccineList from "../components/VaccineList";
-import { fetchLatestGrowth } from "../api";
-import type { LatestGrowth, Session } from "../types";
+import { fetchLatestGrowth, fetchUpcomingDoses } from "../api";
+import { formatDateVN } from "../dateUtils";
+import type { LatestGrowth, Session, UpcomingDose } from "../types";
 import type { Screen } from "../App";
 
 interface Props {
@@ -15,12 +16,19 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
   const [activeTab, setActiveTab] = useState<"entry" | "book">("book");
   const [entryKey, setEntryKey] = useState(0);
   const [growth, setGrowth] = useState<LatestGrowth | null>(null);
+  const [upcomingDoses, setUpcomingDoses] = useState<UpcomingDose[]>([]);
 
   useEffect(() => {
     fetchLatestGrowth(session.account)
       .then(setGrowth)
       .catch(() => {});
   }, [session.account]);
+
+  useEffect(() => {
+    fetchUpcomingDoses(session.account)
+      .then(setUpcomingDoses)
+      .catch(() => {});
+  }, [session.account, activeTab]);
 
   function handleSwitchTab(tab: "entry" | "book") {
     if (tab === "entry") setEntryKey((k) => k + 1);
@@ -71,6 +79,20 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
             Cân nặng:{" "}
             <span className="kpi-value">{growth?.weightKg != null ? `${growth.weightKg} kg` : "Chưa có dữ liệu"}</span>
           </div>
+          {upcomingDoses.length > 0 && (
+            <div className="upcoming-doses-block">
+              <div className="upcoming-doses-title">💉 Các mũi tiêm tiếp theo</div>
+              <div className="upcoming-doses-table">
+                {upcomingDoses.map((d) => (
+                  <div key={d.vaccineId} className="upcoming-dose-row">
+                    <span className="upcoming-dose-name">{d.vaccineName}</span>
+                    <span className="upcoming-dose-num">Mũi {d.doseNumber}</span>
+                    <span className="upcoming-dose-date">{formatDateVN(d.date)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 

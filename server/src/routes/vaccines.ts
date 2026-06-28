@@ -78,6 +78,35 @@ vaccinesRouter.get("/", (req, res) => {
   res.json(vaccines.map((v) => ({ ...v, ...getDosesSummary(v.id) })));
 });
 
+vaccinesRouter.get("/upcoming-doses", (req, res) => {
+  const account = req.query.account as string | undefined;
+  if (!isValidAccountId(account)) {
+    res.status(400).json({ error: "Thiếu tham số account" });
+    return;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const vaccines = db.prepare("SELECT * FROM vaccines WHERE account = ?").all(account) as unknown as VaccineRow[];
+
+  const results: { vaccineId: number; vaccineName: string; doseNumber: number; date: string }[] = [];
+  for (const v of vaccines) {
+    const nearestDose = db
+      .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND date > ? ORDER BY date ASC LIMIT 1")
+      .get(v.id, today) as VaccineDoseRow | undefined;
+    if (nearestDose) {
+      results.push({ vaccineId: v.id, vaccineName: v.vaccine_name, doseNumber: nearestDose.dose_number, date: nearestDose.date });
+    } else if (v.next_dose_date) {
+      const doseCount = (
+        db.prepare("SELECT COUNT(*) AS c FROM vaccine_doses WHERE vaccine_id = ?").get(v.id) as unknown as {
+          c: number;
+        }
+      ).c;
+      results.push({ vaccineId: v.id, vaccineName: v.vaccine_name, doseNumber: doseCount + 1, date: v.next_dose_date });
+    }
+  }
+  results.sort((a, b) => a.date.localeCompare(b.date));
+  res.json(results);
+});
+
 vaccinesRouter.get("/:id", (req, res) => {
   const id = Number(req.params.id);
   const account = req.query.account as string | undefined;

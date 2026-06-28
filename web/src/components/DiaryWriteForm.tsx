@@ -1,6 +1,14 @@
 import { useState } from "react";
+import ToggleGroup from "./ToggleGroup";
 import { createDiaryEntry } from "../api";
 import { todayDateStr } from "../dateUtils";
+import type { DiaryImportance } from "../types";
+
+export const IMPORTANCE_OPTIONS = [
+  { value: "cao", label: "Cao" },
+  { value: "rat_cao", label: "Rất Cao" },
+  { value: "cuc_ky_cao", label: "Cực Kì Cao" },
+];
 
 interface Props {
   account: string;
@@ -11,6 +19,7 @@ export default function DiaryWriteForm({ account, onSaved }: Props) {
   const [entryDate, setEntryDate] = useState(todayDateStr());
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [importance, setImportance] = useState<DiaryImportance>("cao");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -28,11 +37,12 @@ export default function DiaryWriteForm({ account, onSaved }: Props) {
     setSaving(true);
     setMessage(null);
     try {
-      await createDiaryEntry({ account, entryDate, title: title.trim(), content: content.trim() });
+      await createDiaryEntry({ account, entryDate, title: title.trim(), content: content.trim(), importance });
       setShowConfirm(false);
       setEntryDate(todayDateStr());
       setTitle("");
       setContent("");
+      setImportance("cao");
       onSaved();
     } catch (err) {
       setShowConfirm(false);
@@ -68,6 +78,14 @@ export default function DiaryWriteForm({ account, onSaved }: Props) {
           placeholder="Viết những điều mẹ muốn lưu giữ..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
+        />
+      </div>
+      <div className="field">
+        <label className="field-label">Mức độ quan trọng của kỷ niệm</label>
+        <ToggleGroup
+          options={IMPORTANCE_OPTIONS}
+          value={importance}
+          onChange={(v) => setImportance(v as DiaryImportance)}
         />
       </div>
 

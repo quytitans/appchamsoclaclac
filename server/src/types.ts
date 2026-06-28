@@ -91,5 +91,6 @@ export interface DiaryEntryRow {
   entry_date: string;
   title: string;
   content: string;
+  importance: string | null;
   created_at: string;
 }

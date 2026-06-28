@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import ToggleGroup from "./ToggleGroup";
+import { IMPORTANCE_OPTIONS } from "./DiaryWriteForm";
 import { deleteDiaryEntry, fetchDiaryEntries, updateDiaryEntry } from "../api";
-import type { DiaryEntry } from "../types";
+import type { DiaryEntry, DiaryImportance } from "../types";
 
 interface Props {
   account: string;
@@ -11,6 +13,7 @@ interface EditForm {
   entryDate: string;
   title: string;
   content: string;
+  importance: DiaryImportance;
 }
 
 function formatVNDate(dateStr: string): string {
@@ -19,7 +22,24 @@ function formatVNDate(dateStr: string): string {
 }
 
 function toEditForm(entry: DiaryEntry): EditForm {
-  return { entryDate: entry.entry_date, title: entry.title, content: entry.content };
+  return {
+    entryDate: entry.entry_date,
+    title: entry.title,
+    content: entry.content,
+    importance: (entry.importance as DiaryImportance) ?? "cao",
+  };
+}
+
+function importanceClass(entry: DiaryEntry): string {
+  if (entry.importance === "cuc_ky_cao") return "diary-leaf-cuc-ky-cao";
+  if (entry.importance === "rat_cao") return "diary-leaf-rat-cao";
+  return "";
+}
+
+function importanceLabel(importance: string | null): string {
+  if (importance === "cuc_ky_cao") return "Cực Kì Cao";
+  if (importance === "rat_cao") return "Rất Cao";
+  return "Cao";
 }
 
 export default function DiaryTimeline({ account, refreshKey }: Props) {
@@ -69,6 +89,7 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
         entryDate: editForm.entryDate,
         title: editForm.title.trim(),
         content: editForm.content.trim(),
+        importance: editForm.importance,
       });
       setSelected(updated);
       setEditing(false);
@@ -106,7 +127,7 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
       {entries.map((entry, idx) => (
         <div key={entry.id} className={`diary-leaf-row ${idx % 2 === 0 ? "left" : "right"}`}>
           <div className="diary-leaf-node" />
-          <button className="diary-leaf-card" onClick={() => openEntry(entry)}>
+          <button className={`diary-leaf-card ${importanceClass(entry)}`} onClick={() => openEntry(entry)}>
             <div className="diary-leaf-date">{formatVNDate(entry.entry_date)}</div>
             <div className="diary-leaf-title">{entry.title}</div>
           </button>
@@ -139,7 +160,9 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
                     </button>
                   </div>
                 </div>
-                <p className="diary-modal-date">{formatVNDate(selected.entry_date)}</p>
+                <p className="diary-modal-date">
+                  {formatVNDate(selected.entry_date)} · Mức độ: {importanceLabel(selected.importance)}
+                </p>
                 <p className="diary-modal-content">{selected.content}</p>
                 <div className="modal-actions">
                   <button className="save-button" onClick={closeModal}>
@@ -176,6 +199,14 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
                         rows={10}
                         value={editForm.content}
                         onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+                      />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Mức độ quan trọng của kỷ niệm</label>
+                      <ToggleGroup
+                        options={IMPORTANCE_OPTIONS}
+                        value={editForm.importance}
+                        onChange={(v) => setEditForm({ ...editForm, importance: v as DiaryImportance })}
                       />
                     </div>
                   </div>

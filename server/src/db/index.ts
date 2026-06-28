@@ -168,3 +168,13 @@ db.exec(`
 `);
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_diary_entries_account ON diary_entries(account)`);
+
+{
+  const existingDiaryColumns = db
+    .prepare("PRAGMA table_info(diary_entries)")
+    .all()
+    .map((row: any) => row.name as string);
+  if (!existingDiaryColumns.includes("importance")) {
+    db.exec(`ALTER TABLE diary_entries ADD COLUMN importance TEXT`);
+  }
+}

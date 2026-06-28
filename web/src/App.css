@@ -256,7 +256,7 @@ body {
 /* Type selector */
 .type-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -272,24 +272,41 @@ body {
   padding: 10px 4px;
   border-radius: 14px;
   border: none;
-  background: transparent;
-  color: var(--text-dark);
+  background: linear-gradient(270deg, #ff5d8f, #ffb347, #ff5d8f, #c77dff, #ff5d8f);
+  background-size: 400% 400%;
+  animation: chip-glow-shift 6s ease infinite;
+  color: var(--white);
   font-size: 12px;
   font-weight: 700;
   text-align: center;
   line-height: 1.25;
+  box-shadow: var(--shadow);
+}
+
+.type-chip > * {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .type-chip.active {
-  color: var(--white);
+  border: 3px solid var(--white);
+  box-shadow: 0 0 0 3px var(--deep-pink), var(--shadow);
 }
 
-.type-chip.active::after {
-  background: var(--dark-pink);
+@keyframes chip-glow-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
-/* Hiệu ứng viền lấp lánh chạy xung quanh — luôn nằm dưới nội dung thật */
-.type-chip::before,
+/* Hiệu ứng viền lấp lánh chạy xung quanh — chỉ dùng cho kpi-card */
 .kpi-card::before {
   content: "";
   position: absolute;
@@ -307,7 +324,6 @@ body {
   z-index: 0;
 }
 
-.type-chip::after,
 .kpi-card::after {
   content: "";
   position: absolute;
@@ -317,7 +333,6 @@ body {
   z-index: 1;
 }
 
-.type-chip > *,
 .kpi-card > * {
   position: relative;
   z-index: 2;
@@ -331,6 +346,7 @@ body {
 
 .type-chip-icon {
   font-size: 20px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
 }
 
 /* Form */
@@ -559,6 +575,56 @@ body {
 .kpi-line-icon {
   flex-shrink: 0;
   font-size: 17px;
+}
+
+.upcoming-doses-block {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 2px solid var(--soft-bg);
+}
+
+.upcoming-doses-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--deep-pink);
+  margin-bottom: 4px;
+}
+
+.upcoming-doses-table {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: baseline;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.upcoming-dose-row {
+  display: contents;
+}
+
+.upcoming-dose-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  color: var(--deep-pink);
+  font-weight: 800;
+}
+
+.upcoming-dose-num {
+  text-align: left;
+  white-space: nowrap;
+  color: var(--text-dark);
+}
+
+.upcoming-dose-date {
+  text-align: left;
+  white-space: nowrap;
+  color: var(--deep-pink);
+  font-weight: 800;
 }
 
 .kpi-value {
@@ -1548,6 +1614,58 @@ body {
 .diary-leaf-row.right .diary-leaf-card {
   border-radius: 22px 4px 22px 22px;
   margin-left: 5%;
+}
+
+/* Mức độ "Rất Cao": màu đậm hơn + hoa văn em bé/mẹ mờ phía sau */
+.diary-leaf-card.diary-leaf-rat-cao {
+  background: linear-gradient(135deg, var(--dark-pink), var(--deep-pink));
+}
+
+.diary-leaf-card.diary-leaf-rat-cao::before {
+  content: "👶 💕 👶 💕 👶 💕 👶 💕 👶 💕 👶 💕 👶 💕 👶 💕";
+  position: absolute;
+  inset: 0;
+  font-size: 18px;
+  line-height: 22px;
+  opacity: 0.3;
+  overflow: hidden;
+  word-break: break-all;
+  pointer-events: none;
+}
+
+.diary-leaf-card.diary-leaf-rat-cao .diary-leaf-date,
+.diary-leaf-card.diary-leaf-rat-cao .diary-leaf-title {
+  position: relative;
+  z-index: 1;
+  color: var(--white);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Mức độ "Cực Kì Cao": nền gradient màu chuyển động liên tục */
+@keyframes diary-glow-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.diary-leaf-card.diary-leaf-cuc-ky-cao {
+  background: linear-gradient(270deg, #ff5d8f, #ffb347, #ff5d8f, #c77dff, #ff5d8f);
+  background-size: 400% 400%;
+  animation: diary-glow-shift 6s ease infinite;
+}
+
+.diary-leaf-card.diary-leaf-cuc-ky-cao .diary-leaf-date,
+.diary-leaf-card.diary-leaf-cuc-ky-cao .diary-leaf-title {
+  position: relative;
+  z-index: 1;
+  color: var(--white);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .diary-leaf-date {

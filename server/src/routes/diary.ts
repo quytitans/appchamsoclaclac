@@ -5,11 +5,14 @@ import type { DiaryEntryRow } from "../types.js";
 
 export const diaryRouter = Router();
 
+const VALID_IMPORTANCE = ["cao", "rat_cao", "cuc_ky_cao"];
+
 interface DiaryBody {
   account?: string;
   entryDate?: string;
   title?: string;
   content?: string;
+  importance?: string;
 }
 
 function validateDiaryBody(body: DiaryBody): string | null {
@@ -17,6 +20,7 @@ function validateDiaryBody(body: DiaryBody): string | null {
   if (!body.entryDate) return "Thiếu ngày viết";
   if (!body.title || !body.title.trim()) return "Thiếu tiêu đề";
   if (!body.content || !body.content.trim()) return "Thiếu nội dung";
+  if (body.importance && !VALID_IMPORTANCE.includes(body.importance)) return "Mức độ quan trọng không hợp lệ";
   return null;
 }
 
@@ -41,10 +45,17 @@ diaryRouter.post("/", (req, res) => {
   }
   const result = db
     .prepare(
-      `INSERT INTO diary_entries (account, entry_date, title, content, created_at)
-       VALUES (?, ?, ?, ?, ?)`
+      `INSERT INTO diary_entries (account, entry_date, title, content, importance, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
     )
-    .run(body.account as string, body.entryDate as string, body.title!.trim(), body.content!.trim(), new Date().toISOString());
+    .run(
+      body.account as string,
+      body.entryDate as string,
+      body.title!.trim(),
+      body.content!.trim(),
+      body.importance ?? null,
+      new Date().toISOString()
+    );
 
   const entry = db.prepare("SELECT * FROM diary_entries WHERE id = ?").get(result.lastInsertRowid);
   res.status(201).json(entry);
@@ -65,10 +76,13 @@ diaryRouter.put("/:id", (req, res) => {
     res.status(404).json({ error: "Không tìm thấy nhật ký" });
     return;
   }
-  db.prepare(`UPDATE diary_entries SET entry_date = ?, title = ?, content = ? WHERE id = ? AND account = ?`).run(
+  db.prepare(
+    `UPDATE diary_entries SET entry_date = ?, title = ?, content = ?, importance = ? WHERE id = ? AND account = ?`
+  ).run(
     body.entryDate as string,
     body.title!.trim(),
     body.content!.trim(),
+    body.importance ?? null,
     id,
     body.account as string
   );

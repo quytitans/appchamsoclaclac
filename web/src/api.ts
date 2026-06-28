@@ -9,6 +9,7 @@ import type {
   RecordItem,
   Session,
   StatsResponse,
+  UpcomingDose,
   VaccineDetail,
   VaccineDose,
   VaccinePayload,
@@ -142,6 +143,12 @@ export function adminDeleteAccount(token: string, targetAccount: string): Promis
 export function fetchVaccines(account: string): Promise<VaccineSummary[]> {
   return fetch(`${API_BASE}/vaccines?account=${encodeURIComponent(account)}`).then((res) =>
     handleResponse<VaccineSummary[]>(res)
+  );
+}
+
+export function fetchUpcomingDoses(account: string): Promise<UpcomingDose[]> {
+  return fetch(`${API_BASE}/vaccines/upcoming-doses?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<UpcomingDose[]>(res)
   );
 }
 
