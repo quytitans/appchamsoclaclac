@@ -109,6 +109,7 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
 
   const nextDoseDate = detail.nextDue?.date ?? null;
   const isOverdue = detail.nextDue?.overdue ?? false;
+  const doseCount = detail.doses.filter((d) => !d.planned).length;
 
   return (
     <div className="vaccine-detail-card">
@@ -127,12 +128,13 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
               <span className="kpi-line-icon">💊</span>
               Vắc-xin: <span className="kpi-value">{detail.vaccine_name}</span>
             </div>
-            {detail.total_doses != null && (
-              <div className="kpi-line">
-                <span className="kpi-line-icon">💉</span>
-                Tổng số mũi: <span className="kpi-value">{detail.total_doses}</span>
-              </div>
-            )}
+            <div className="kpi-line">
+              <span className="kpi-line-icon">💉</span>
+              Đã tiêm:{" "}
+              <span className="kpi-value">
+                {detail.total_doses != null ? `${doseCount}/${detail.total_doses} mũi` : `${doseCount} mũi`}
+              </span>
+            </div>
             <div className="kpi-line">
               <span className="kpi-line-icon">⏳</span>
               Thời hạn: <span className="kpi-value">{formatDuration(detail)}</span>
