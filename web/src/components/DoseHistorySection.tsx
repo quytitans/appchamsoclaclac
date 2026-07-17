@@ -224,7 +224,7 @@ function DoseEditor({
   return (
     <div className="dose-card dose-editor">
       <div className="field-row">
-        <div className="field">
+        <div className="field field-dose-number">
           <label className="field-label">Mũi số</label>
           <input
             type="number"
@@ -234,8 +234,8 @@ function DoseEditor({
             onChange={(e) => onChange({ ...form, doseNumber: e.target.value.replace(/\D/g, "") })}
           />
         </div>
-        <div className="field">
-          <label className="field-label">{form.planned ? "Ngày dự kiến tiêm" : "Ngày tiêm"}</label>
+        <div className="field field-dose-date">
+          <label className="field-label">Ngày tiêm</label>
           <input type="date" value={form.date} onChange={(e) => onChange({ ...form, date: e.target.value })} />
         </div>
       </div>

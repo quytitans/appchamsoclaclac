@@ -1300,6 +1300,30 @@ body {
   border: 2px solid var(--main-pink);
 }
 
+.dose-card.dose-editor .field-label {
+  font-size: 13px;
+}
+
+.dose-card.dose-editor .field input,
+.dose-card.dose-editor .field select,
+.dose-card.dose-editor .field textarea {
+  font-size: 15px;
+  padding: 10px;
+}
+
+.dose-card.dose-editor .field-dose-number {
+  flex: 0 0 72px;
+}
+
+.dose-card.dose-editor .field-dose-date {
+  flex: 1;
+  min-width: 0;
+}
+
+.dose-card.dose-editor .field-dose-date input {
+  padding: 10px 6px;
+}
+
 .dose-card.dose-upcoming {
   background: #e3f2fd;
   border: 2px solid #42a5f5;
@@ -1318,6 +1342,7 @@ body {
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dose-card.dose-overdue .dose-upcoming-badge {
@@ -1352,8 +1377,9 @@ body {
 
 .dose-card-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   margin-bottom: 6px;
 }
 
@@ -1364,10 +1390,13 @@ body {
   font-weight: 800;
   padding: 3px 10px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dose-date {
   flex: 1;
+  min-width: 80px;
   font-size: 13px;
   font-weight: 700;
   color: var(--text-dark);
@@ -1382,6 +1411,8 @@ body {
 .dose-icon-actions {
   display: flex;
   gap: 5px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .dose-icon-button {
