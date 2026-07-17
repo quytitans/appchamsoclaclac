@@ -240,13 +240,13 @@ function DoseEditor({
         </div>
       </div>
       <div className="field field-checkbox">
-        <label className="field-label checkbox-label">
+        <label className="checkbox-label">
           <input
             type="checkbox"
             checked={form.planned}
             onChange={(e) => onChange({ ...form, planned: e.target.checked })}
           />
-          📌 Đây là lịch dự kiến (chưa tiêm thật)
+          <span>📌 Lịch dự kiến (chưa tiêm thật)</span>
         </label>
       </div>
       <div className="field">
