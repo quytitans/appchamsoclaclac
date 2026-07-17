@@ -15,10 +15,11 @@ interface DoseFormState {
   location: string;
   date: string;
   note: string;
+  planned: boolean;
 }
 
 function emptyDoseForm(nextNumber: number): DoseFormState {
-  return { doseNumber: String(nextNumber), location: "", date: todayDateStr(), note: "" };
+  return { doseNumber: String(nextNumber), location: "", date: todayDateStr(), note: "", planned: false };
 }
 
 export default function DoseHistorySection({ account, vaccineId, onChanged, refreshSignal }: Props) {
@@ -56,6 +57,7 @@ export default function DoseHistorySection({ account, vaccineId, onChanged, refr
       location: dose.location ?? "",
       date: dose.date,
       note: dose.note ?? "",
+      planned: dose.planned,
     });
     setDoseEditorOpen(true);
   }
@@ -73,6 +75,7 @@ export default function DoseHistorySection({ account, vaccineId, onChanged, refr
       location: doseForm.location || undefined,
       date: doseForm.date,
       note: doseForm.note || undefined,
+      planned: doseForm.planned,
     };
     try {
       if (editingDoseId == null) {
@@ -104,6 +107,23 @@ export default function DoseHistorySection({ account, vaccineId, onChanged, refr
     }
   }
 
+  async function handleMarkGiven(dose: VaccineDose) {
+    try {
+      const updated = await updateVaccineDose(vaccineId, dose.id, {
+        account,
+        doseNumber: dose.dose_number,
+        location: dose.location ?? undefined,
+        date: dose.date,
+        note: dose.note ?? undefined,
+        planned: false,
+      });
+      setDoses((prev) => prev.map((d) => (d.id === dose.id ? updated : d)));
+      onChanged?.();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
+    }
+  }
+
   if (loading) return <p className="loading-text">Đang tải...</p>;
 
   return (
@@ -114,7 +134,7 @@ export default function DoseHistorySection({ account, vaccineId, onChanged, refr
       {doses.length === 0 && <p className="loading-text">Chưa có mũi tiêm nào</p>}
 
       {doses.map((dose) => {
-        const isUpcoming = dose.date > todayDateStr();
+        const isOverdue = dose.planned && dose.date <= todayDateStr();
         return doseEditorOpen && editingDoseId === dose.id ? (
           <DoseEditor
             key={dose.id}
@@ -125,12 +145,26 @@ export default function DoseHistorySection({ account, vaccineId, onChanged, refr
             saving={savingDose}
           />
         ) : (
-          <div key={dose.id} className={`dose-card ${isUpcoming ? "dose-upcoming" : ""}`}>
+          <div key={dose.id} className={`dose-card ${dose.planned ? "dose-upcoming" : ""} ${isOverdue ? "dose-overdue" : ""}`}>
             <div className="dose-card-header">
               <span className="dose-number-badge">Mũi {dose.dose_number}</span>
-              {isUpcoming && <span className="dose-upcoming-badge">📌 Dự kiến</span>}
+              {dose.planned && (
+                <span className="dose-upcoming-badge">
+                  {isOverdue ? "⚠️ Quá hạn" : "📌 Dự kiến"}
+                </span>
+              )}
               <span className="dose-date">{dose.date}</span>
               <div className="dose-icon-actions">
+                {dose.planned && (
+                  <button
+                    className="dose-icon-button"
+                    onClick={() => handleMarkGiven(dose)}
+                    aria-label="Đánh dấu đã tiêm"
+                    title="Đánh dấu đã tiêm"
+                  >
+                    ✅
+                  </button>
+                )}
                 <button
                   className="dose-icon-button"
                   onClick={() => openEditDose(dose)}
@@ -201,9 +235,19 @@ function DoseEditor({
           />
         </div>
         <div className="field">
-          <label className="field-label">Ngày tiêm</label>
+          <label className="field-label">{form.planned ? "Ngày dự kiến tiêm" : "Ngày tiêm"}</label>
           <input type="date" value={form.date} onChange={(e) => onChange({ ...form, date: e.target.value })} />
         </div>
+      </div>
+      <div className="field field-checkbox">
+        <label className="field-label checkbox-label">
+          <input
+            type="checkbox"
+            checked={form.planned}
+            onChange={(e) => onChange({ ...form, planned: e.target.checked })}
+          />
+          📌 Đây là lịch dự kiến (chưa tiêm thật)
+        </label>
       </div>
       <div className="field">
         <label className="field-label">Nơi tiêm</label>

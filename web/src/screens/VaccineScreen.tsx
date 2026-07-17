@@ -84,8 +84,10 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
               <div className="upcoming-doses-title">💉 Các mũi tiêm tiếp theo</div>
               <div className="upcoming-doses-table">
                 {upcomingDoses.map((d) => (
-                  <div key={d.vaccineId} className="upcoming-dose-row">
-                    <span className="upcoming-dose-name">{d.vaccineName}</span>
+                  <div key={d.vaccineId} className={`upcoming-dose-row ${d.overdue ? "overdue" : ""}`}>
+                    <span className="upcoming-dose-name">
+                      {d.overdue ? "⚠️" : "📅"} {d.vaccineName}
+                    </span>
                     <span className="upcoming-dose-num">Mũi {d.doseNumber}</span>
                     <span className="upcoming-dose-date">{formatDateVN(d.date)}</span>
                   </div>

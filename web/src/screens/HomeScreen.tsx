@@ -3,7 +3,6 @@ import type { Screen } from "../App";
 import type { Session } from "../types";
 import ChangePinModal from "../components/ChangePinModal";
 import { fetchVaccines } from "../api";
-import { todayDateStr } from "../dateUtils";
 
 interface Props {
   session: Session;
@@ -18,10 +17,9 @@ export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpd
 
   useEffect(() => {
     if (session.isAdmin) return;
-    const today = todayDateStr();
     fetchVaccines(session.account)
       .then((vaccines) => {
-        setHasOverdueVaccine(vaccines.some((v) => v.next_dose_date != null && v.next_dose_date <= today));
+        setHasOverdueVaccine(vaccines.some((v) => v.nextDue?.overdue ?? false));
       })
       .catch(() => {});
   }, [session.account, session.isAdmin]);

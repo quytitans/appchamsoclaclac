@@ -82,7 +82,14 @@ export interface VaccineDoseRow {
   location: string | null;
   date: string;
   note: string | null;
+  planned: number;
   created_at: string;
+}
+
+export interface NextDue {
+  date: string;
+  doseNumber: number;
+  overdue: boolean;
 }
 
 export interface DiaryEntryRow {

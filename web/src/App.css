@@ -613,6 +613,12 @@ body {
   display: contents;
 }
 
+.upcoming-dose-row.overdue .upcoming-dose-name,
+.upcoming-dose-row.overdue .upcoming-dose-date {
+  color: #e53935;
+  font-weight: 800;
+}
+
 .upcoming-dose-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1299,6 +1305,11 @@ body {
   border: 2px solid #42a5f5;
 }
 
+.dose-card.dose-overdue {
+  background: #ffebee;
+  border: 2px solid #e53935;
+}
+
 .dose-upcoming-badge {
   background: #1e88e5;
   color: var(--white);
@@ -1307,6 +1318,21 @@ body {
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.dose-card.dose-overdue .dose-upcoming-badge {
+  background: #e53935;
+}
+
+.field-checkbox {
+  margin-top: -4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
 }
 
 .dose-card-header {

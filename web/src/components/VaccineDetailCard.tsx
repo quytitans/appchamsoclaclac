@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import VaccineFieldsEditor, { type VaccineFieldsState } from "./VaccineFieldsEditor";
 import DoseHistorySection from "./DoseHistorySection";
 import { deleteVaccine, fetchVaccineDetail, updateVaccine } from "../api";
-import { todayDateStr } from "../dateUtils";
 import type { VaccineDetail } from "../types";
 
 interface Props {
@@ -108,12 +107,8 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
 
   if (loading || !detail || !fields) return <p className="loading-text">Đang tải...</p>;
 
-  const today = todayDateStr();
-  const nearestPlannedDose = detail.doses
-    .filter((d) => d.date > today)
-    .sort((a, b) => a.date.localeCompare(b.date))[0];
-  const nextDoseDate = nearestPlannedDose?.date ?? detail.next_dose_date;
-  const isOverdue = nextDoseDate != null && nextDoseDate <= today;
+  const nextDoseDate = detail.nextDue?.date ?? null;
+  const isOverdue = detail.nextDue?.overdue ?? false;
 
   return (
     <div className="vaccine-detail-card">

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { isValidAccountId } from "../hash.js";
-import type { VaccineDoseRow, VaccineDurationType, VaccineRow } from "../types.js";
+import type { NextDue, VaccineDoseRow, VaccineDurationType, VaccineRow } from "../types.js";
 
 export const vaccinesRouter = Router();
 
@@ -38,12 +38,42 @@ function getVaccineForAccount(id: number, account: string): VaccineRow | undefin
     | undefined;
 }
 
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function mapDose(d: VaccineDoseRow) {
+  return { ...d, planned: d.planned === 1 };
+}
+
 function getDosesSummary(vaccineId: number) {
   const doses = db
     .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? ORDER BY dose_number ASC")
     .all(vaccineId) as unknown as VaccineDoseRow[];
-  const latest = doses.length > 0 ? doses[doses.length - 1] : null;
-  return { doseCount: doses.length, latestDose: latest };
+  const administered = doses.filter((d) => d.planned !== 1);
+  const latest = administered.length > 0 ? administered[administered.length - 1] : null;
+  return { doseCount: administered.length, latestDose: latest ? mapDose(latest) : null };
+}
+
+// Mũi "dự kiến" (planned) chưa được xác nhận là mốc cần cảnh báo tiếp theo;
+// nếu không còn mũi dự kiến nào, dùng next_dose_date (cột đặt tay qua form Sửa) làm phương án dự phòng.
+function getNextDue(vaccineId: number, vaccine: VaccineRow, doseCount: number): NextDue | null {
+  const today = todayStr();
+  const plannedDose = db
+    .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND planned = 1 ORDER BY date ASC LIMIT 1")
+    .get(vaccineId) as VaccineDoseRow | undefined;
+  if (plannedDose) {
+    return { date: plannedDose.date, doseNumber: plannedDose.dose_number, overdue: plannedDose.date <= today };
+  }
+  if (vaccine.next_dose_date) {
+    return { date: vaccine.next_dose_date, doseNumber: doseCount + 1, overdue: vaccine.next_dose_date <= today };
+  }
+  return null;
+}
+
+function getVaccineExtras(vaccineId: number, vaccine: VaccineRow) {
+  const summary = getDosesSummary(vaccineId);
+  return { ...summary, nextDue: getNextDue(vaccineId, vaccine, summary.doseCount) };
 }
 
 function recalcExpiry(vaccineId: number) {
@@ -52,7 +82,7 @@ function recalcExpiry(vaccineId: number) {
     | undefined;
   if (!vaccine || vaccine.duration_type !== "limited" || vaccine.duration_years == null) return;
   const dose1 = db
-    .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND dose_number = 1")
+    .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND dose_number = 1 AND planned = 0")
     .get(vaccineId) as VaccineDoseRow | undefined;
   if (!dose1) {
     db.prepare("UPDATE vaccines SET expiry_month = NULL, expiry_year = NULL WHERE id = ?").run(vaccineId);
@@ -75,7 +105,7 @@ vaccinesRouter.get("/", (req, res) => {
   const vaccines = db
     .prepare("SELECT * FROM vaccines WHERE account = ? ORDER BY sort_order ASC")
     .all(account) as unknown as VaccineRow[];
-  res.json(vaccines.map((v) => ({ ...v, ...getDosesSummary(v.id) })));
+  res.json(vaccines.map((v) => ({ ...v, ...getVaccineExtras(v.id, v) })));
 });
 
 vaccinesRouter.get("/upcoming-doses", (req, res) => {
@@ -84,23 +114,14 @@ vaccinesRouter.get("/upcoming-doses", (req, res) => {
     res.status(400).json({ error: "Thiếu tham số account" });
     return;
   }
-  const today = new Date().toISOString().slice(0, 10);
   const vaccines = db.prepare("SELECT * FROM vaccines WHERE account = ?").all(account) as unknown as VaccineRow[];
 
-  const results: { vaccineId: number; vaccineName: string; doseNumber: number; date: string }[] = [];
+  const results: { vaccineId: number; vaccineName: string; doseNumber: number; date: string; overdue: boolean }[] = [];
   for (const v of vaccines) {
-    const nearestDose = db
-      .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND date > ? ORDER BY date ASC LIMIT 1")
-      .get(v.id, today) as VaccineDoseRow | undefined;
-    if (nearestDose) {
-      results.push({ vaccineId: v.id, vaccineName: v.vaccine_name, doseNumber: nearestDose.dose_number, date: nearestDose.date });
-    } else if (v.next_dose_date) {
-      const doseCount = (
-        db.prepare("SELECT COUNT(*) AS c FROM vaccine_doses WHERE vaccine_id = ?").get(v.id) as unknown as {
-          c: number;
-        }
-      ).c;
-      results.push({ vaccineId: v.id, vaccineName: v.vaccine_name, doseNumber: doseCount + 1, date: v.next_dose_date });
+    const { doseCount } = getDosesSummary(v.id);
+    const nextDue = getNextDue(v.id, v, doseCount);
+    if (nextDue) {
+      results.push({ vaccineId: v.id, vaccineName: v.vaccine_name, doseNumber: nextDue.doseNumber, date: nextDue.date, overdue: nextDue.overdue });
     }
   }
   results.sort((a, b) => a.date.localeCompare(b.date));
@@ -122,7 +143,8 @@ vaccinesRouter.get("/:id", (req, res) => {
   const doses = db
     .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? ORDER BY dose_number ASC")
     .all(id) as unknown as VaccineDoseRow[];
-  res.json({ ...vaccine, doses });
+  const doseCount = doses.filter((d) => d.planned !== 1).length;
+  res.json({ ...vaccine, doses: doses.map(mapDose), nextDue: getNextDue(id, vaccine, doseCount) });
 });
 
 vaccinesRouter.post("/", (req, res) => {
@@ -157,7 +179,7 @@ vaccinesRouter.post("/", (req, res) => {
   const vaccineId = result.lastInsertRowid as number;
   recalcExpiry(vaccineId);
   const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(vaccineId) as unknown as VaccineRow;
-  res.status(201).json({ ...vaccine, doseCount: 0, latestDose: null });
+  res.status(201).json({ ...vaccine, ...getVaccineExtras(vaccineId, vaccine) });
 });
 
 vaccinesRouter.put("/:id", (req, res) => {
@@ -188,7 +210,7 @@ vaccinesRouter.put("/:id", (req, res) => {
   );
   recalcExpiry(id);
   const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(id) as unknown as VaccineRow;
-  res.json({ ...vaccine, ...getDosesSummary(id) });
+  res.json({ ...vaccine, ...getVaccineExtras(id, vaccine) });
 });
 
 vaccinesRouter.delete("/:id", (req, res) => {
@@ -248,18 +270,26 @@ vaccinesRouter.post("/:id/confirm-dose", (req, res) => {
     res.status(404).json({ error: "Không tìm thấy vắc-xin" });
     return;
   }
-  const maxDose = db
-    .prepare("SELECT COALESCE(MAX(dose_number), 0) AS m FROM vaccine_doses WHERE vaccine_id = ?")
-    .get(id) as unknown as { m: number };
-  db.prepare(
-    `INSERT INTO vaccine_doses (vaccine_id, dose_number, location, date, note, created_at)
-     VALUES (?, ?, NULL, ?, NULL, ?)`
-  ).run(id, maxDose.m + 1, date, new Date().toISOString());
+
+  const plannedDose = db
+    .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND planned = 1 ORDER BY date ASC LIMIT 1")
+    .get(id) as VaccineDoseRow | undefined;
+  if (plannedDose) {
+    db.prepare("UPDATE vaccine_doses SET date = ?, planned = 0 WHERE id = ?").run(date, plannedDose.id);
+  } else {
+    const maxDose = db
+      .prepare("SELECT COALESCE(MAX(dose_number), 0) AS m FROM vaccine_doses WHERE vaccine_id = ?")
+      .get(id) as unknown as { m: number };
+    db.prepare(
+      `INSERT INTO vaccine_doses (vaccine_id, dose_number, location, date, note, planned, created_at)
+       VALUES (?, ?, NULL, ?, NULL, 0, ?)`
+    ).run(id, maxDose.m + 1, date, new Date().toISOString());
+  }
   db.prepare("UPDATE vaccines SET next_dose_date = NULL WHERE id = ?").run(id);
   recalcExpiry(id);
 
   const updatedVaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(id) as unknown as VaccineRow;
-  res.json({ ...updatedVaccine, ...getDosesSummary(id) });
+  res.json({ ...updatedVaccine, ...getVaccineExtras(id, updatedVaccine) });
 });
 
 interface DoseBody {
@@ -268,6 +298,7 @@ interface DoseBody {
   location?: string;
   date?: string;
   note?: string;
+  planned?: boolean;
 }
 
 function validateDoseBody(body: DoseBody): string | null {
@@ -292,13 +323,21 @@ vaccinesRouter.post("/:id/doses", (req, res) => {
   }
   const result = db
     .prepare(
-      `INSERT INTO vaccine_doses (vaccine_id, dose_number, location, date, note, created_at)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO vaccine_doses (vaccine_id, dose_number, location, date, note, planned, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(vaccineId, body.doseNumber as number, body.location || null, body.date as string, body.note || null, new Date().toISOString());
+    .run(
+      vaccineId,
+      body.doseNumber as number,
+      body.location || null,
+      body.date as string,
+      body.note || null,
+      body.planned ? 1 : 0,
+      new Date().toISOString()
+    );
   recalcExpiry(vaccineId);
-  const dose = db.prepare("SELECT * FROM vaccine_doses WHERE id = ?").get(result.lastInsertRowid);
-  res.status(201).json(dose);
+  const dose = db.prepare("SELECT * FROM vaccine_doses WHERE id = ?").get(result.lastInsertRowid) as unknown as VaccineDoseRow;
+  res.status(201).json(mapDose(dose));
 });
 
 vaccinesRouter.put("/:id/doses/:doseId", (req, res) => {
@@ -322,16 +361,19 @@ vaccinesRouter.put("/:id/doses/:doseId", (req, res) => {
     res.status(404).json({ error: "Không tìm thấy mũi tiêm" });
     return;
   }
-  db.prepare("UPDATE vaccine_doses SET dose_number = ?, location = ?, date = ?, note = ? WHERE id = ?").run(
+  db.prepare(
+    "UPDATE vaccine_doses SET dose_number = ?, location = ?, date = ?, note = ?, planned = ? WHERE id = ?"
+  ).run(
     body.doseNumber as number,
     body.location || null,
     body.date as string,
     body.note || null,
+    body.planned ? 1 : 0,
     doseId
   );
   recalcExpiry(vaccineId);
-  const dose = db.prepare("SELECT * FROM vaccine_doses WHERE id = ?").get(doseId);
-  res.json(dose);
+  const dose = db.prepare("SELECT * FROM vaccine_doses WHERE id = ?").get(doseId) as unknown as VaccineDoseRow;
+  res.json(mapDose(dose));
 });
 
 vaccinesRouter.delete("/:id/doses/:doseId", (req, res) => {

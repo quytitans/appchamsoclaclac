@@ -107,6 +107,7 @@ export interface UpcomingDose {
   vaccineName: string;
   doseNumber: number;
   date: string;
+  overdue: boolean;
 }
 
 export type VaccineDurationType = "lifetime" | "limited" | "yearly";
@@ -118,7 +119,14 @@ export interface VaccineDose {
   location: string | null;
   date: string;
   note: string | null;
+  planned: boolean;
   created_at: string;
+}
+
+export interface NextDue {
+  date: string;
+  doseNumber: number;
+  overdue: boolean;
 }
 
 export interface VaccineSummary {
@@ -137,6 +145,7 @@ export interface VaccineSummary {
   created_at: string;
   doseCount: number;
   latestDose: VaccineDose | null;
+  nextDue: NextDue | null;
 }
 
 export interface VaccineDetail extends Omit<VaccineSummary, "doseCount" | "latestDose"> {
@@ -160,6 +169,7 @@ export interface DosePayload {
   location?: string;
   date: string;
   note?: string;
+  planned?: boolean;
 }
 
 export type DiaryImportance = "cao" | "rat_cao" | "cuc_ky_cao";

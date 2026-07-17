@@ -150,9 +150,20 @@ db.exec(`
     location TEXT,
     date TEXT NOT NULL,
     note TEXT,
+    planned INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
   )
 `);
+
+{
+  const existingDoseColumns = db
+    .prepare("PRAGMA table_info(vaccine_doses)")
+    .all()
+    .map((row: any) => row.name as string);
+  if (!existingDoseColumns.includes("planned")) {
+    db.exec(`ALTER TABLE vaccine_doses ADD COLUMN planned INTEGER NOT NULL DEFAULT 0`);
+  }
+}
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccine_doses_vaccine_id ON vaccine_doses(vaccine_id)`);
 

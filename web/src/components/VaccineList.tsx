@@ -81,7 +81,7 @@ export default function VaccineList({ account }: Props) {
 
   function openConfirm(v: VaccineSummary) {
     setConfirmingId(v.id);
-    setConfirmDate(v.next_dose_date ?? todayDateStr());
+    setConfirmDate(v.nextDue?.date ?? todayDateStr());
   }
 
   async function handleConfirm(id: number) {
@@ -105,8 +105,6 @@ export default function VaccineList({ account }: Props) {
     return <p className="loading-text">Chưa có vắc-xin nào được ghi nhận</p>;
   }
 
-  const today = todayDateStr();
-
   return (
     <div className="vaccine-list">
       <input
@@ -118,7 +116,7 @@ export default function VaccineList({ account }: Props) {
       />
       {filteredVaccines.length === 0 && <p className="loading-text">Không tìm thấy vắc-xin nào</p>}
       {filteredVaccines.map((v, idx) => {
-        const isOverdue = v.next_dose_date != null && v.next_dose_date <= today;
+        const isOverdue = v.nextDue?.overdue ?? false;
         return (
           <div
             key={v.id}
@@ -135,9 +133,9 @@ export default function VaccineList({ account }: Props) {
                 <div className="vaccine-list-latest">
                   {v.latestDose ? `Mũi ${v.latestDose.dose_number} • ${v.latestDose.date}` : "Chưa tiêm mũi nào"}
                 </div>
-                {v.next_dose_date && (
+                {v.nextDue && (
                   <div className={`vaccine-list-next ${isOverdue ? "overdue" : ""}`}>
-                    {isOverdue ? "⚠️" : "📅"} Mũi tiếp theo: {v.next_dose_date}
+                    {isOverdue ? "⚠️" : "📅"} Mũi {v.nextDue.doseNumber} tiếp theo: {v.nextDue.date}
                   </div>
                 )}
               </div>
