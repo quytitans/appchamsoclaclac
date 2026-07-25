@@ -1991,15 +1991,15 @@ body {
 }
 
 .diary-photo-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
 
 .diary-photo-thumb {
-  width: 72px;
-  height: 72px;
+  width: 100%;
+  aspect-ratio: 1;
   border: none;
   border-radius: 14px;
   overflow: hidden;
@@ -2039,20 +2039,21 @@ body {
 
 .diary-gallery-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
   width: 100%;
   border: none;
-  background: none;
-  padding: 0;
+  background: linear-gradient(135deg, var(--main-pink), var(--dark-pink));
+  padding: 10px 12px;
+  border-radius: 12px;
   text-align: left;
 }
 
 .diary-gallery-title {
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--white);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2061,7 +2062,7 @@ body {
 .diary-gallery-date {
   font-size: 12px;
   font-weight: 700;
-  color: var(--deep-pink);
+  color: var(--white);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -2096,6 +2097,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 32px 16px;
+  overflow: hidden;
 }
 
 .lightbox-slide img {
@@ -2104,6 +2106,7 @@ body {
   object-fit: contain;
   user-select: none;
   border-radius: 8px;
+  transition: transform 150ms ease;
 }
 
 .lightbox-close {
