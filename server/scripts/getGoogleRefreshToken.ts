@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { createServer } from "node:http";
 import { URL } from "node:url";
-import { google } from "googleapis";
+import { auth } from "@googleapis/drive";
 
 const PORT = 53682;
 const REDIRECT_URI = `http://127.0.0.1:${PORT}/oauth2callback`;
@@ -19,7 +19,7 @@ async function main() {
     process.exit(1);
   }
 
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, REDIRECT_URI);
+  const oauth2Client = new auth.OAuth2(clientId, clientSecret, REDIRECT_URI);
 
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",

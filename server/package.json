@@ -11,9 +11,9 @@
     "drive:auth": "tsx scripts/getGoogleRefreshToken.ts"
   },
   "dependencies": {
+    "@googleapis/drive": "^20.2.0",
     "dotenv": "^17.4.2",
     "express": "^4.19.2",
-    "googleapis": "^173.0.0",
     "multer": "^2.2.0",
     "sharp": "^0.35.3"
   },

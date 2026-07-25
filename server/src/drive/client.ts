@@ -1,4 +1,4 @@
-import { google } from "googleapis";
+import { auth, drive } from "@googleapis/drive";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -19,8 +19,8 @@ export function getDriveClient() {
   const clientSecret = requireEnv("GOOGLE_OAUTH_CLIENT_SECRET");
   const refreshToken = requireEnv("GOOGLE_OAUTH_REFRESH_TOKEN");
 
-  const auth = new google.auth.OAuth2(clientId, clientSecret);
-  auth.setCredentials({ refresh_token: refreshToken });
+  const oauth2Client = new auth.OAuth2(clientId, clientSecret);
+  oauth2Client.setCredentials({ refresh_token: refreshToken });
 
-  return google.drive({ version: "v3", auth });
+  return drive({ version: "v3", auth: oauth2Client });
 }
