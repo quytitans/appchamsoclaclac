@@ -27,6 +27,13 @@ function validateDiaryBody(body: DiaryBody): string | null {
   return null;
 }
 
+function isPremiumAccount(account: string): boolean {
+  const row = db.prepare("SELECT is_premium FROM accounts WHERE id = ?").get(account) as
+    | { is_premium: number }
+    | undefined;
+  return row?.is_premium === 1;
+}
+
 function validatePhotoUploadIds(photoUploadIds: unknown, account: string): number[] | string {
   if (!Array.isArray(photoUploadIds)) return "Danh sách ảnh không hợp lệ";
   if (photoUploadIds.length > MAX_PHOTOS) return `Tối đa ${MAX_PHOTOS} ảnh mỗi nhật ký`;
@@ -93,6 +100,13 @@ diaryRouter.post("/", (req, res) => {
     photoIds = validated;
   }
 
+  // Chặn cả ở tầng API (không chỉ ẩn UI): tài khoản không Premium không được gắn ảnh —
+  // kể cả ảnh "mồ côi" cũ đã upload từ lúc còn Premium — vào bất kỳ nhật ký nào.
+  if (photoIds.length > 0 && !isPremiumAccount(body.account as string)) {
+    res.status(403).json({ error: "Tính năng gắn ảnh chỉ dành cho tài khoản Premium" });
+    return;
+  }
+
   const result = db
     .prepare(
       `INSERT INTO diary_entries (account, entry_date, title, content, importance, created_at)
@@ -138,6 +152,16 @@ diaryRouter.put("/:id", (req, res) => {
       return;
     }
     photoIds = validated;
+
+    // Tài khoản đã bị hạ khỏi Premium vẫn được giữ/bớt ảnh cũ của chính nhật ký này (không
+    // vỡ dữ liệu), nhưng không được gắn thêm ảnh mới — kể cả ảnh "mồ côi" cũ từ lúc còn
+    // Premium — thông qua route này để né premium gate của route upload.
+    const existingIds = new Set(getPhotosForEntry(id).map((p) => p.id));
+    const hasNewPhoto = photoIds.some((pid) => !existingIds.has(pid));
+    if (hasNewPhoto && !isPremiumAccount(body.account as string)) {
+      res.status(403).json({ error: "Tính năng gắn ảnh chỉ dành cho tài khoản Premium" });
+      return;
+    }
   }
 
   db.prepare(
