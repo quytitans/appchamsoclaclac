@@ -2019,6 +2019,57 @@ body {
   display: block;
 }
 
+.diary-view-mode-toggle {
+  margin-bottom: 10px;
+}
+
+/* Diary gallery view */
+.diary-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diary-gallery-item {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+
+.diary-gallery-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+}
+
+.diary-gallery-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diary-gallery-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--deep-pink);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.diary-gallery-item .diary-photo-grid {
+  margin-top: 10px;
+}
+
 /* PhotoLightbox */
 .lightbox-overlay {
   position: fixed;

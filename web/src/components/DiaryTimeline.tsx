@@ -58,9 +58,10 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [localRefresh, setLocalRefresh] = useState(0);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightbox, setLightbox] = useState<{ photos: UploadedImage[]; index: number } | null>(null);
   const [photosBusy, setPhotosBusy] = useState(false);
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"timeline" | "gallery">("timeline");
 
   useEffect(() => {
     setLoading(true);
@@ -80,7 +81,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
     setEditing(false);
     setEditForm(toEditForm(entry));
     setMessage(null);
-    setLightboxIndex(null);
+    setLightbox(null);
     setPhotosBusy(false);
   }
 
@@ -89,7 +90,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
     setEditing(false);
     setShowDeleteConfirm(false);
     setMessage(null);
-    setLightboxIndex(null);
+    setLightbox(null);
     setPhotosBusy(false);
   }
 
@@ -142,6 +143,17 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
 
   return (
     <div>
+      <div className="diary-view-mode-toggle">
+        <ToggleGroup
+          options={[
+            { value: "timeline", label: "🕸️ Timeline" },
+            { value: "gallery", label: "🖼️ Bộ Sưu Tập Ảnh" },
+          ]}
+          value={viewMode}
+          onChange={(v) => setViewMode(v as "timeline" | "gallery")}
+        />
+      </div>
+
       <input
         type="text"
         className="account-search-input"
@@ -152,7 +164,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
 
       {filteredEntries.length === 0 ? (
         <p className="loading-text">Không tìm thấy nhật ký nào phù hợp</p>
-      ) : (
+      ) : viewMode === "timeline" ? (
         <div className="diary-vine">
           <div className="diary-vine-stem" />
           {filteredEntries.map((entry, idx) => (
@@ -165,6 +177,31 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                 <div className="diary-leaf-date">{formatVNDate(entry.entry_date)}</div>
                 <div className="diary-leaf-title">{entry.title}</div>
               </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="diary-gallery">
+          {filteredEntries.map((entry) => (
+            <div key={entry.id} className="diary-gallery-item">
+              <button type="button" className="diary-gallery-header" onClick={() => openEntry(entry)}>
+                <span className="diary-gallery-title">{entry.title}</span>
+                <span className="diary-gallery-date">{formatVNDate(entry.entry_date)}</span>
+              </button>
+              {entry.photos.length > 0 && (
+                <div className="diary-photo-grid">
+                  {entry.photos.map((photo, i) => (
+                    <button
+                      key={photo.id}
+                      type="button"
+                      className="diary-photo-thumb"
+                      onClick={() => setLightbox({ photos: entry.photos, index: i })}
+                    >
+                      <img src={photo.thumb_url} alt="" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -210,7 +247,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                         key={photo.id}
                         type="button"
                         className="diary-photo-thumb"
-                        onClick={() => setLightboxIndex(i)}
+                        onClick={() => setLightbox({ photos: selected.photos, index: i })}
                       >
                         <img src={photo.thumb_url} alt="" />
                       </button>
@@ -323,12 +360,8 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
         </div>
       )}
 
-      {selected && lightboxIndex !== null && (
-        <PhotoLightbox
-          photos={selected.photos}
-          startIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-        />
+      {lightbox && (
+        <PhotoLightbox photos={lightbox.photos} startIndex={lightbox.index} onClose={() => setLightbox(null)} />
       )}
     </div>
   );
