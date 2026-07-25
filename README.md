@@ -73,6 +73,10 @@ Sau khi build, server sẽ tự phục vụ `web/dist` qua `express.static` trê
 
 Toàn bộ dữ liệu nằm trong file `server/database.sqlite`. Backup bằng cách copy file này ra nơi lưu trữ khác (không commit vào Git — đã có trong `.gitignore`).
 
+## Upload ảnh (Google Drive)
+
+Tính năng upload ảnh (dùng chung cho các module cần đính kèm ảnh) lưu file lên Google Drive cá nhân qua OAuth2. Cấu hình lần đầu theo [`GOOGLE_DRIVE_SETUP.md`](./GOOGLE_DRIVE_SETUP.md).
+
 ## An toàn khi deploy
 
 **Trước khi deploy/upgrade, đọc [`DEPLOY_SAFETY.md`](./DEPLOY_SAFETY.md)** — nguyên tắc bắt buộc: không làm mất dữ liệu cũ, không seed dữ liệu rác vào DB thật, không ảnh hưởng các app khác đang chạy cùng hosting.

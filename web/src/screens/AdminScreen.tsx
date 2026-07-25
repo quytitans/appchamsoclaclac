@@ -7,6 +7,7 @@ import {
   adminListAccounts,
   adminResetPin,
   adminSetActive,
+  adminSetPremium,
 } from "../api";
 import type { AccountSummary, Session } from "../types";
 import type { Screen } from "../App";
@@ -33,6 +34,7 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
   const [resetPin, setResetPin] = useState("");
   const [resetting, setResetting] = useState(false);
   const [togglingAccount, setTogglingAccount] = useState<string | null>(null);
+  const [togglingPremium, setTogglingPremium] = useState<string | null>(null);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AccountSummary | null>(null);
@@ -93,6 +95,23 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
       setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" });
     } finally {
       setTogglingAccount(null);
+    }
+  }
+
+  async function handleTogglePremium(account: string, nextPremium: boolean) {
+    setTogglingPremium(account);
+    setMessage(null);
+    try {
+      await adminSetPremium(session.token, account, nextPremium);
+      setMessage({
+        kind: "success",
+        text: nextPremium ? `Đã bật Premium cho "${account}"! 💎` : `Đã tắt Premium cho "${account}"`,
+      });
+      loadAccounts();
+    } catch (err) {
+      setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" });
+    } finally {
+      setTogglingPremium(null);
     }
   }
 
@@ -245,6 +264,13 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
                     disabled={togglingAccount === a.account}
                   >
                     {a.isActive ? "🟢 Active" : "🔴 Inactive"}
+                  </button>
+                  <button
+                    className={`account-premium-toggle ${a.isPremium ? "premium" : "free"}`}
+                    onClick={() => handleTogglePremium(a.account, !a.isPremium)}
+                    disabled={togglingPremium === a.account}
+                  >
+                    {a.isPremium ? "💎 Premium" : "⚪ Free"}
                   </button>
                   <button className="nav-switch-button" onClick={() => setResetTarget(a.account)}>
                     Đổi PIN

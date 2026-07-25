@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import ToggleGroup from "./ToggleGroup";
+import PhotoPicker from "./PhotoPicker";
+import PhotoLightbox from "./PhotoLightbox";
 import { IMPORTANCE_OPTIONS } from "./DiaryWriteForm";
 import { deleteDiaryEntry, fetchDiaryEntries, updateDiaryEntry } from "../api";
-import type { DiaryEntry, DiaryImportance } from "../types";
+import type { DiaryEntry, DiaryImportance, Session, UploadedImage } from "../types";
 
 interface Props {
-  account: string;
+  session: Session;
   refreshKey: number;
 }
 
@@ -14,6 +16,7 @@ interface EditForm {
   title: string;
   content: string;
   importance: DiaryImportance;
+  photos: UploadedImage[];
 }
 
 function formatVNDate(dateStr: string): string {
@@ -27,6 +30,7 @@ function toEditForm(entry: DiaryEntry): EditForm {
     title: entry.title,
     content: entry.content,
     importance: (entry.importance as DiaryImportance) ?? "cao",
+    photos: entry.photos,
   };
 }
 
@@ -42,7 +46,8 @@ function importanceLabel(importance: string | null): string {
   return "Cao";
 }
 
-export default function DiaryTimeline({ account, refreshKey }: Props) {
+export default function DiaryTimeline({ session, refreshKey }: Props) {
+  const account = session.account;
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<DiaryEntry | null>(null);
@@ -53,6 +58,8 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [localRefresh, setLocalRefresh] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [photosBusy, setPhotosBusy] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -66,6 +73,8 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
     setEditing(false);
     setEditForm(toEditForm(entry));
     setMessage(null);
+    setLightboxIndex(null);
+    setPhotosBusy(false);
   }
 
   function closeModal() {
@@ -73,6 +82,8 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
     setEditing(false);
     setShowDeleteConfirm(false);
     setMessage(null);
+    setLightboxIndex(null);
+    setPhotosBusy(false);
   }
 
   async function handleSaveEdit() {
@@ -90,6 +101,7 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
         title: editForm.title.trim(),
         content: editForm.content.trim(),
         importance: editForm.importance,
+        photoUploadIds: editForm.photos.map((p) => p.id),
       });
       setSelected(updated);
       setEditing(false);
@@ -128,6 +140,9 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
         <div key={entry.id} className={`diary-leaf-row ${idx % 2 === 0 ? "left" : "right"}`}>
           <div className="diary-leaf-node" />
           <button className={`diary-leaf-card ${importanceClass(entry)}`} onClick={() => openEntry(entry)}>
+            {entry.photos.length > 0 && (
+              <span className="diary-leaf-photo-badge">📷 {entry.photos.length}</span>
+            )}
             <div className="diary-leaf-date">{formatVNDate(entry.entry_date)}</div>
             <div className="diary-leaf-title">{entry.title}</div>
           </button>
@@ -135,8 +150,8 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
       ))}
 
       {selected && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-sheet diary-modal-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="diary-page-overlay" onClick={closeModal}>
+          <div className="diary-page-sheet" onClick={(e) => e.stopPropagation()}>
             {!editing ? (
               <>
                 <div className="modal-header diary-modal-header">
@@ -158,12 +173,29 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
                     >
                       🗑️
                     </button>
+                    <button className="modal-close" onClick={closeModal} aria-label="Đóng">
+                      ✕
+                    </button>
                   </div>
                 </div>
                 <p className="diary-modal-date">
                   {formatVNDate(selected.entry_date)} · Mức độ: {importanceLabel(selected.importance)}
                 </p>
                 <p className="diary-modal-content">{selected.content}</p>
+                {selected.photos.length > 0 && (
+                  <div className="diary-photo-grid">
+                    {selected.photos.map((photo, i) => (
+                      <button
+                        key={photo.id}
+                        type="button"
+                        className="diary-photo-thumb"
+                        onClick={() => setLightboxIndex(i)}
+                      >
+                        <img src={photo.thumb_url} alt="" />
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="modal-actions">
                   <button className="save-button" onClick={closeModal}>
                     Đóng
@@ -209,7 +241,21 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
                         onChange={(v) => setEditForm({ ...editForm, importance: v as DiaryImportance })}
                       />
                     </div>
+                    {session.isPremium && (
+                      <div className="field">
+                        <label className="field-label">📷 Ảnh (tối đa 5)</label>
+                        <PhotoPicker
+                          account={session.account}
+                          token={session.token}
+                          value={editForm.photos}
+                          onChange={(photos) => setEditForm({ ...editForm, photos })}
+                          onBusyChange={setPhotosBusy}
+                          max={5}
+                        />
+                      </div>
+                    )}
                   </div>
+                  {photosBusy && <div className="message error">Đang xử lý ảnh, vui lòng đợi...</div>}
                   {message && <div className="message error">{message}</div>}
                   <div className="modal-actions">
                     <button
@@ -218,12 +264,13 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
                         setEditing(false);
                         setEditForm(toEditForm(selected));
                         setMessage(null);
+                        setPhotosBusy(false);
                       }}
                       disabled={saving}
                     >
                       Hủy
                     </button>
-                    <button className="save-button" onClick={handleSaveEdit} disabled={saving}>
+                    <button className="save-button" onClick={handleSaveEdit} disabled={saving || photosBusy}>
                       {saving ? "Đang lưu..." : "Lưu"}
                     </button>
                   </div>
@@ -251,6 +298,14 @@ export default function DiaryTimeline({ account, refreshKey }: Props) {
             </div>
           </div>
         </div>
+      )}
+
+      {selected && lightboxIndex !== null && (
+        <PhotoLightbox
+          photos={selected.photos}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   );

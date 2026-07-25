@@ -1,8 +1,9 @@
 import { useState } from "react";
 import ToggleGroup from "./ToggleGroup";
+import PhotoPicker from "./PhotoPicker";
 import { createDiaryEntry } from "../api";
 import { todayDateStr } from "../dateUtils";
-import type { DiaryImportance } from "../types";
+import type { DiaryImportance, Session, UploadedImage } from "../types";
 
 export const IMPORTANCE_OPTIONS = [
   { value: "cao", label: "Cao" },
@@ -11,15 +12,17 @@ export const IMPORTANCE_OPTIONS = [
 ];
 
 interface Props {
-  account: string;
+  session: Session;
   onSaved: () => void;
 }
 
-export default function DiaryWriteForm({ account, onSaved }: Props) {
+export default function DiaryWriteForm({ session, onSaved }: Props) {
   const [entryDate, setEntryDate] = useState(todayDateStr());
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [importance, setImportance] = useState<DiaryImportance>("cao");
+  const [photos, setPhotos] = useState<UploadedImage[]>([]);
+  const [photosBusy, setPhotosBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -37,12 +40,20 @@ export default function DiaryWriteForm({ account, onSaved }: Props) {
     setSaving(true);
     setMessage(null);
     try {
-      await createDiaryEntry({ account, entryDate, title: title.trim(), content: content.trim(), importance });
+      await createDiaryEntry({
+        account: session.account,
+        entryDate,
+        title: title.trim(),
+        content: content.trim(),
+        importance,
+        photoUploadIds: photos.map((p) => p.id),
+      });
       setShowConfirm(false);
       setEntryDate(todayDateStr());
       setTitle("");
       setContent("");
       setImportance("cao");
+      setPhotos([]);
       onSaved();
     } catch (err) {
       setShowConfirm(false);
@@ -89,9 +100,25 @@ export default function DiaryWriteForm({ account, onSaved }: Props) {
         />
       </div>
 
+      {session.isPremium && (
+        <div className="field">
+          <label className="field-label">📷 Ảnh (tối đa 5)</label>
+          <PhotoPicker
+            account={session.account}
+            token={session.token}
+            value={photos}
+            onChange={setPhotos}
+            onBusyChange={setPhotosBusy}
+            max={5}
+          />
+        </div>
+      )}
+
       {message && <div className="message error">{message}</div>}
 
-      <button className="save-button" onClick={handleSaveClick} disabled={saving}>
+      {photosBusy && <div className="message error">Đang xử lý ảnh, vui lòng đợi...</div>}
+
+      <button className="save-button" onClick={handleSaveClick} disabled={saving || photosBusy}>
         {saving ? "Đang lưu..." : "Lưu Nhật Ký"}
       </button>
 

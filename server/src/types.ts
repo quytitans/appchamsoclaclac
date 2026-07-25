@@ -54,6 +54,7 @@ export interface AccountRow {
   session_token: string;
   is_admin: number;
   is_active: number;
+  is_premium: number;
   created_at: string;
 }
 
@@ -99,5 +100,17 @@ export interface DiaryEntryRow {
   title: string;
   content: string;
   importance: string | null;
+  created_at: string;
+}
+
+export interface DriveUploadRow {
+  id: number;
+  account: string;
+  full_file_id: string;
+  full_url: string;
+  thumb_file_id: string;
+  thumb_url: string;
+  width: number | null;
+  height: number | null;
   created_at: string;
 }

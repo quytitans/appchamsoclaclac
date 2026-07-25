@@ -10,6 +10,7 @@ import type {
   Session,
   StatsResponse,
   UpcomingDose,
+  UploadedImage,
   VaccineDetail,
   VaccineDose,
   VaccinePayload,
@@ -132,6 +133,14 @@ export function adminSetActive(token: string, targetAccount: string, active: boo
   }).then((res) => handleResponse<void>(res));
 }
 
+export function adminSetPremium(token: string, targetAccount: string, premium: boolean): Promise<void> {
+  return fetch(`${API_BASE}/auth/admin/set-premium`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, targetAccount, premium }),
+  }).then((res) => handleResponse<void>(res));
+}
+
 export function adminDeleteAccount(token: string, targetAccount: string): Promise<void> {
   return fetch(`${API_BASE}/auth/admin/delete-account`, {
     method: "POST",
@@ -249,4 +258,22 @@ export function deleteDiaryEntry(id: number, account: string): Promise<void> {
   return fetch(`${API_BASE}/diary/${id}?account=${encodeURIComponent(account)}`, {
     method: "DELETE",
   }).then((res) => handleResponse<void>(res));
+}
+
+export function uploadImage(file: File | Blob, account: string, token: string): Promise<UploadedImage> {
+  const formData = new FormData();
+  formData.append("image", file);
+  formData.append("account", account);
+  formData.append("token", token);
+  return fetch(`${API_BASE}/uploads/image`, {
+    method: "POST",
+    body: formData,
+  }).then((res) => handleResponse<UploadedImage>(res));
+}
+
+export function deleteUpload(id: number, account: string, token: string): Promise<void> {
+  return fetch(
+    `${API_BASE}/uploads/${id}?account=${encodeURIComponent(account)}&token=${encodeURIComponent(token)}`,
+    { method: "DELETE" }
+  ).then((res) => handleResponse<void>(res));
 }

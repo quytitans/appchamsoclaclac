@@ -796,6 +796,7 @@ body {
   align-items: flex-end;
   justify-content: center;
   z-index: 50;
+  animation: fade-in 180ms ease;
 }
 
 .modal-sheet {
@@ -807,6 +808,18 @@ body {
   border-radius: 24px 24px 0 0;
   padding: 20px 16px;
   box-shadow: 0 -4px 20px rgba(255, 93, 143, 0.3);
+  animation: modal-slide-up 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-header {
@@ -1248,6 +1261,27 @@ body {
 }
 
 .account-active-toggle:disabled {
+  opacity: 0.6;
+}
+
+.account-premium-toggle {
+  border: 2px solid #ba68c8;
+  background: #f3e5f5;
+  color: #6a1b9a;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.account-premium-toggle.free {
+  border-color: #bdbdbd;
+  background: #f5f5f5;
+  color: #757575;
+}
+
+.account-premium-toggle:disabled {
   opacity: 0.6;
 }
 
@@ -1716,6 +1750,19 @@ body {
   margin-left: 5%;
 }
 
+.diary-leaf-photo-badge {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  background: var(--white);
+  color: var(--deep-pink);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(90, 61, 75, 0.3);
+}
+
 /* Mức độ "Rất Cao": màu đậm hơn + hoa văn em bé/mẹ mờ phía sau */
 .diary-leaf-card.diary-leaf-rat-cao {
   background: linear-gradient(135deg, var(--dark-pink), var(--deep-pink));
@@ -1787,6 +1834,41 @@ body {
   overflow-y: auto;
 }
 
+.diary-page-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(90, 61, 75, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px 16px;
+  animation: fade-in 180ms ease;
+}
+
+.diary-page-sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: var(--soft-bg);
+  border-radius: 20px;
+  padding: 28px 24px;
+  box-shadow: 0 20px 60px rgba(90, 61, 75, 0.4);
+  animation: diary-page-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes diary-page-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .diary-modal-date {
   font-size: 13px;
   font-weight: 700;
@@ -1794,9 +1876,238 @@ body {
   margin: 0 0 8px;
 }
 
+/* PhotoPicker */
+.photo-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.photo-grid-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.photo-picker-add {
+  width: 96px;
+  height: 96px;
+  border: 2px dashed var(--main-pink);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--deep-pink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.photo-picker-preview {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.photo-picker-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-picker-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(90, 61, 75, 0.55);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding: 4px;
+}
+
+.photo-picker-overlay-error {
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  background: rgba(198, 40, 40, 0.75);
+}
+
+.photo-picker-slot-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.photo-picker-slot-actions button {
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #c62828;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 3px 6px;
+}
+
+.photo-picker-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(90, 61, 75, 0.7);
+  color: var(--white);
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-picker-retry {
+  border: none;
+  background: none;
+  color: var(--deep-pink);
+  font-weight: 700;
+  text-decoration: underline;
+  padding: 0;
+}
+
 .diary-modal-content {
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-dark);
   white-space: pre-line;
+}
+
+.diary-photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.diary-photo-thumb {
+  width: 72px;
+  height: 72px;
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
+  box-shadow: var(--shadow);
+  transition: transform 150ms ease;
+}
+
+.diary-photo-thumb:active {
+  transform: scale(0.94);
+}
+
+.diary-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* PhotoLightbox */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 8, 0.92);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 220ms ease;
+}
+
+.lightbox-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  will-change: transform;
+}
+
+.lightbox-slide {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.lightbox-slide img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  border-radius: 8px;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-counter {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  font-size: 26px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-nav-prev {
+  left: 12px;
+}
+
+.lightbox-nav-next {
+  right: 12px;
 }

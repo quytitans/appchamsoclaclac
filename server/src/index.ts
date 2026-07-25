@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,6 +8,7 @@ import { statsRouter } from "./routes/stats.js";
 import { authRouter } from "./routes/auth.js";
 import { vaccinesRouter } from "./routes/vaccines.js";
 import { diaryRouter } from "./routes/diary.js";
+import { uploadsRouter } from "./routes/uploads.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -19,6 +21,7 @@ app.use("/api/stats", statsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/vaccines", vaccinesRouter);
 app.use("/api/diary", diaryRouter);
+app.use("/api/uploads", uploadsRouter);
 
 const webDist = path.join(__dirname, "..", "..", "web", "dist");
 app.use(express.static(webDist));

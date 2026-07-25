@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { isValidAccountId } from "../hash.js";
+import { todayStr } from "../dateUtils.js";
 import type { RecordRow } from "../types.js";
 
 export const statsRouter = Router();
@@ -63,7 +64,7 @@ statsRouter.get("/", (req, res) => {
     res.status(400).json({ error: "Thiếu tham số account" });
     return;
   }
-  const date = (req.query.date as string) || new Date().toISOString().slice(0, 10);
+  const date = (req.query.date as string) || todayStr();
 
   const pumping = db
     .prepare(

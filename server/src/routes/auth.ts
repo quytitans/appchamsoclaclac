@@ -9,14 +9,14 @@ function getAccount(id: string): AccountRow | undefined {
   return db.prepare("SELECT * FROM accounts WHERE id = ?").get(id) as AccountRow | undefined;
 }
 
-function getAccountByToken(token: string): AccountRow | undefined {
+export function getAccountByToken(token: string): AccountRow | undefined {
   return db.prepare("SELECT * FROM accounts WHERE session_token = ?").get(token) as
     | AccountRow
     | undefined;
 }
 
 function publicAccount(a: AccountRow) {
-  return { account: a.id, babyName: a.baby_name, isAdmin: a.is_admin === 1 };
+  return { account: a.id, babyName: a.baby_name, isAdmin: a.is_admin === 1, isPremium: a.is_premium === 1 };
 }
 
 authRouter.post("/login", (req, res) => {
@@ -89,14 +89,15 @@ authRouter.get("/admin/accounts", (req, res) => {
     return;
   }
   const rows = db
-    .prepare("SELECT id, baby_name, is_admin, is_active, created_at FROM accounts ORDER BY created_at ASC")
-    .all() as { id: string; baby_name: string; is_admin: number; is_active: number; created_at: string }[];
+    .prepare("SELECT id, baby_name, is_admin, is_active, is_premium, created_at FROM accounts ORDER BY created_at ASC")
+    .all() as { id: string; baby_name: string; is_admin: number; is_active: number; is_premium: number; created_at: string }[];
   res.json(
     rows.map((r) => ({
       account: r.id,
       babyName: r.baby_name,
       isAdmin: r.is_admin === 1,
       isActive: r.is_active === 1,
+      isPremium: r.is_premium === 1,
       createdAt: r.created_at,
     }))
   );
@@ -191,6 +192,30 @@ authRouter.post("/admin/set-active", (req, res) => {
     randomToken(),
     target.id
   );
+  res.json({ success: true });
+});
+
+authRouter.post("/admin/set-premium", (req, res) => {
+  const { token, targetAccount, premium } = req.body as {
+    token?: string;
+    targetAccount?: string;
+    premium?: boolean;
+  };
+  const admin = requireAdmin(token);
+  if (!admin) {
+    res.status(403).json({ error: "Không có quyền truy cập" });
+    return;
+  }
+  if (!targetAccount || typeof premium !== "boolean") {
+    res.status(400).json({ error: "Thiếu tài khoản hoặc trạng thái không hợp lệ" });
+    return;
+  }
+  const target = getAccount(targetAccount);
+  if (!target) {
+    res.status(404).json({ error: "Không tìm thấy tài khoản" });
+    return;
+  }
+  db.prepare("UPDATE accounts SET is_premium = ? WHERE id = ?").run(premium ? 1 : 0, target.id);
   res.json({ success: true });
 });
 

@@ -51,6 +51,7 @@ export interface Session {
   account: string;
   babyName: string;
   isAdmin: boolean;
+  isPremium: boolean;
 }
 
 export interface AccountSummary {
@@ -58,6 +59,7 @@ export interface AccountSummary {
   babyName: string;
   isAdmin: boolean;
   isActive: boolean;
+  isPremium: boolean;
   createdAt: string;
 }
 
@@ -182,6 +184,7 @@ export interface DiaryEntry {
   content: string;
   importance: string | null;
   created_at: string;
+  photos: UploadedImage[];
 }
 
 export interface DiaryEntryPayload {
@@ -190,4 +193,16 @@ export interface DiaryEntryPayload {
   title: string;
   content: string;
   importance?: DiaryImportance;
+  photoUploadIds?: number[];
+}
+
+export interface UploadedImage {
+  id: number;
+  full_file_id: string;
+  full_url: string;
+  thumb_file_id: string;
+  thumb_url: string;
+  width: number | null;
+  height: number | null;
+  created_at: string;
 }

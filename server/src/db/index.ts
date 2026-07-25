@@ -56,6 +56,9 @@ db.exec(`
   if (!existingAccountColumns.includes("is_active")) {
     db.exec(`ALTER TABLE accounts ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`);
   }
+  if (!existingAccountColumns.includes("is_premium")) {
+    db.exec(`ALTER TABLE accounts ADD COLUMN is_premium INTEGER NOT NULL DEFAULT 0`);
+  }
 }
 
 // Cơ chế tự kiểm tra & cập nhật cột khi schema thay đổi (không dùng tool migration ngoài).
@@ -189,3 +192,31 @@ db.exec(`CREATE INDEX IF NOT EXISTS idx_diary_entries_account ON diary_entries(a
     db.exec(`ALTER TABLE diary_entries ADD COLUMN importance TEXT`);
   }
 }
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS drive_uploads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT NOT NULL,
+    full_file_id TEXT NOT NULL,
+    full_url TEXT NOT NULL,
+    thumb_file_id TEXT NOT NULL,
+    thumb_url TEXT NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_drive_uploads_account ON drive_uploads(account)`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS diary_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    diary_entry_id INTEGER NOT NULL,
+    drive_upload_id INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_diary_photos_entry ON diary_photos(diary_entry_id)`);

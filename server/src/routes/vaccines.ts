@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { isValidAccountId } from "../hash.js";
+import { todayStr } from "../dateUtils.js";
 import type { NextDue, VaccineDoseRow, VaccineDurationType, VaccineRow } from "../types.js";
 
 export const vaccinesRouter = Router();
@@ -36,10 +37,6 @@ function getVaccineForAccount(id: number, account: string): VaccineRow | undefin
   return db.prepare("SELECT * FROM vaccines WHERE id = ? AND account = ?").get(id, account) as
     | VaccineRow
     | undefined;
-}
-
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function mapDose(d: VaccineDoseRow) {

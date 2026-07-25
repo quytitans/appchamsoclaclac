@@ -17,11 +17,30 @@ export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpd
 
   useEffect(() => {
     if (session.isAdmin) return;
-    fetchVaccines(session.account)
-      .then((vaccines) => {
-        setHasOverdueVaccine(vaccines.some((v) => v.nextDue?.overdue ?? false));
-      })
-      .catch(() => {});
+
+    function checkOverdue() {
+      fetchVaccines(session.account)
+        .then((vaccines) => {
+          setHasOverdueVaccine(vaccines.some((v) => v.nextDue?.overdue ?? false));
+        })
+        .catch(() => {});
+    }
+
+    checkOverdue();
+
+    // Màn hình chính có thể bị bỏ mở cả ngày (khoá màn hình, chuyển app...) — chỉ fetch
+    // lúc mount thôi sẽ khiến cảnh báo "đến hạn hôm nay" hiện trễ tới khi người dùng
+    // vào lại/tải lại trang. Kiểm tra lại khi quay lại tab + định kỳ để badge tự cập nhật.
+    function handleVisibility() {
+      if (document.visibilityState === "visible") checkOverdue();
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    const intervalId = window.setInterval(checkOverdue, 15 * 60 * 1000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.clearInterval(intervalId);
+    };
   }, [session.account, session.isAdmin]);
 
   if (session.isAdmin) {

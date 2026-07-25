@@ -47,8 +47,8 @@ export default function DiaryScreen({ session, onNavigate }: Props) {
         </button>
       </div>
 
-      {activeTab === "timeline" && <DiaryTimeline account={session.account} refreshKey={refreshKey} />}
-      {activeTab === "write" && <DiaryWriteForm account={session.account} onSaved={handleSaved} />}
+      {activeTab === "timeline" && <DiaryTimeline session={session} refreshKey={refreshKey} />}
+      {activeTab === "write" && <DiaryWriteForm session={session} onSaved={handleSaved} />}
     </div>
   );
 }
