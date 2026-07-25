@@ -15,12 +15,12 @@ interface Props {
   account: string;
   token: string;
   value: UploadedImage[];
-  onChange: (images: UploadedImage[]) => void;
+  onChange: (updater: (prev: UploadedImage[]) => UploadedImage[]) => void;
   onBusyChange?: (busy: boolean) => void;
   max?: number;
 }
 
-export default function PhotoPicker({ account, token, value, onChange, onBusyChange, max = 5 }: Props) {
+export default function PhotoPicker({ account, token, value, onChange, onBusyChange, max = 10 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingSlot[]>([]);
   const [removingId, setRemovingId] = useState<number | null>(null);
@@ -38,6 +38,9 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
     inputRef.current?.click();
   }
 
+  // Nhiều ảnh có thể upload đồng thời — mỗi ảnh xong phải tự cộng dồn vào state mới nhất
+  // (functional updater), không được tính dựa trên `value` chụp tại thời điểm chọn ảnh,
+  // nếu không các lần ghi đè lẫn nhau và chỉ còn 1 ảnh sống sót.
   async function runUpload(key: string, file: File) {
     try {
       const compressed = await compressForUpload(file);
@@ -47,7 +50,7 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
         if (slot) URL.revokeObjectURL(slot.previewUrl);
         return prev.filter((p) => p.key !== key);
       });
-      onChange([...value, uploaded]);
+      onChange((prev) => [...prev, uploaded]);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upload ảnh thất bại";
       setPending((prev) => prev.map((p) => (p.key === key ? { ...p, uploading: false, error: message } : p)));
@@ -60,10 +63,17 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
     if (files.length === 0) return;
 
     const room = max - totalCount;
-    const toUpload = files.slice(0, room);
-    setOverflowMessage(files.length > room ? `Chỉ thêm được tối đa ${max} ảnh, đã bỏ qua ${files.length - room} ảnh` : null);
+    if (files.length > room) {
+      setOverflowMessage(
+        room > 0
+          ? `Bạn chọn ${files.length} ảnh nhưng chỉ còn thêm được tối đa ${room} ảnh nữa (giới hạn ${max} ảnh/sự kiện). Vui lòng bỏ bớt ảnh đã chọn rồi thử lại.`
+          : `Đã đạt giới hạn ${max} ảnh/sự kiện, không thể thêm ảnh mới.`
+      );
+      return;
+    }
+    setOverflowMessage(null);
 
-    const newSlots: PendingSlot[] = toUpload.map((file) => ({
+    const newSlots: PendingSlot[] = files.map((file) => ({
       key: `${Date.now()}-${Math.random()}`,
       previewUrl: URL.createObjectURL(file),
       uploading: true,
@@ -93,7 +103,7 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
     setRemovingId(img.id);
     try {
       await deleteUpload(img.id, account, token);
-      onChange(value.filter((v) => v.id !== img.id));
+      onChange((prev) => prev.filter((v) => v.id !== img.id));
     } catch (err) {
       setOverflowMessage(err instanceof Error ? err.message : "Xoá ảnh thất bại");
     } finally {

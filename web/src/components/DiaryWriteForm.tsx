@@ -102,14 +102,14 @@ export default function DiaryWriteForm({ session, onSaved }: Props) {
 
       {session.isPremium && (
         <div className="field">
-          <label className="field-label">📷 Ảnh (tối đa 5)</label>
+          <label className="field-label">📷 Ảnh (tối đa 10)</label>
           <PhotoPicker
             account={session.account}
             token={session.token}
             value={photos}
             onChange={setPhotos}
             onBusyChange={setPhotosBusy}
-            max={5}
+            max={10}
           />
         </div>
       )}

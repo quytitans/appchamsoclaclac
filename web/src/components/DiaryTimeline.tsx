@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ToggleGroup from "./ToggleGroup";
 import PhotoPicker from "./PhotoPicker";
 import PhotoLightbox from "./PhotoLightbox";
@@ -60,6 +60,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
   const [localRefresh, setLocalRefresh] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [photosBusy, setPhotosBusy] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -67,6 +68,12 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
       .then(setEntries)
       .finally(() => setLoading(false));
   }, [account, refreshKey, localRefresh]);
+
+  const filteredEntries = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return entries;
+    return entries.filter((e) => e.title.toLowerCase().includes(q));
+  }, [entries, search]);
 
   function openEntry(entry: DiaryEntry) {
     setSelected(entry);
@@ -134,20 +141,34 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
   }
 
   return (
-    <div className="diary-vine">
-      <div className="diary-vine-stem" />
-      {entries.map((entry, idx) => (
-        <div key={entry.id} className={`diary-leaf-row ${idx % 2 === 0 ? "left" : "right"}`}>
-          <div className="diary-leaf-node" />
-          <button className={`diary-leaf-card ${importanceClass(entry)}`} onClick={() => openEntry(entry)}>
-            {entry.photos.length > 0 && (
-              <span className="diary-leaf-photo-badge">📷 {entry.photos.length}</span>
-            )}
-            <div className="diary-leaf-date">{formatVNDate(entry.entry_date)}</div>
-            <div className="diary-leaf-title">{entry.title}</div>
-          </button>
+    <div>
+      <input
+        type="text"
+        className="account-search-input"
+        placeholder="🔍 Tìm nhật ký theo tên..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {filteredEntries.length === 0 ? (
+        <p className="loading-text">Không tìm thấy nhật ký nào phù hợp</p>
+      ) : (
+        <div className="diary-vine">
+          <div className="diary-vine-stem" />
+          {filteredEntries.map((entry, idx) => (
+            <div key={entry.id} className={`diary-leaf-row ${idx % 2 === 0 ? "left" : "right"}`}>
+              <div className="diary-leaf-node" />
+              <button className={`diary-leaf-card ${importanceClass(entry)}`} onClick={() => openEntry(entry)}>
+                {entry.photos.length > 0 && (
+                  <span className="diary-leaf-photo-badge">📷 {entry.photos.length}</span>
+                )}
+                <div className="diary-leaf-date">{formatVNDate(entry.entry_date)}</div>
+                <div className="diary-leaf-title">{entry.title}</div>
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
 
       {selected && (
         <div className="diary-page-overlay" onClick={closeModal}>
@@ -243,14 +264,16 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                     </div>
                     {session.isPremium && (
                       <div className="field">
-                        <label className="field-label">📷 Ảnh (tối đa 5)</label>
+                        <label className="field-label">📷 Ảnh (tối đa 10)</label>
                         <PhotoPicker
                           account={session.account}
                           token={session.token}
                           value={editForm.photos}
-                          onChange={(photos) => setEditForm({ ...editForm, photos })}
+                          onChange={(updater) =>
+                            setEditForm((prev) => (prev ? { ...prev, photos: updater(prev.photos) } : prev))
+                          }
                           onBusyChange={setPhotosBusy}
-                          max={5}
+                          max={10}
                         />
                       </div>
                     )}

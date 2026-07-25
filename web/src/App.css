@@ -1705,7 +1705,7 @@ body {
   display: flex;
   width: 100%;
   min-height: 64px;
-  margin-bottom: 22px;
+  margin-bottom: 10px;
 }
 
 .diary-leaf-row.left {
