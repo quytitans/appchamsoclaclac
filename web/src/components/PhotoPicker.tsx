@@ -26,23 +26,26 @@ interface Props {
   max?: number;
 }
 
-export default function PhotoPicker({ account, token, value, onChange, onBusyChange, max = 10 }: Props) {
+export default function PhotoPicker({ account, token, value, onChange, onBusyChange, max = 12 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingSlot[]>([]);
-  const [removingId, setRemovingId] = useState<number | null>(null);
+  const [removingIds, setRemovingIds] = useState<Set<number>>(new Set());
   const [overflowMessage, setOverflowMessage] = useState<string | null>(null);
 
   const fileByKeyRef = useRef<Map<string, File>>(new Map());
   const uploadQueueRef = useRef<string[]>([]);
   const activeUploadsRef = useRef(0);
 
+  const removeQueueRef = useRef<UploadedImage[]>([]);
+  const removingActiveRef = useRef(false);
+
   const totalCount = value.length + pending.length;
   const canAddMore = totalCount < max;
 
   useEffect(() => {
-    onBusyChange?.(pending.some((p) => p.uploading) || removingId !== null);
+    onBusyChange?.(pending.some((p) => p.uploading) || removingIds.size > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pending, removingId]);
+  }, [pending, removingIds]);
 
   function handlePick() {
     inputRef.current?.click();
@@ -94,17 +97,22 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
     if (files.length === 0) return;
 
     const room = max - totalCount;
-    if (files.length > room) {
-      setOverflowMessage(
-        room > 0
-          ? `Bạn chọn ${files.length} ảnh nhưng chỉ còn thêm được tối đa ${room} ảnh nữa (giới hạn ${max} ảnh/sự kiện). Vui lòng bỏ bớt ảnh đã chọn rồi thử lại.`
-          : `Đã đạt giới hạn ${max} ảnh/sự kiện, không thể thêm ảnh mới.`
-      );
+    if (room <= 0) {
+      setOverflowMessage(`Đã đạt giới hạn ${max} ảnh/sự kiện, không thể thêm ảnh mới.`);
       return;
     }
-    setOverflowMessage(null);
 
-    const newSlots: PendingSlot[] = files.map((file) => ({
+    // Giữ lại đúng thứ tự người dùng chọn — chỉ nhận đủ ảnh còn chỗ trống, phần dư bị bỏ qua
+    // (không chặn cả lượt chọn) và báo rõ đã bỏ bao nhiêu ảnh.
+    const filesToAdd = files.slice(0, room);
+    const skippedCount = files.length - filesToAdd.length;
+    setOverflowMessage(
+      skippedCount > 0
+        ? `Chỉ được tải tối đa ${max} ảnh cho 1 sự kiện. Đã tải ${filesToAdd.length} ảnh đầu tiên, bỏ qua ${skippedCount} ảnh còn lại.`
+        : null
+    );
+
+    const newSlots: PendingSlot[] = filesToAdd.map((file) => ({
       key: `${Date.now()}-${Math.random()}`,
       previewUrl: URL.createObjectURL(file),
       uploading: true,
@@ -132,16 +140,40 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
     });
   }
 
-  async function removeUploaded(img: UploadedImage) {
-    setRemovingId(img.id);
+  // Xoá luôn xử lý tuần tự (tối đa 1 request DELETE cùng lúc) dù người dùng bấm X liên
+  // tiếp nhiều ảnh — mỗi lần bấm chỉ ghi nhận vào hàng đợi và hiện overlay "Đang xoá..."
+  // ngay lập tức, ảnh chỉ thực sự biến mất khi request của nó tới lượt và hoàn tất.
+  async function performRemove(img: UploadedImage) {
     try {
       await deleteUpload(img.id, account, token);
       onChange((prev) => prev.filter((v) => v.id !== img.id));
     } catch (err) {
       setOverflowMessage(err instanceof Error ? err.message : "Xoá ảnh thất bại");
     } finally {
-      setRemovingId(null);
+      setRemovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(img.id);
+        return next;
+      });
     }
+  }
+
+  function pumpRemoveQueue() {
+    if (removingActiveRef.current) return;
+    const next = removeQueueRef.current.shift();
+    if (!next) return;
+    removingActiveRef.current = true;
+    performRemove(next).finally(() => {
+      removingActiveRef.current = false;
+      pumpRemoveQueue();
+    });
+  }
+
+  function removeUploaded(img: UploadedImage) {
+    if (removingIds.has(img.id)) return;
+    setRemovingIds((prev) => new Set(prev).add(img.id));
+    removeQueueRef.current.push(img);
+    pumpRemoveQueue();
   }
 
   return (
@@ -151,12 +183,12 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
         {value.map((img) => (
           <div className="photo-picker-preview" key={img.id}>
             <img src={img.thumb_url} alt="Ảnh đã tải lên" />
-            {removingId === img.id && <div className="photo-picker-overlay">Đang xoá...</div>}
+            {removingIds.has(img.id) && <div className="photo-picker-overlay">Đang xoá...</div>}
             <button
               type="button"
               className="photo-picker-remove"
               onClick={() => removeUploaded(img)}
-              disabled={removingId === img.id}
+              disabled={removingIds.has(img.id)}
               aria-label="Xoá ảnh"
             >
               ×
