@@ -1,4 +1,7 @@
-export async function compressForUpload(file: File, maxDim = 2000, quality = 0.85): Promise<Blob> {
+// maxDim matches the server's FULL_MAX_DIMENSION (imageUpload.ts) — the server
+// re-resizes to 1600px anyway, so sending anything larger just wastes upload
+// bandwidth/memory on the client for no visual gain.
+export async function compressForUpload(file: File, maxDim = 1600, quality = 0.85): Promise<Blob> {
   try {
     const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
     const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));

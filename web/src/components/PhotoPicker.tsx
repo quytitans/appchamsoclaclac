@@ -3,6 +3,12 @@ import { uploadImage, deleteUpload } from "../api";
 import { compressForUpload } from "../imageCompress";
 import type { UploadedImage } from "../types";
 
+// iOS Safari has a much tighter per-tab memory ceiling than desktop/Android Chrome —
+// decoding+encoding several full-res iPhone photos at once (createImageBitmap + canvas)
+// can exhaust it and silently fail. Cap concurrent uploads so at most a few photos are
+// being compressed/uploaded at any moment, regardless of how many were selected at once.
+const MAX_CONCURRENT_UPLOADS = 3;
+
 interface PendingSlot {
   key: string;
   previewUrl: string;
@@ -25,6 +31,10 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
   const [pending, setPending] = useState<PendingSlot[]>([]);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [overflowMessage, setOverflowMessage] = useState<string | null>(null);
+
+  const fileByKeyRef = useRef<Map<string, File>>(new Map());
+  const uploadQueueRef = useRef<string[]>([]);
+  const activeUploadsRef = useRef(0);
 
   const totalCount = value.length + pending.length;
   const canAddMore = totalCount < max;
@@ -57,6 +67,27 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
     }
   }
 
+  // Only ever runs MAX_CONCURRENT_UPLOADS uploads at once; the rest wait in
+  // uploadQueueRef until a slot frees up (see enqueueUpload below).
+  function pumpQueue() {
+    while (activeUploadsRef.current < MAX_CONCURRENT_UPLOADS && uploadQueueRef.current.length > 0) {
+      const key = uploadQueueRef.current.shift()!;
+      const file = fileByKeyRef.current.get(key);
+      if (!file) continue;
+      activeUploadsRef.current += 1;
+      runUpload(key, file).finally(() => {
+        activeUploadsRef.current -= 1;
+        pumpQueue();
+      });
+    }
+  }
+
+  function enqueueUpload(key: string, file: File) {
+    fileByKeyRef.current.set(key, file);
+    uploadQueueRef.current.push(key);
+    pumpQueue();
+  }
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
@@ -81,17 +112,19 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
       file,
     }));
     setPending((prev) => [...prev, ...newSlots]);
-    newSlots.forEach((slot) => runUpload(slot.key, slot.file));
+    newSlots.forEach((slot) => enqueueUpload(slot.key, slot.file));
   }
 
   function retrySlot(key: string) {
     const slot = pending.find((p) => p.key === key);
     if (!slot) return;
     setPending((prev) => prev.map((p) => (p.key === key ? { ...p, uploading: true, error: null } : p)));
-    runUpload(key, slot.file);
+    enqueueUpload(key, slot.file);
   }
 
   function discardSlot(key: string) {
+    uploadQueueRef.current = uploadQueueRef.current.filter((k) => k !== key);
+    fileByKeyRef.current.delete(key);
     setPending((prev) => {
       const slot = prev.find((p) => p.key === key);
       if (slot) URL.revokeObjectURL(slot.previewUrl);

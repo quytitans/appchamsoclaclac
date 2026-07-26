@@ -21,8 +21,11 @@ const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/+/g, "/");
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: "Đã có lỗi xảy ra" }));
-    throw new Error(body.error || "Đã có lỗi xảy ra");
+    const body = await res.json().catch(() => null);
+    // A non-JSON body means the error never reached our Express handlers (e.g. an
+    // Nginx/proxy-level rejection like 413 Payload Too Large or a 504 timeout) —
+    // surface the HTTP status so this is diagnosable instead of a bare generic string.
+    throw new Error(body?.error || `Đã có lỗi xảy ra (HTTP ${res.status})`);
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
