@@ -183,16 +183,18 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
         {value.map((img) => (
           <div className="photo-picker-preview" key={img.id}>
             <img src={img.thumb_url} alt="Ảnh đã tải lên" />
-            {removingIds.has(img.id) && <div className="photo-picker-overlay">Đang xoá...</div>}
-            <button
-              type="button"
-              className="photo-picker-remove"
-              onClick={() => removeUploaded(img)}
-              disabled={removingIds.has(img.id)}
-              aria-label="Xoá ảnh"
-            >
-              ×
-            </button>
+            {removingIds.has(img.id) ? (
+              <div className="photo-picker-overlay">Đang xoá...</div>
+            ) : (
+              <button
+                type="button"
+                className="photo-picker-remove"
+                onClick={() => removeUploaded(img)}
+                aria-label="Xoá ảnh"
+              >
+                ×
+              </button>
+            )}
           </div>
         ))}
         {pending.map((slot) => (
