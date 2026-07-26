@@ -6,11 +6,12 @@ import {
   adminDeleteAccount,
   adminListAccounts,
   adminListErrorLogs,
+  adminListUsageLogs,
   adminResetPin,
   adminSetActive,
   adminSetPremium,
 } from "../api";
-import type { AccountSummary, ErrorLogEntry, Session } from "../types";
+import type { AccountSummary, ErrorLogEntry, Session, UsageLogEntry } from "../types";
 import type { Screen } from "../App";
 
 interface Props {
@@ -46,6 +47,10 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
   const [logsLoading, setLogsLoading] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
 
+  const [usageLogs, setUsageLogs] = useState<UsageLogEntry[]>([]);
+  const [usageLogsLoading, setUsageLogsLoading] = useState(false);
+  const [showUsageLogs, setShowUsageLogs] = useState(false);
+
   const filteredAccounts = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return accounts;
@@ -77,6 +82,20 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
     const next = !showLogs;
     setShowLogs(next);
     if (next) loadErrorLogs();
+  }
+
+  const loadUsageLogs = useCallback(() => {
+    setUsageLogsLoading(true);
+    return adminListUsageLogs(session.token)
+      .then(setUsageLogs)
+      .catch((err) => setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" }))
+      .finally(() => setUsageLogsLoading(false));
+  }, [session.token]);
+
+  function handleToggleUsageLogs() {
+    const next = !showUsageLogs;
+    setShowUsageLogs(next);
+    if (next) loadUsageLogs();
   }
 
   async function handleCreate() {
@@ -198,6 +217,10 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
           <span className="big-card-icon">🐛</span>
           <span className="big-card-label">Nhật Ký Lỗi</span>
         </button>
+        <button className="big-card-button admin-quick-button" onClick={handleToggleUsageLogs}>
+          <span className="big-card-icon">📜</span>
+          <span className="big-card-label">Nhật Ký Sử Dụng</span>
+        </button>
       </div>
 
       {showCreateForm && (
@@ -238,7 +261,7 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
       {showLogs && (
         <section className="month-section">
           <div className="admin-logs-header">
-            <h3 className="month-section-title">🐛 Nhật ký lỗi hệ thống (100 lỗi gần nhất)</h3>
+            <h3 className="month-section-title">🐛 Nhật ký lỗi hệ thống (giữ 7 ngày gần nhất)</h3>
             <button className="date-nav-button" onClick={loadErrorLogs} disabled={logsLoading} aria-label="Tải lại">
               🔄
             </button>
@@ -254,6 +277,37 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
                   <span className="error-log-time">{new Date(log.createdAt).toLocaleString("vi-VN")}</span>
                 </div>
                 <div className="error-log-message">{log.message}</div>
+                {log.account && <div className="error-log-account">@{log.account}</div>}
+              </div>
+            ))}
+        </section>
+      )}
+
+      {showUsageLogs && (
+        <section className="month-section">
+          <div className="admin-logs-header">
+            <h3 className="month-section-title">📜 Nhật ký sử dụng (giữ 2 ngày gần nhất)</h3>
+            <button
+              className="date-nav-button"
+              onClick={loadUsageLogs}
+              disabled={usageLogsLoading}
+              aria-label="Tải lại"
+            >
+              🔄
+            </button>
+          </div>
+          {usageLogsLoading && <p className="loading-text">Đang tải...</p>}
+          {!usageLogsLoading && usageLogs.length === 0 && (
+            <p className="loading-text">Chưa có hoạt động nào được ghi nhận</p>
+          )}
+          {!usageLogsLoading &&
+            usageLogs.map((log) => (
+              <div key={log.id} className="error-log-row">
+                <div className="error-log-row-top">
+                  <span className="error-log-status">{log.statusCode}</span>
+                  <span className="error-log-route">{log.route}</span>
+                  <span className="error-log-time">{new Date(log.createdAt).toLocaleString("vi-VN")}</span>
+                </div>
                 {log.account && <div className="error-log-account">@{log.account}</div>}
               </div>
             ))}

@@ -12,6 +12,7 @@ import type {
   StatsResponse,
   UpcomingDose,
   UploadedImage,
+  UsageLogEntry,
   VaccineDetail,
   VaccineDose,
   VaccinePayload,
@@ -111,6 +112,12 @@ export function adminListAccounts(token: string): Promise<AccountSummary[]> {
 export function adminListErrorLogs(token: string): Promise<ErrorLogEntry[]> {
   return fetch(`${API_BASE}/auth/admin/error-logs?token=${encodeURIComponent(token)}`).then((res) =>
     handleResponse<ErrorLogEntry[]>(res)
+  );
+}
+
+export function adminListUsageLogs(token: string): Promise<UsageLogEntry[]> {
+  return fetch(`${API_BASE}/auth/admin/usage-logs?token=${encodeURIComponent(token)}`).then((res) =>
+    handleResponse<UsageLogEntry[]>(res)
   );
 }
 

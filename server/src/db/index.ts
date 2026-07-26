@@ -235,3 +235,17 @@ db.exec(`
 `);
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at)`);
+
+// Audit trail of state-changing actions (see usageLog.ts) — separate from error_logs
+// since it tracks normal usage, not failures, and has a much shorter retention.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS usage_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    route TEXT NOT NULL,
+    status_code INTEGER NOT NULL,
+    account TEXT
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_usage_logs_created_at ON usage_logs(created_at)`);

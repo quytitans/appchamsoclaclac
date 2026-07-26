@@ -123,3 +123,11 @@ export interface ErrorLogRow {
   message: string;
   account: string | null;
 }
+
+export interface UsageLogRow {
+  id: number;
+  created_at: string;
+  route: string;
+  status_code: number;
+  account: string | null;
+}

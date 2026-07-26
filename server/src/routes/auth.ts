@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { hashPin, isValidAccountId, isValidPinFormat, randomToken } from "../hash.js";
-import type { AccountRow, ErrorLogRow } from "../types.js";
+import type { AccountRow, ErrorLogRow, UsageLogRow } from "../types.js";
 
 export const authRouter = Router();
 
@@ -243,6 +243,26 @@ authRouter.get("/admin/error-logs", (req, res) => {
       route: r.route,
       statusCode: r.status_code,
       message: r.message,
+      account: r.account,
+    }))
+  );
+});
+
+authRouter.get("/admin/usage-logs", (req, res) => {
+  const admin = requireAdmin(req.query.token);
+  if (!admin) {
+    res.status(403).json({ error: "Không có quyền truy cập" });
+    return;
+  }
+  const rows = db
+    .prepare("SELECT * FROM usage_logs ORDER BY id DESC LIMIT 200")
+    .all() as unknown as UsageLogRow[];
+  res.json(
+    rows.map((r) => ({
+      id: r.id,
+      createdAt: r.created_at,
+      route: r.route,
+      statusCode: r.status_code,
       account: r.account,
     }))
   );

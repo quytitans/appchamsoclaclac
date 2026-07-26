@@ -72,6 +72,14 @@ export interface ErrorLogEntry {
   account: string | null;
 }
 
+export interface UsageLogEntry {
+  id: number;
+  createdAt: string;
+  route: string;
+  statusCode: number;
+  account: string | null;
+}
+
 export interface StatsResponse {
   date: string;
   pumping: { count: number; totalMl: number; avgMl: number };
