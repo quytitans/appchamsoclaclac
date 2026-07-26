@@ -9,6 +9,7 @@ import { authRouter } from "./routes/auth.js";
 import { vaccinesRouter } from "./routes/vaccines.js";
 import { diaryRouter } from "./routes/diary.js";
 import { uploadsRouter } from "./routes/uploads.js";
+import { logError } from "./errorLog.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -27,6 +28,15 @@ const webDist = path.join(__dirname, "..", "..", "web", "dist");
 app.use(express.static(webDist));
 app.get(/^\/(?!api).*/, (_req, res) => {
   res.sendFile(path.join(webDist, "index.html"));
+});
+
+// Safety net for any exception a route handler didn't already catch — logs it and
+// still returns JSON (never leaks a raw HTML/stack response to the client).
+app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const message = err instanceof Error ? err.message : "Đã có lỗi xảy ra";
+  console.error(`Lỗi chưa được xử lý tại ${req.method} ${req.path}:`, err);
+  logError(`${req.method} ${req.path}`, 500, message);
+  res.status(500).json({ error: message });
 });
 
 app.listen(PORT, () => {

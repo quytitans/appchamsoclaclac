@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { hashPin, isValidAccountId, isValidPinFormat, randomToken } from "../hash.js";
-import type { AccountRow } from "../types.js";
+import type { AccountRow, ErrorLogRow } from "../types.js";
 
 export const authRouter = Router();
 
@@ -217,6 +217,27 @@ authRouter.post("/admin/set-premium", (req, res) => {
   }
   db.prepare("UPDATE accounts SET is_premium = ? WHERE id = ?").run(premium ? 1 : 0, target.id);
   res.json({ success: true });
+});
+
+authRouter.get("/admin/error-logs", (req, res) => {
+  const admin = requireAdmin(req.query.token);
+  if (!admin) {
+    res.status(403).json({ error: "Không có quyền truy cập" });
+    return;
+  }
+  const rows = db
+    .prepare("SELECT * FROM error_logs ORDER BY id DESC LIMIT 100")
+    .all() as unknown as ErrorLogRow[];
+  res.json(
+    rows.map((r) => ({
+      id: r.id,
+      createdAt: r.created_at,
+      route: r.route,
+      statusCode: r.status_code,
+      message: r.message,
+      account: r.account,
+    }))
+  );
 });
 
 authRouter.post("/admin/delete-account", (req, res) => {

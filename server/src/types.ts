@@ -114,3 +114,12 @@ export interface DriveUploadRow {
   height: number | null;
   created_at: string;
 }
+
+export interface ErrorLogRow {
+  id: number;
+  created_at: string;
+  route: string;
+  status_code: number;
+  message: string;
+  account: string | null;
+}

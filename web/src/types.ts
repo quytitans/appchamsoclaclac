@@ -63,6 +63,15 @@ export interface AccountSummary {
   createdAt: string;
 }
 
+export interface ErrorLogEntry {
+  id: number;
+  createdAt: string;
+  route: string;
+  statusCode: number;
+  message: string;
+  account: string | null;
+}
+
 export interface StatsResponse {
   date: string;
   pumping: { count: number; totalMl: number; avgMl: number };

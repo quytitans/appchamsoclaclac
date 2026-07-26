@@ -4,6 +4,7 @@ import { db } from "../db/index.js";
 import { isValidAccountId } from "../hash.js";
 import { uploadImage, deleteDriveFiles } from "../drive/imageUpload.js";
 import { getAccountByToken } from "./auth.js";
+import { logError } from "../errorLog.js";
 import type { AccountRow, DriveUploadRow } from "../types.js";
 
 export const uploadsRouter = Router();
@@ -30,7 +31,9 @@ const upload = multer({
 uploadsRouter.post("/image", (req, res) => {
   upload.single("image")(req, res, async (uploadErr) => {
     if (uploadErr) {
-      res.status(400).json({ error: uploadErr.message || "Upload ảnh thất bại" });
+      const message = uploadErr.message || "Upload ảnh thất bại";
+      logError("POST /api/uploads/image", 400, message, (req.body?.account as string | undefined) ?? null);
+      res.status(400).json({ error: message });
       return;
     }
 
@@ -79,6 +82,7 @@ uploadsRouter.post("/image", (req, res) => {
     } catch (err) {
       console.error("Lỗi upload ảnh lên Google Drive:", err);
       const message = err instanceof Error ? err.message : "Upload ảnh lên Google Drive thất bại";
+      logError("POST /api/uploads/image", 502, message, account);
       res.status(502).json({ error: message });
     }
   });

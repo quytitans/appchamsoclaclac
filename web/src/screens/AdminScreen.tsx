@@ -5,11 +5,12 @@ import {
   adminCreateAccount,
   adminDeleteAccount,
   adminListAccounts,
+  adminListErrorLogs,
   adminResetPin,
   adminSetActive,
   adminSetPremium,
 } from "../api";
-import type { AccountSummary, Session } from "../types";
+import type { AccountSummary, ErrorLogEntry, Session } from "../types";
 import type { Screen } from "../App";
 
 interface Props {
@@ -40,6 +41,10 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
   const [deleteTarget, setDeleteTarget] = useState<AccountSummary | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [errorLogs, setErrorLogs] = useState<ErrorLogEntry[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [showLogs, setShowLogs] = useState(false);
+
   const filteredAccounts = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return accounts;
@@ -58,6 +63,20 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
   useEffect(() => {
     loadAccounts();
   }, [loadAccounts]);
+
+  const loadErrorLogs = useCallback(() => {
+    setLogsLoading(true);
+    return adminListErrorLogs(session.token)
+      .then(setErrorLogs)
+      .catch((err) => setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" }))
+      .finally(() => setLogsLoading(false));
+  }, [session.token]);
+
+  function handleToggleLogs() {
+    const next = !showLogs;
+    setShowLogs(next);
+    if (next) loadErrorLogs();
+  }
 
   async function handleCreate() {
     if (!babyName.trim() || !newAccountId.trim() || !/^\d{4}$/.test(newAccountPin)) {
@@ -174,6 +193,10 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
           <span className="big-card-icon">🔒</span>
           <span className="big-card-label">Đổi PIN Admin</span>
         </button>
+        <button className="big-card-button admin-quick-button" onClick={handleToggleLogs}>
+          <span className="big-card-icon">🐛</span>
+          <span className="big-card-label">Nhật Ký Lỗi</span>
+        </button>
       </div>
 
       {showCreateForm && (
@@ -208,6 +231,31 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
           <button className="save-button" onClick={handleCreate} disabled={creating}>
             {creating ? "Đang tạo..." : "Tạo tài khoản"}
           </button>
+        </section>
+      )}
+
+      {showLogs && (
+        <section className="month-section">
+          <div className="admin-logs-header">
+            <h3 className="month-section-title">🐛 Nhật ký lỗi hệ thống (100 lỗi gần nhất)</h3>
+            <button className="date-nav-button" onClick={loadErrorLogs} disabled={logsLoading} aria-label="Tải lại">
+              🔄
+            </button>
+          </div>
+          {logsLoading && <p className="loading-text">Đang tải...</p>}
+          {!logsLoading && errorLogs.length === 0 && <p className="loading-text">Chưa có lỗi nào được ghi nhận 🎉</p>}
+          {!logsLoading &&
+            errorLogs.map((log) => (
+              <div key={log.id} className="error-log-row">
+                <div className="error-log-row-top">
+                  <span className="error-log-status">{log.statusCode}</span>
+                  <span className="error-log-route">{log.route}</span>
+                  <span className="error-log-time">{new Date(log.createdAt).toLocaleString("vi-VN")}</span>
+                </div>
+                <div className="error-log-message">{log.message}</div>
+                {log.account && <div className="error-log-account">@{log.account}</div>}
+              </div>
+            ))}
         </section>
       )}
 

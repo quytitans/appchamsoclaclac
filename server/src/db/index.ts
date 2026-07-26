@@ -220,3 +220,18 @@ db.exec(`
 `);
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_diary_photos_entry ON diary_photos(diary_entry_id)`);
+
+// Chỉ ghi các lỗi 5xx/không mong đợi (xem errorLog.ts) — không ghi lỗi validate 4xx
+// thường xuyên (sai PIN, thiếu field...) để tránh phình bảng vô ích.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS error_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    route TEXT NOT NULL,
+    status_code INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    account TEXT
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at)`);

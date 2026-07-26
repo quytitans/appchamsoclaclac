@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "../db/index.js";
 import { isValidAccountId } from "../hash.js";
 import { deleteDriveFiles } from "../drive/imageUpload.js";
+import { logError } from "../errorLog.js";
 import type { DiaryEntryRow, DriveUploadRow } from "../types.js";
 
 export const diaryRouter = Router();
@@ -203,7 +204,9 @@ diaryRouter.delete("/:id", async (req, res) => {
     try {
       await deleteDriveFiles(photos.flatMap((p) => [p.full_file_id, p.thumb_file_id]));
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Lỗi xoá ảnh trên Google Drive";
       console.error("Lỗi xoá ảnh trên Google Drive:", err);
+      logError("DELETE /api/diary/:id (drive cleanup)", 502, message, account ?? null);
     }
     const placeholders = photos.map(() => "?").join(",");
     db.prepare(`DELETE FROM drive_uploads WHERE id IN (${placeholders})`).run(...photos.map((p) => p.id));

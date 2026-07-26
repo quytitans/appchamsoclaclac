@@ -4,6 +4,7 @@ import type {
   DiaryEntry,
   DiaryEntryPayload,
   DosePayload,
+  ErrorLogEntry,
   LatestGrowth,
   MonthStatsResponse,
   RecordItem,
@@ -104,6 +105,12 @@ export function changePin(account: string, currentPin: string, newPin: string): 
 export function adminListAccounts(token: string): Promise<AccountSummary[]> {
   return fetch(`${API_BASE}/auth/admin/accounts?token=${encodeURIComponent(token)}`).then((res) =>
     handleResponse<AccountSummary[]>(res)
+  );
+}
+
+export function adminListErrorLogs(token: string): Promise<ErrorLogEntry[]> {
+  return fetch(`${API_BASE}/auth/admin/error-logs?token=${encodeURIComponent(token)}`).then((res) =>
+    handleResponse<ErrorLogEntry[]>(res)
   );
 }
 
