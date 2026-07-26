@@ -1171,8 +1171,8 @@ body {
 /* Admin screen */
 .account-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
   padding: 10px 0;
   border-bottom: 1px solid var(--soft-bg);
@@ -1208,6 +1208,7 @@ body {
 .account-row-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -1288,6 +1289,7 @@ body {
 .account-row-reset {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
