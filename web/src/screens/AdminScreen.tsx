@@ -307,31 +307,44 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
                 </div>
               ) : (
                 <div className="account-row-actions">
-                  <button
-                    className={`account-active-toggle ${a.isActive ? "active" : "inactive"}`}
-                    onClick={() => handleToggleActive(a.account, !a.isActive)}
-                    disabled={togglingAccount === a.account}
-                  >
-                    {a.isActive ? "🟢 Active" : "🔴 Inactive"}
-                  </button>
-                  <button
-                    className={`account-premium-toggle ${a.isPremium ? "premium" : "free"}`}
-                    onClick={() => (a.isPremium ? setDowngradeTarget(a) : handleTogglePremium(a.account, true))}
-                    disabled={togglingPremium === a.account}
-                  >
-                    {a.isPremium ? "💎 Premium" : "⚪ Free"}
-                  </button>
+                  {a.isAdmin ? (
+                    <span
+                      className="account-active-toggle active"
+                      title="Tài khoản Admin luôn ở trạng thái Active, không thể vô hiệu hóa"
+                    >
+                      🟢 Active
+                    </span>
+                  ) : (
+                    <button
+                      className={`account-active-toggle ${a.isActive ? "active" : "inactive"}`}
+                      onClick={() => handleToggleActive(a.account, !a.isActive)}
+                      disabled={togglingAccount === a.account}
+                    >
+                      {a.isActive ? "🟢 Active" : "🔴 Inactive"}
+                    </button>
+                  )}
+                  {!a.isAdmin && (
+                    <button
+                      className={`account-premium-toggle ${a.isPremium ? "premium" : "free"}`}
+                      onClick={() => (a.isPremium ? setDowngradeTarget(a) : handleTogglePremium(a.account, true))}
+                      disabled={togglingPremium === a.account}
+                    >
+                      {a.isPremium ? "💎 Premium" : "⚪ Free"}
+                    </button>
+                  )}
                   <button className="nav-switch-button" onClick={() => setResetTarget(a.account)}>
                     Đổi PIN
                   </button>
-                  <button
-                    className="account-delete-button"
-                    onClick={() => setDeleteTarget(a)}
-                    aria-label="Xóa tài khoản"
-                    title="Xóa"
-                  >
-                    🗑️
-                  </button>
+                  {!a.isAdmin && (
+                    <button
+                      className="account-delete-button"
+                      onClick={() => setDeleteTarget(a)}
+                      aria-label="Xóa tài khoản"
+                      title="Xóa"
+                    >
+                      🗑️
+                    </button>
+                  )}
                 </div>
               )}
             </div>

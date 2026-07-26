@@ -187,6 +187,10 @@ authRouter.post("/admin/set-active", (req, res) => {
     res.status(404).json({ error: "Không tìm thấy tài khoản" });
     return;
   }
+  if (target.is_admin === 1) {
+    res.status(400).json({ error: "Không thể vô hiệu hóa tài khoản Admin" });
+    return;
+  }
   db.prepare("UPDATE accounts SET is_active = ?, session_token = ? WHERE id = ?").run(
     active ? 1 : 0,
     randomToken(),
@@ -213,6 +217,10 @@ authRouter.post("/admin/set-premium", (req, res) => {
   const target = getAccount(targetAccount);
   if (!target) {
     res.status(404).json({ error: "Không tìm thấy tài khoản" });
+    return;
+  }
+  if (target.is_admin === 1) {
+    res.status(400).json({ error: "Tài khoản Admin không cần phân loại Premium/Free" });
     return;
   }
   db.prepare("UPDATE accounts SET is_premium = ? WHERE id = ?").run(premium ? 1 : 0, target.id);
@@ -258,6 +266,10 @@ authRouter.post("/admin/delete-account", (req, res) => {
   const target = getAccount(targetAccount);
   if (!target) {
     res.status(404).json({ error: "Không tìm thấy tài khoản" });
+    return;
+  }
+  if (target.is_admin === 1) {
+    res.status(400).json({ error: "Không thể xóa tài khoản Admin" });
     return;
   }
   const vaccineIds = db.prepare("SELECT id FROM vaccines WHERE account = ?").all(target.id) as { id: number }[];
