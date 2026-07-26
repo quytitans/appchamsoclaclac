@@ -40,6 +40,7 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AccountSummary | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [downgradeTarget, setDowngradeTarget] = useState<AccountSummary | null>(null);
 
   const [errorLogs, setErrorLogs] = useState<ErrorLogEntry[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
@@ -315,7 +316,7 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
                   </button>
                   <button
                     className={`account-premium-toggle ${a.isPremium ? "premium" : "free"}`}
-                    onClick={() => handleTogglePremium(a.account, !a.isPremium)}
+                    onClick={() => (a.isPremium ? setDowngradeTarget(a) : handleTogglePremium(a.account, true))}
                     disabled={togglingPremium === a.account}
                   >
                     {a.isPremium ? "💎 Premium" : "⚪ Free"}
@@ -361,6 +362,39 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
               </button>
               <button className="save-button vaccine-delete-confirm" onClick={handleDelete} disabled={deleting}>
                 {deleting ? "Đang xóa..." : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {downgradeTarget && (
+        <div className="modal-overlay">
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>⚠️ Hạ cấp khỏi Premium?</h3>
+            </div>
+            <p className="pin-step-label">
+              Tài khoản "{downgradeTarget.babyName}" (@{downgradeTarget.account}) sẽ mất quyền Premium. Sau khi hạ
+              cấp:
+            </p>
+            <ul className="downgrade-warning-list">
+              <li>Không thể tải ảnh mới hoặc gắn lại ảnh cũ chưa dùng vào nhật ký.</li>
+              <li>Ảnh đã gắn sẵn trong các nhật ký hiện có vẫn được giữ nguyên và xem được bình thường.</li>
+            </ul>
+            <div className="modal-actions">
+              <button className="secondary-button" onClick={() => setDowngradeTarget(null)}>
+                Hủy
+              </button>
+              <button
+                className="save-button vaccine-delete-confirm"
+                onClick={() => {
+                  handleTogglePremium(downgradeTarget.account, false);
+                  setDowngradeTarget(null);
+                }}
+                disabled={togglingPremium === downgradeTarget.account}
+              >
+                Xác nhận hạ cấp
               </button>
             </div>
           </div>
