@@ -112,15 +112,15 @@ export default function StatsScreen({ session, onNavigate }: Props) {
               </button>
             </div>
 
-            <div className="detail-view-tabs">
+            <div className="view-toggle">
               <button
-                className={`detail-view-tab ${detailView === "chi_tiet" ? "active" : ""}`}
+                className={`view-toggle-btn ${detailView === "chi_tiet" ? "active" : ""}`}
                 onClick={() => setDetailView("chi_tiet")}
               >
-                Thống Kê Chi Tiết
+                Chi Tiết
               </button>
               <button
-                className={`detail-view-tab ${detailView === "phan_tich" ? "active" : ""}`}
+                className={`view-toggle-btn ${detailView === "phan_tich" ? "active" : ""}`}
                 onClick={() => setDetailView("phan_tich")}
               >
                 Phân Tích
@@ -140,7 +140,7 @@ export default function StatsScreen({ session, onNavigate }: Props) {
                     lines={[
                       { icon: "🔹", text: `${stats.pumping.count} lần` },
                       { icon: "💧", text: `${stats.pumping.totalMl} ml` },
-                      { icon: "✨", text: `Trung Bình ${stats.pumping.avgMl.toFixed(0)} ml/lần` },
+                      { icon: "✨", text: `TB ${stats.pumping.avgMl.toFixed(0)} ml/lần` },
                     ]}
                   />
                   <KpiCard
@@ -149,7 +149,7 @@ export default function StatsScreen({ session, onNavigate }: Props) {
                     lines={[
                       { icon: "🤱", text: `${stats.breastfeed.count} lần ti mẹ` },
                       { icon: "🍼", text: `${stats.bottle.count} lần ti bình | ${stats.bottle.totalMl} ml` },
-                      { icon: "✨", text: `Trung Bình ${stats.bottle.avgMl.toFixed(0)} ml/lần ti bình` },
+                      { icon: "✨", text: `TB ${stats.bottle.avgMl.toFixed(0)} ml/lần ti bình` },
                       { icon: "⏰", text: `Cách nhau TB: ${formatInterval(stats.feeding.avgIntervalMinutes)}` },
                     ]}
                   />

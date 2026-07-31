@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import AppHeader from "../components/AppHeader";
 import RecordFields from "../components/RecordFields";
 import { createRecord } from "../api";
@@ -76,6 +77,7 @@ export default function NoteScreen({ session, onNavigate }: Props) {
           <button
             key={t}
             className={`type-chip ${type === t ? "active" : ""}`}
+            style={{ "--accent": ACTIVITY_META[t].accent } as CSSProperties}
             onClick={() => handleTypeChange(t)}
           >
             <span className="type-chip-icon">{ACTIVITY_META[t].icon}</span>

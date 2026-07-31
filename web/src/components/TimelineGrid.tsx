@@ -26,11 +26,11 @@ const SIDE_LABEL: Record<string, string> = { trai: "Trái", phai: "Phải", ca_h
 const DI_NANG_LABEL: Record<string, string> = { binh_thuong: "Bình thường", co_van_de: "Có vấn đề" };
 const NON_TRO_LABEL: Record<string, string> = {
   nhe: "Nhẹ",
-  trung_binh: "Trung bình",
+  trung_binh: "TB",
   nhieu: "Nhiều",
   rat_nhieu: "Rất nhiều",
 };
-const TI_ME_AMOUNT_LABEL: Record<string, string> = { it: "Ít", trung_binh: "Trung bình", nhieu: "Nhiều" };
+const TI_ME_AMOUNT_LABEL: Record<string, string> = { it: "Ít", trung_binh: "TB", nhieu: "Nhiều" };
 const DI_NANG_AMOUNT_LABEL: Record<string, string> = { it: "Ít", nhieu: "Nhiều" };
 
 function byTime(a: RecordItem, b: RecordItem): number {
@@ -45,7 +45,7 @@ function buildColumns(records: RecordItem[]): Column[] {
       key: "an",
       title: "Bé Ăn",
       icon: "🍽️",
-      colorClass: "",
+      colorClass: "group-an",
       items: records.filter((r) => r.type === "ti_me" || r.type === "ti_binh").sort(byTime),
     },
     {
@@ -58,28 +58,28 @@ function buildColumns(records: RecordItem[]): Column[] {
           key: "hut_sua",
           title: "Hút sữa",
           icon: "🍼",
-          colorClass: "card-hutsua",
+          colorClass: "group-hutsua",
           items: records.filter((r) => r.type === "hut_sua"),
         },
         {
           key: "ve_sinh",
           title: "Vệ sinh",
           icon: "🧷",
-          colorClass: "card-vesinh",
+          colorClass: "group-vesinh",
           items: records.filter((r) => r.type === "di_nang" || r.type === "di_nhe"),
         },
         {
           key: "non_tro",
           title: "Nôn chớ",
           icon: "🤮",
-          colorClass: "card-nontro",
+          colorClass: "group-nontro",
           items: records.filter((r) => r.type === "non_tro"),
         },
         {
           key: "khac",
           title: "Các vấn đề khác",
           icon: "📌",
-          colorClass: "card-custom",
+          colorClass: "group-khac",
           items: records.filter((r) => !COVERED_TYPES.has(r.type)),
         },
       ],
@@ -134,6 +134,40 @@ function cardText(record: RecordItem): string {
   }
 }
 
+const SKY_ICONS = [
+  { icon: "🌙", top: "5%", left: "70%" },
+  { icon: "✨", top: "9%", left: "20%" },
+  { icon: "⭐", top: "14%", left: "45%" },
+  { icon: "☀️", top: "32%", left: "22%" },
+  { icon: "☀️", top: "50%", left: "76%" },
+  { icon: "☀️", top: "68%", left: "38%" },
+  { icon: "🌙", top: "86%", left: "24%" },
+  { icon: "⭐", top: "91%", left: "62%" },
+  { icon: "✨", top: "96%", left: "84%" },
+];
+
+function DayNightSky() {
+  return (
+    <div className="daynight-sky" aria-hidden="true">
+      {SKY_ICONS.map((s, idx) => (
+        <span key={idx} className="sky-icon" style={{ top: s.top, left: s.left }}>
+          {s.icon}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ColumnHeader({ icon, title, count }: { icon: string; title: string; count: number }) {
+  return (
+    <div className="timeline-column-header">
+      <span className="timeline-column-header-icon">{icon}</span>
+      <span className="timeline-column-header-title">{title}</span>
+      <span className="timeline-column-header-count">{count}</span>
+    </div>
+  );
+}
+
 function CardList({
   items,
   colorClass,
@@ -143,18 +177,27 @@ function CardList({
   colorClass: string;
   onSelectRecord: (record: RecordItem) => void;
 }) {
+  if (items.length === 0) {
+    return (
+      <div className="timeline-column-body">
+        <div className={`timeline-item ${colorClass}`}>
+          <span className="timeline-dot timeline-dot-empty" />
+          <div className="timeline-card timeline-card-empty">—</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="timeline-column-body">
-      {items.length === 0 && <p className="timeline-empty">—</p>}
       {items.map((item) => (
-        <button
-          key={item.id}
-          className={`timeline-card ${colorClass} ${shadeClass(item)}`}
-          onClick={() => onSelectRecord(item)}
-        >
-          <span className="timeline-card-time">{item.time ?? ""}</span>
-          <div className="timeline-card-detail">{cardText(item)}</div>
-        </button>
+        <div key={item.id} className={`timeline-item ${colorClass} ${shadeClass(item)}`}>
+          <span className="timeline-dot" />
+          <button className="timeline-card" onClick={() => onSelectRecord(item)}>
+            <span className="timeline-card-time">{item.time ?? ""}</span>
+            <div className="timeline-card-detail">{cardText(item)}</div>
+          </button>
+        </div>
       ))}
     </div>
   );
@@ -166,25 +209,20 @@ export default function TimelineGrid({ records, onSelectRecord }: Props) {
   return (
     <section className="timeline-grid">
       {columns.map((col) => (
-        <div key={col.key} className="timeline-column">
+        <div key={col.key} className={`timeline-column ${col.key === "an" ? "timeline-column-sky" : ""}`}>
+          {col.key === "an" && <DayNightSky />}
           {col.groups ? (
             col.groups.map((group) => (
-              <div key={group.key} className="timeline-subgroup">
-                <div className="timeline-column-header">
-                  <span>{group.icon}</span>
-                  <span>{group.title}</span>
-                </div>
+              <div key={group.key} className={`timeline-subgroup ${group.colorClass}`}>
+                <ColumnHeader icon={group.icon} title={group.title} count={group.items.length} />
                 <CardList items={group.items} colorClass={group.colorClass} onSelectRecord={onSelectRecord} />
               </div>
             ))
           ) : (
-            <>
-              <div className="timeline-column-header">
-                <span>{col.icon}</span>
-                <span>{col.title}</span>
-              </div>
+            <div className={col.colorClass}>
+              <ColumnHeader icon={col.icon} title={col.title} count={(col.items ?? []).length} />
               <CardList items={col.items ?? []} colorClass={col.colorClass} onSelectRecord={onSelectRecord} />
-            </>
+            </div>
           )}
         </div>
       ))}

@@ -263,47 +263,33 @@ body {
 
 .type-chip {
   position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 10px 4px;
-  border-radius: 14px;
-  border: none;
-  background: linear-gradient(270deg, #ff5d8f, #ffb347, #ff5d8f, #c77dff, #ff5d8f);
-  background-size: 400% 400%;
-  animation: chip-glow-shift 6s ease infinite;
-  color: var(--white);
+  gap: 6px;
+  padding: 12px 4px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background: var(--white);
+  color: var(--text-dark);
   font-size: 12px;
   font-weight: 700;
   text-align: center;
   line-height: 1.25;
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 12px rgba(90, 61, 75, 0.1);
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
 }
 
-.type-chip > * {
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+.type-chip:active {
+  transform: scale(0.96);
 }
 
 .type-chip.active {
-  border: 3px solid var(--white);
-  box-shadow: 0 0 0 3px var(--deep-pink), var(--shadow);
-}
-
-@keyframes chip-glow-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  border-color: var(--accent, var(--deep-pink));
+  background: var(--soft-bg);
+  background: color-mix(in srgb, var(--accent, var(--deep-pink)) 10%, white);
+  color: var(--accent, var(--deep-pink));
 }
 
 /* Hiệu ứng viền lấp lánh chạy xung quanh — chỉ dùng cho kpi-card */
@@ -348,13 +334,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   font-size: 17px;
-  background: var(--white);
   border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
-  text-shadow: none;
+  background: var(--soft-bg);
+  background: color-mix(in srgb, var(--accent, var(--deep-pink)) 18%, white);
 }
 
 /* Form */
@@ -533,29 +518,31 @@ body {
   color: var(--text-muted);
 }
 
-.detail-view-tabs {
+.view-toggle {
   display: flex;
-  gap: 6px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--soft-bg);
+  gap: 2px;
+  margin-top: 10px;
+  padding: 3px;
+  background: var(--soft-bg);
+  border-radius: 999px;
 }
 
-.detail-view-tab {
+.view-toggle-btn {
   flex: 1;
-  border: 1.5px solid var(--main-pink);
-  background: var(--white);
-  color: var(--text-dark);
-  padding: 5px;
-  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 4px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.detail-view-tab.active {
-  background: var(--deep-pink);
-  border-color: var(--deep-pink);
-  color: var(--white);
+.view-toggle-btn.active {
+  background: var(--white);
+  color: var(--deep-pink);
+  box-shadow: 0 2px 6px rgba(90, 61, 75, 0.15);
 }
 
 .kpi-grid {
@@ -672,60 +659,187 @@ body {
 }
 
 .timeline-column {
+  position: relative;
+  overflow: hidden;
   min-width: 0;
   background: var(--white);
-  border-radius: 14px;
-  padding: 10px;
-  box-shadow: var(--shadow);
+  border-radius: 20px;
+  padding: 14px 12px;
+  box-shadow: 0 6px 18px rgba(90, 61, 75, 0.1);
+}
+
+/* Bé Ăn: nền gradient mô phỏng chu kỳ ngày/đêm — trên/dưới (đầu/cuối ngày) tối hơn, giữa (ban ngày) sáng hơn */
+.timeline-column-sky {
+  background: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)),
+    linear-gradient(
+      to bottom,
+      #12123a 0%,
+      #2c2a5e 9%,
+      #5b53a6 18%,
+      #e98aae 26%,
+      #ffd9a0 33%,
+      #cfeeff 45%,
+      #cfeeff 55%,
+      #ffd9a0 67%,
+      #e98aae 74%,
+      #5b53a6 82%,
+      #2c2a5e 91%,
+      #12123a 100%
+    );
+}
+
+.daynight-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sky-icon {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
+}
+
+.timeline-column-sky > .group-an {
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-column-sky .timeline-column-header {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 6px 8px;
+  backdrop-filter: blur(2px);
 }
 
 .timeline-column-header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.timeline-column-header-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  background: var(--soft-bg);
+  background: color-mix(in srgb, var(--accent, var(--deep-pink)) 18%, white);
+}
+
+.timeline-column-header-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 800;
+  color: var(--text-dark);
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-column-header-count {
+  flex-shrink: 0;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--deep-pink);
-  font-size: 13px;
-  margin-bottom: 10px;
-  text-align: center;
+  color: var(--text-muted);
+  background: var(--soft-bg);
+  border-radius: 999px;
+  padding: 1px 8px;
 }
 
 .timeline-column-body {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
+}
+
+.timeline-column-body::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--soft-bg);
+  border-radius: 1px;
 }
 
 .timeline-subgroup + .timeline-subgroup {
-  margin-top: 14px;
-  padding-top: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--soft-bg);
 }
 
+.timeline-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.timeline-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin: 9px 0 0 6px;
+  border-radius: 50%;
+  background: var(--accent, var(--dark-pink));
+  box-shadow: 0 0 0 3px var(--white);
+}
+
+.timeline-dot-empty {
+  background: var(--white);
+  box-shadow: 0 0 0 3px var(--white);
+  border: 2px solid var(--main-pink);
+  width: 6px;
+  height: 6px;
+}
+
 .timeline-card {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  width: 100%;
+  gap: 3px;
   border: none;
+  border-left: 3px solid var(--accent, var(--dark-pink));
   font-family: inherit;
-  background: var(--main-pink);
-  border-radius: 16px;
-  padding: 9px 11px;
+  background: var(--soft-bg);
+  border-radius: 12px;
+  padding: 7px 10px;
   text-align: left;
   cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.timeline-card:active {
+  transform: scale(0.97);
+}
+
+.timeline-card-empty {
+  border: 1.5px dashed var(--main-pink);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
 }
 
 .timeline-card-time {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 999px;
-  padding: 2px 9px;
   font-weight: 800;
   font-size: 12px;
-  color: var(--deep-pink);
+  color: var(--accent, var(--deep-pink));
 }
 
 .timeline-card-detail {
@@ -735,78 +849,60 @@ body {
   line-height: 1.35;
 }
 
-/* Mỗi cột timeline có 1 màu hồng riêng để phân loại, vẫn cùng tông hồng + 1 kiểu thiết kế thống nhất */
-.timeline-card.card-hutsua {
-  background: #ffd6e0;
+/* Nhóm màu theo danh mục (categorical, xem dataviz skill) — mỗi danh mục 1 hue riêng để dễ phân biệt nhanh */
+.group-an {
+  --accent: var(--deep-pink);
 }
 
-.timeline-card.feeding-binh {
-  background: #ffb8cc;
+.group-hutsua {
+  --accent: #2a78d6;
 }
 
-.timeline-card.feeding-me {
-  background: #ff7fa6;
+.group-vesinh {
+  --accent: #1baf7a;
 }
 
-.timeline-card.feeding-me .timeline-card-time {
-  background: rgba(255, 255, 255, 0.9);
+.group-nontro {
+  --accent: #eb6834;
 }
 
-.timeline-card.feeding-me .timeline-card-detail {
-  color: var(--white);
+.group-khac {
+  --accent: #4a3aa7;
 }
 
-.timeline-card.card-nontro {
-  background: #f2a6d0;
+/* Ti mẹ: phân biệt trái/phải/cả 2 bên bằng 3 sắc hồng đậm nhạt khác nhau */
+.timeline-item.feeding-me-trai {
+  --accent: #ff7fa6;
 }
 
-.timeline-card.card-vesinh {
-  background: #f4a6c6;
+.timeline-item.feeding-me-phai {
+  --accent: #e0467a;
 }
 
-.timeline-card.card-thechat {
-  background: #e8a0be;
+.timeline-item.feeding-me-cahai {
+  --accent: #a8447a;
 }
 
-.timeline-card.card-custom {
-  background: #ffa3c4;
+.timeline-item.feeding-binh {
+  --accent: #ff8fb3;
 }
 
-/* Hút sữa: phân biệt trái/phải bằng 2 sắc hồng khác nhau trong cùng tông */
-.timeline-card.hutsua-trai {
-  background: #ffb3c9;
+/* Hút sữa: phân biệt trái/phải bằng 2 sắc xanh đậm nhạt */
+.timeline-item.hutsua-trai {
+  --accent: #2a78d6;
 }
 
-.timeline-card.hutsua-phai {
-  background: #ffe3ea;
+.timeline-item.hutsua-phai {
+  --accent: #6da7ec;
 }
 
-/* Vệ sinh: phân biệt đi nặng/đi nhẹ bằng 2 sắc hồng khác nhau */
-.timeline-card.vesinh-nang {
-  background: #e98aae;
+/* Vệ sinh: phân biệt đi nặng/đi nhẹ bằng 2 sắc xanh lá đậm nhạt */
+.timeline-item.vesinh-nang {
+  --accent: #1baf7a;
 }
 
-.timeline-card.vesinh-nhe {
-  background: #fbd2e2;
-}
-
-/* Ti mẹ: phân biệt trái/phải bằng 2 sắc hồng đậm khác nhau, vẫn dùng chữ trắng vì nền đậm */
-.timeline-card.feeding-me-trai {
-  background: #ff7fa6;
-}
-
-.timeline-card.feeding-me-phai {
-  background: #e0467a;
-}
-
-.timeline-card.feeding-me-cahai {
-  background: #a8447a;
-}
-
-.timeline-empty {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 12px;
+.timeline-item.vesinh-nhe {
+  --accent: #79d6b3;
 }
 
 /* Edit/Delete modal */
