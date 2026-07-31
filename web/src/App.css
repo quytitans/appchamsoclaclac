@@ -697,6 +697,12 @@ body {
   gap: 8px;
 }
 
+.timeline-subgroup + .timeline-subgroup {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soft-bg);
+}
+
 .timeline-card {
   display: flex;
   flex-direction: column;

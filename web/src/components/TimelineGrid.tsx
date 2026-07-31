@@ -5,12 +5,21 @@ interface Props {
   onSelectRecord: (record: RecordItem) => void;
 }
 
-interface Column {
+interface Group {
   key: string;
   title: string;
   icon: string;
   items: RecordItem[];
   colorClass: string;
+}
+
+interface Column {
+  key: string;
+  title: string;
+  icon: string;
+  colorClass: string;
+  items?: RecordItem[];
+  groups?: Group[];
 }
 
 const SIDE_LABEL: Record<string, string> = { trai: "Trái", phai: "Phải", ca_hai: "Cả 2 bên" };
@@ -29,7 +38,6 @@ function byTime(a: RecordItem, b: RecordItem): number {
 }
 
 const COVERED_TYPES = new Set(["ti_me", "ti_binh", "hut_sua", "di_nang", "di_nhe", "non_tro"]);
-const HUT_SUA_GROUP = new Set(["hut_sua", "di_nang", "di_nhe", "non_tro"]);
 
 function buildColumns(records: RecordItem[]): Column[] {
   return [
@@ -37,22 +45,44 @@ function buildColumns(records: RecordItem[]): Column[] {
       key: "an",
       title: "Bé Ăn",
       icon: "🍽️",
-      items: records.filter((r) => r.type === "ti_me" || r.type === "ti_binh").sort(byTime),
       colorClass: "",
+      items: records.filter((r) => r.type === "ti_me" || r.type === "ti_binh").sort(byTime),
     },
     {
-      key: "hut_sua",
-      title: "Hút sữa",
-      icon: "🍼",
-      items: records.filter((r) => HUT_SUA_GROUP.has(r.type)).sort(byTime),
-      colorClass: "card-hutsua",
+      key: "hut_sua_group",
+      title: "",
+      icon: "",
+      colorClass: "",
+      groups: [
+        {
+          key: "hut_sua",
+          title: "Hút sữa",
+          icon: "🍼",
+          colorClass: "card-hutsua",
+          items: records.filter((r) => r.type === "hut_sua"),
+        },
+        {
+          key: "ve_sinh",
+          title: "Vệ sinh",
+          icon: "🧷",
+          colorClass: "card-vesinh",
+          items: records.filter((r) => r.type === "di_nang" || r.type === "di_nhe"),
+        },
+        {
+          key: "non_tro",
+          title: "Nôn chớ",
+          icon: "🤮",
+          colorClass: "card-nontro",
+          items: records.filter((r) => r.type === "non_tro"),
+        },
+      ],
     },
     {
       key: "khac",
       title: "Các vấn đề khác",
       icon: "📌",
-      items: records.filter((r) => !COVERED_TYPES.has(r.type)),
       colorClass: "card-custom",
+      items: records.filter((r) => !COVERED_TYPES.has(r.type)),
     },
   ];
 }
@@ -72,7 +102,6 @@ function shadeClass(record: RecordItem): string {
   }
   if (record.type === "di_nang") return "vesinh-nang";
   if (record.type === "di_nhe") return "vesinh-nhe";
-  if (record.type === "non_tro") return "card-nontro";
   return "";
 }
 
@@ -105,6 +134,32 @@ function cardText(record: RecordItem): string {
   }
 }
 
+function CardList({
+  items,
+  colorClass,
+  onSelectRecord,
+}: {
+  items: RecordItem[];
+  colorClass: string;
+  onSelectRecord: (record: RecordItem) => void;
+}) {
+  return (
+    <div className="timeline-column-body">
+      {items.length === 0 && <p className="timeline-empty">—</p>}
+      {items.map((item) => (
+        <button
+          key={item.id}
+          className={`timeline-card ${colorClass} ${shadeClass(item)}`}
+          onClick={() => onSelectRecord(item)}
+        >
+          <span className="timeline-card-time">{item.time ?? ""}</span>
+          <div className="timeline-card-detail">{cardText(item)}</div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function TimelineGrid({ records, onSelectRecord }: Props) {
   const columns = buildColumns(records);
 
@@ -112,23 +167,25 @@ export default function TimelineGrid({ records, onSelectRecord }: Props) {
     <section className="timeline-grid">
       {columns.map((col) => (
         <div key={col.key} className="timeline-column">
-          <div className="timeline-column-header">
-            <span>{col.icon}</span>
-            <span>{col.title}</span>
-          </div>
-          <div className="timeline-column-body">
-            {col.items.length === 0 && <p className="timeline-empty">—</p>}
-            {col.items.map((item) => (
-              <button
-                key={item.id}
-                className={`timeline-card ${col.colorClass} ${shadeClass(item)}`}
-                onClick={() => onSelectRecord(item)}
-              >
-                <span className="timeline-card-time">{item.time ?? ""}</span>
-                <div className="timeline-card-detail">{cardText(item)}</div>
-              </button>
-            ))}
-          </div>
+          {col.groups ? (
+            col.groups.map((group) => (
+              <div key={group.key} className="timeline-subgroup">
+                <div className="timeline-column-header">
+                  <span>{group.icon}</span>
+                  <span>{group.title}</span>
+                </div>
+                <CardList items={group.items} colorClass={group.colorClass} onSelectRecord={onSelectRecord} />
+              </div>
+            ))
+          ) : (
+            <>
+              <div className="timeline-column-header">
+                <span>{col.icon}</span>
+                <span>{col.title}</span>
+              </div>
+              <CardList items={col.items ?? []} colorClass={col.colorClass} onSelectRecord={onSelectRecord} />
+            </>
+          )}
         </div>
       ))}
     </section>
