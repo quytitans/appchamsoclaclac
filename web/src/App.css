@@ -480,24 +480,15 @@ body {
 .date-filter {
   background: var(--white);
   border-radius: 12px;
-  padding: 10px 14px;
-  margin-bottom: 16px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
   box-shadow: var(--shadow);
-}
-
-.date-filter label {
-  display: block;
-  text-align: center;
-  font-weight: 700;
-  color: var(--text-muted);
-  font-size: 14px;
 }
 
 .date-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 6px;
 }
 
 .date-display-wrapper {
@@ -510,7 +501,7 @@ body {
 
 .date-display-text {
   font-family: "Quicksand", "Segoe UI", system-ui, sans-serif;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--deep-pink);
 }
@@ -529,10 +520,10 @@ body {
   border: none;
   background: var(--main-pink);
   color: var(--text-dark);
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1;
 }
@@ -540,6 +531,31 @@ body {
 .loading-text {
   text-align: center;
   color: var(--text-muted);
+}
+
+.detail-view-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--soft-bg);
+}
+
+.detail-view-tab {
+  flex: 1;
+  border: 1.5px solid var(--main-pink);
+  background: var(--white);
+  color: var(--text-dark);
+  padding: 5px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detail-view-tab.active {
+  background: var(--deep-pink);
+  border-color: var(--deep-pink);
+  color: var(--white);
 }
 
 .kpi-grid {
@@ -995,8 +1011,8 @@ body {
 /* Stats tabs */
 .stats-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .stats-tab {
@@ -1004,9 +1020,9 @@ body {
   border: 2px solid var(--main-pink);
   background: var(--white);
   color: var(--text-dark);
-  padding: 10px;
-  border-radius: 14px;
-  font-size: 14px;
+  padding: 6px;
+  border-radius: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 

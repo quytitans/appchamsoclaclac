@@ -20,6 +20,7 @@ interface KpiLine {
 
 export default function StatsScreen({ session, onNavigate }: Props) {
   const [activeTab, setActiveTab] = useState<"day" | "month">("day");
+  const [detailView, setDetailView] = useState<"chi_tiet" | "phan_tich">("chi_tiet");
   const [date, setDate] = useState(todayDateStr());
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -92,7 +93,6 @@ export default function StatsScreen({ session, onNavigate }: Props) {
       {activeTab === "day" && (
         <>
           <div className="date-filter">
-            <label>Ngày xem</label>
             <div className="date-nav">
               <button className="date-nav-button" onClick={() => setDate((d) => shiftDateStr(d, -1))}>
                 ‹
@@ -111,43 +111,62 @@ export default function StatsScreen({ session, onNavigate }: Props) {
                 ›
               </button>
             </div>
+
+            <div className="detail-view-tabs">
+              <button
+                className={`detail-view-tab ${detailView === "chi_tiet" ? "active" : ""}`}
+                onClick={() => setDetailView("chi_tiet")}
+              >
+                Thống Kê Chi Tiết
+              </button>
+              <button
+                className={`detail-view-tab ${detailView === "phan_tich" ? "active" : ""}`}
+                onClick={() => setDetailView("phan_tich")}
+              >
+                Phân Tích
+              </button>
+            </div>
           </div>
 
           {loading && <p className="loading-text">Đang tải...</p>}
 
           {!loading && stats && (
             <>
-              <section className="kpi-grid">
-                <KpiCard
-                  icon="🍼"
-                  title="Hút sữa"
-                  lines={[
-                    { icon: "🔹", text: `${stats.pumping.count} lần` },
-                    { icon: "💧", text: `${stats.pumping.totalMl} ml` },
-                    { icon: "✨", text: `Trung Bình ${stats.pumping.avgMl.toFixed(0)} ml/lần` },
-                  ]}
-                />
-                <KpiCard
-                  icon="🍽️"
-                  title="Bé Ăn"
-                  lines={[
-                    { icon: "🤱", text: `${stats.breastfeed.count} lần ti mẹ` },
-                    { icon: "🍼", text: `${stats.bottle.count} lần ti bình | ${stats.bottle.totalMl} ml` },
-                    { icon: "✨", text: `Trung Bình ${stats.bottle.avgMl.toFixed(0)} ml/lần ti bình` },
-                    { icon: "⏰", text: `Cách nhau TB: ${formatInterval(stats.feeding.avgIntervalMinutes)}` },
-                  ]}
-                />
-                <KpiCard
-                  icon="🧷"
-                  title="Vệ sinh"
-                  lines={[
-                    { icon: "💩", text: `${stats.poop.count} lần đi nặng` },
-                    { icon: "💦", text: `${stats.pee.count} lần đi nhẹ` },
-                  ]}
-                />
-              </section>
+              {detailView === "phan_tich" && (
+                <section className="kpi-grid">
+                  <KpiCard
+                    icon="🍼"
+                    title="Hút sữa"
+                    lines={[
+                      { icon: "🔹", text: `${stats.pumping.count} lần` },
+                      { icon: "💧", text: `${stats.pumping.totalMl} ml` },
+                      { icon: "✨", text: `Trung Bình ${stats.pumping.avgMl.toFixed(0)} ml/lần` },
+                    ]}
+                  />
+                  <KpiCard
+                    icon="🍽️"
+                    title="Bé Ăn"
+                    lines={[
+                      { icon: "🤱", text: `${stats.breastfeed.count} lần ti mẹ` },
+                      { icon: "🍼", text: `${stats.bottle.count} lần ti bình | ${stats.bottle.totalMl} ml` },
+                      { icon: "✨", text: `Trung Bình ${stats.bottle.avgMl.toFixed(0)} ml/lần ti bình` },
+                      { icon: "⏰", text: `Cách nhau TB: ${formatInterval(stats.feeding.avgIntervalMinutes)}` },
+                    ]}
+                  />
+                  <KpiCard
+                    icon="🧷"
+                    title="Vệ sinh"
+                    lines={[
+                      { icon: "💩", text: `${stats.poop.count} lần đi nặng` },
+                      { icon: "💦", text: `${stats.pee.count} lần đi nhẹ` },
+                    ]}
+                  />
+                </section>
+              )}
 
-              <TimelineGrid records={records} onSelectRecord={setEditingRecord} />
+              {detailView === "chi_tiet" && (
+                <TimelineGrid records={records} onSelectRecord={setEditingRecord} />
+              )}
             </>
           )}
         </>
