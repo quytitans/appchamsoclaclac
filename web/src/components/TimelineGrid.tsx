@@ -29,6 +29,7 @@ function byTime(a: RecordItem, b: RecordItem): number {
 }
 
 const COVERED_TYPES = new Set(["ti_me", "ti_binh", "hut_sua", "di_nang", "di_nhe", "non_tro"]);
+const HUT_SUA_GROUP = new Set(["hut_sua", "di_nang", "di_nhe", "non_tro"]);
 
 function buildColumns(records: RecordItem[]): Column[] {
   return [
@@ -43,22 +44,8 @@ function buildColumns(records: RecordItem[]): Column[] {
       key: "hut_sua",
       title: "Hút sữa",
       icon: "🍼",
-      items: records.filter((r) => r.type === "hut_sua"),
+      items: records.filter((r) => HUT_SUA_GROUP.has(r.type)).sort(byTime),
       colorClass: "card-hutsua",
-    },
-    {
-      key: "ve_sinh",
-      title: "Vệ sinh",
-      icon: "🧷",
-      items: records.filter((r) => r.type === "di_nang" || r.type === "di_nhe"),
-      colorClass: "card-vesinh",
-    },
-    {
-      key: "non_tro",
-      title: "Nôn chớ",
-      icon: "🤮",
-      items: records.filter((r) => r.type === "non_tro"),
-      colorClass: "card-nontro",
     },
     {
       key: "khac",
@@ -85,6 +72,7 @@ function shadeClass(record: RecordItem): string {
   }
   if (record.type === "di_nang") return "vesinh-nang";
   if (record.type === "di_nhe") return "vesinh-nhe";
+  if (record.type === "non_tro") return "card-nontro";
   return "";
 }
 
