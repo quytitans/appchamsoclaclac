@@ -870,30 +870,35 @@ body {
   --accent: #4a3aa7;
 }
 
-/* Ti mẹ: phân biệt trái/phải/cả 2 bên bằng 3 sắc hồng đậm nhạt khác nhau */
+/* Bé Ăn: 4 hue riêng biệt (không chỉ đậm/nhạt) để phân biệt rõ Ti mẹ Trái/Phải/Cả 2 bên và Ti bình,
+   đã kiểm tra CVD-safe (dataviz skill) và giữ trong tông ấm hài hòa với gradient nền cột */
 .timeline-item.feeding-me-trai {
-  --accent: #ff7fa6;
+  --accent: #ff5d8f;
 }
 
 .timeline-item.feeding-me-phai {
-  --accent: #e0467a;
+  --accent: #a8283f;
 }
 
 .timeline-item.feeding-me-cahai {
-  --accent: #a8447a;
+  --accent: #7c4a9e;
 }
 
 .timeline-item.feeding-binh {
-  --accent: #ff8fb3;
+  --accent: #c85a1e;
 }
 
-/* Hút sữa: phân biệt trái/phải bằng 2 sắc xanh đậm nhạt */
+/* Hút sữa: 3 hue riêng biệt trong tông xanh để phân biệt Trái/Phải/Cả 2 bên */
 .timeline-item.hutsua-trai {
   --accent: #2a78d6;
 }
 
 .timeline-item.hutsua-phai {
-  --accent: #6da7ec;
+  --accent: #4fb8d9;
+}
+
+.timeline-item.hutsua-cahai {
+  --accent: #6a5fcf;
 }
 
 /* Vệ sinh: phân biệt đi nặng/đi nhẹ bằng 2 sắc xanh lá đậm nhạt */

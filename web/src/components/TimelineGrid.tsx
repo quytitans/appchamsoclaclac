@@ -98,6 +98,7 @@ function shadeClass(record: RecordItem): string {
   if (record.type === "hut_sua") {
     if (record.side === "trai") return "hutsua-trai";
     if (record.side === "phai") return "hutsua-phai";
+    if (record.side === "ca_hai") return "hutsua-cahai";
     return "";
   }
   if (record.type === "di_nang") return "vesinh-nang";
