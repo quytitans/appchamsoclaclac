@@ -654,7 +654,7 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: min-content;
-  gap: 10px;
+  gap: 8px;
   padding-bottom: 16px;
 }
 
@@ -663,8 +663,8 @@ body {
   overflow: hidden;
   min-width: 0;
   background: var(--white);
-  border-radius: 20px;
-  padding: 14px 12px;
+  border-radius: 18px;
+  padding: 12px 9px;
   box-shadow: 0 6px 18px rgba(90, 61, 75, 0.1);
 }
 
@@ -718,19 +718,19 @@ body {
 .timeline-column-header {
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin-bottom: 12px;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 
 .timeline-column-header-icon {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 10px;
   background: var(--soft-bg);
   background: color-mix(in srgb, var(--accent, var(--deep-pink)) 18%, white);
 }
@@ -740,7 +740,7 @@ body {
   min-width: 0;
   font-weight: 800;
   color: var(--text-dark);
-  font-size: 12.5px;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -748,25 +748,25 @@ body {
 
 .timeline-column-header-count {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--text-muted);
   background: var(--soft-bg);
   border-radius: 999px;
-  padding: 1px 8px;
+  padding: 1px 6px;
 }
 
 .timeline-column-body {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 7px;
 }
 
 .timeline-column-body::before {
   content: "";
   position: absolute;
-  left: 9px;
+  left: 7px;
   top: 6px;
   bottom: 6px;
   width: 2px;
@@ -775,8 +775,8 @@ body {
 }
 
 .timeline-subgroup + .timeline-subgroup {
-  margin-top: 16px;
-  padding-top: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid var(--soft-bg);
 }
 
@@ -784,14 +784,14 @@ body {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 9px;
+  gap: 7px;
 }
 
 .timeline-dot {
   flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  margin: 9px 0 0 6px;
+  width: 7px;
+  height: 7px;
+  margin: 8px 0 0 4px;
   border-radius: 50%;
   background: var(--accent, var(--dark-pink));
   box-shadow: 0 0 0 3px var(--white);
@@ -811,13 +811,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 3px;
+  gap: 2px;
   border: none;
   border-left: 3px solid var(--accent, var(--dark-pink));
   font-family: inherit;
   background: var(--soft-bg);
-  border-radius: 12px;
-  padding: 7px 10px;
+  border-radius: 10px;
+  padding: 6px 8px;
   text-align: left;
   cursor: pointer;
   transition: transform 0.12s ease;
@@ -831,22 +831,22 @@ body {
   border: 1.5px dashed var(--main-pink);
   background: rgba(255, 255, 255, 0.75);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   cursor: default;
 }
 
 .timeline-card-time {
   font-weight: 800;
-  font-size: 12px;
+  font-size: 10.5px;
   color: var(--accent, var(--deep-pink));
 }
 
 .timeline-card-detail {
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-dark);
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 /* Nhóm màu theo danh mục (categorical, xem dataviz skill) — mỗi danh mục 1 hue riêng để dễ phân biệt nhanh */
