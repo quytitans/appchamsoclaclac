@@ -179,17 +179,8 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
               <div key={entry.id} className={`diary-entry-row ${importanceAccentClass(entry)}`}>
                 <span className="diary-entry-dot">{importanceIcon(entry)}</span>
                 <button className="diary-entry-card" onClick={() => openEntry(entry)}>
-                  <div className="diary-entry-top">
-                    <span className="diary-entry-date">{formatVNDate(entry.entry_date)}</span>
-                    <div className="diary-entry-badges">
-                      {entry.photos.length > 0 && (
-                        <span className="diary-entry-photo-badge">📷 {entry.photos.length}</span>
-                      )}
-                      <span className="diary-entry-importance-badge">{importanceLabel(entry.importance)}</span>
-                    </div>
-                  </div>
-                  <div className="diary-entry-title">{entry.title}</div>
-                  {entry.content && <div className="diary-entry-preview">{entry.content}</div>}
+                  <span className="diary-entry-date">{formatVNDate(entry.entry_date)}</span>
+                  <span className="diary-entry-title">{entry.title}</span>
                 </button>
               </div>
             ))}
