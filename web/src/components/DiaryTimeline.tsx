@@ -34,10 +34,16 @@ function toEditForm(entry: DiaryEntry): EditForm {
   };
 }
 
-function importanceClass(entry: DiaryEntry): string {
-  if (entry.importance === "cuc_ky_cao") return "diary-leaf-cuc-ky-cao";
-  if (entry.importance === "rat_cao") return "diary-leaf-rat-cao";
-  return "";
+function importanceAccentClass(entry: DiaryEntry): string {
+  if (entry.importance === "cuc_ky_cao") return "diary-accent-cuc-ky-cao";
+  if (entry.importance === "rat_cao") return "diary-accent-rat-cao";
+  return "diary-accent-cao";
+}
+
+function importanceIcon(entry: DiaryEntry): string {
+  if (entry.importance === "cuc_ky_cao") return "💎";
+  if (entry.importance === "rat_cao") return "🌸";
+  return "🍃";
 }
 
 function importanceLabel(importance: string | null): string {
@@ -75,6 +81,8 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
     if (!q) return entries;
     return entries.filter((e) => e.title.toLowerCase().includes(q));
   }, [entries, search]);
+
+  const galleryEntries = useMemo(() => filteredEntries.filter((e) => e.photos.length > 0), [filteredEntries]);
 
   function openEntry(entry: DiaryEntry) {
     setSelected(entry);
@@ -146,7 +154,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
       <div className="diary-view-mode-toggle">
         <ToggleGroup
           options={[
-            { value: "timeline", label: "🕸️ Timeline" },
+            { value: "timeline", label: "🕓 Timeline" },
             { value: "gallery", label: "🖼️ Bộ Sưu Tập Ảnh" },
           ]}
           value={viewMode}
@@ -162,46 +170,59 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {filteredEntries.length === 0 ? (
-        <p className="loading-text">Không tìm thấy nhật ký nào phù hợp</p>
-      ) : viewMode === "timeline" ? (
-        <div className="diary-vine">
-          <div className="diary-vine-stem" />
-          {filteredEntries.map((entry, idx) => (
-            <div key={entry.id} className={`diary-leaf-row ${idx % 2 === 0 ? "left" : "right"}`}>
-              <div className="diary-leaf-node" />
-              <button className={`diary-leaf-card ${importanceClass(entry)}`} onClick={() => openEntry(entry)}>
-                {entry.photos.length > 0 && (
-                  <span className="diary-leaf-photo-badge">📷 {entry.photos.length}</span>
-                )}
-                <div className="diary-leaf-date">{formatVNDate(entry.entry_date)}</div>
-                <div className="diary-leaf-title">{entry.title}</div>
-              </button>
-            </div>
-          ))}
-        </div>
+      {viewMode === "timeline" ? (
+        filteredEntries.length === 0 ? (
+          <p className="loading-text">Không tìm thấy nhật ký nào phù hợp</p>
+        ) : (
+          <div className="diary-timeline">
+            {filteredEntries.map((entry) => (
+              <div key={entry.id} className={`diary-entry-row ${importanceAccentClass(entry)}`}>
+                <span className="diary-entry-dot">{importanceIcon(entry)}</span>
+                <button className="diary-entry-card" onClick={() => openEntry(entry)}>
+                  <div className="diary-entry-top">
+                    <span className="diary-entry-date">{formatVNDate(entry.entry_date)}</span>
+                    <div className="diary-entry-badges">
+                      {entry.photos.length > 0 && (
+                        <span className="diary-entry-photo-badge">📷 {entry.photos.length}</span>
+                      )}
+                      <span className="diary-entry-importance-badge">{importanceLabel(entry.importance)}</span>
+                    </div>
+                  </div>
+                  <div className="diary-entry-title">{entry.title}</div>
+                  {entry.content && <div className="diary-entry-preview">{entry.content}</div>}
+                </button>
+              </div>
+            ))}
+          </div>
+        )
+      ) : galleryEntries.length === 0 ? (
+        <p className="loading-text">
+          {search.trim() ? "Không tìm thấy nhật ký nào phù hợp" : "Chưa có nhật ký nào có ảnh"}
+        </p>
       ) : (
         <div className="diary-gallery">
-          {filteredEntries.map((entry) => (
-            <div key={entry.id} className="diary-gallery-item">
-              <button type="button" className="diary-gallery-header" onClick={() => openEntry(entry)}>
-                <span className="diary-gallery-title">{entry.title}</span>
-                <span className="diary-gallery-date">{formatVNDate(entry.entry_date)}</span>
+          {galleryEntries.map((entry) => (
+            <div key={entry.id} className={`diary-album-card ${importanceAccentClass(entry)}`}>
+              <button type="button" className="diary-album-header" onClick={() => openEntry(entry)}>
+                <span className={`diary-album-icon ${importanceAccentClass(entry)}`}>{importanceIcon(entry)}</span>
+                <span className="diary-album-header-text">
+                  <span className="diary-album-title">{entry.title}</span>
+                  <span className="diary-album-date">{formatVNDate(entry.entry_date)}</span>
+                </span>
+                <span className="diary-album-count">{entry.photos.length} ảnh</span>
               </button>
-              {entry.photos.length > 0 && (
-                <div className="diary-photo-grid">
-                  {entry.photos.map((photo, i) => (
-                    <button
-                      key={photo.id}
-                      type="button"
-                      className="diary-photo-thumb"
-                      onClick={() => setLightbox({ photos: entry.photos, index: i })}
-                    >
-                      <img src={photo.thumb_url} alt="" />
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="diary-photo-grid">
+                {entry.photos.map((photo, i) => (
+                  <button
+                    key={photo.id}
+                    type="button"
+                    className="diary-photo-thumb"
+                    onClick={() => setLightbox({ photos: entry.photos, index: i })}
+                  >
+                    <img src={photo.thumb_url} alt="" />
+                  </button>
+                ))}
+              </div>
             </div>
           ))}
         </div>
@@ -209,11 +230,16 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
 
       {selected && (
         <div className="diary-page-overlay" onClick={closeModal}>
-          <div className="diary-page-sheet" onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`diary-page-sheet ${!editing ? importanceAccentClass(selected) : ""}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {!editing ? (
               <>
                 <div className="modal-header diary-modal-header">
-                  <h3>🍃 {selected.title}</h3>
+                  <h3>
+                    {importanceIcon(selected)} {selected.title}
+                  </h3>
                   <div className="diary-modal-actions">
                     <button
                       className="dose-icon-button"
@@ -236,9 +262,12 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                     </button>
                   </div>
                 </div>
-                <p className="diary-modal-date">
-                  {formatVNDate(selected.entry_date)} · Mức độ: {importanceLabel(selected.importance)}
-                </p>
+                <div className="diary-modal-meta">
+                  <span className="diary-modal-date-badge">{formatVNDate(selected.entry_date)}</span>
+                  <span className={`diary-modal-importance-badge ${importanceAccentClass(selected)}`}>
+                    {importanceIcon(selected)} {importanceLabel(selected.importance)}
+                  </span>
+                </div>
                 <p className="diary-modal-content">{selected.content}</p>
                 {selected.photos.length > 0 && (
                   <div className="diary-photo-grid">
