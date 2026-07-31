@@ -75,14 +75,14 @@ function buildColumns(records: RecordItem[]): Column[] {
           colorClass: "card-nontro",
           items: records.filter((r) => r.type === "non_tro"),
         },
+        {
+          key: "khac",
+          title: "Các vấn đề khác",
+          icon: "📌",
+          colorClass: "card-custom",
+          items: records.filter((r) => !COVERED_TYPES.has(r.type)),
+        },
       ],
-    },
-    {
-      key: "khac",
-      title: "Các vấn đề khác",
-      icon: "📌",
-      colorClass: "card-custom",
-      items: records.filter((r) => !COVERED_TYPES.has(r.type)),
     },
   ];
 }
