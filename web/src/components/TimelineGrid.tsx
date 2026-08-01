@@ -22,8 +22,8 @@ interface Column {
   groups?: Group[];
 }
 
-const SIDE_LABEL: Record<string, string> = { trai: "Trái", phai: "Phải", ca_hai: "Cả 2 bên" };
-const DI_NANG_LABEL: Record<string, string> = { binh_thuong: "Bình thường", co_van_de: "Có vấn đề" };
+const SIDE_LABEL: Record<string, string> = { trai: "Trái", phai: "Phải", ca_hai: "2 bên" };
+const DI_NANG_LABEL: Record<string, string> = { binh_thuong: "BT", co_van_de: "Có vấn đề" };
 const NON_TRO_LABEL: Record<string, string> = {
   nhe: "Nhẹ",
   trung_binh: "TB",
