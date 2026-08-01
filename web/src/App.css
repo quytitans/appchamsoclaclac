@@ -815,11 +815,12 @@ body {
   border: none;
   border-left: 3px solid var(--accent, var(--dark-pink));
   font-family: inherit;
-  background: var(--soft-bg);
+  background: var(--white);
   border-radius: 10px;
   padding: 6px 8px;
   text-align: left;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
   transition: transform 0.12s ease;
 }
 
@@ -829,7 +830,8 @@ body {
 
 .timeline-card-empty {
   border: 1.5px dashed var(--main-pink);
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: none;
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
