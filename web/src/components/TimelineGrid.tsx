@@ -135,30 +135,6 @@ function cardText(record: RecordItem): string {
   }
 }
 
-const SKY_ICONS = [
-  { icon: "🌙", top: "5%", left: "70%" },
-  { icon: "✨", top: "9%", left: "20%" },
-  { icon: "⭐", top: "14%", left: "45%" },
-  { icon: "☀️", top: "32%", left: "22%" },
-  { icon: "☀️", top: "50%", left: "76%" },
-  { icon: "☀️", top: "68%", left: "38%" },
-  { icon: "🌙", top: "86%", left: "24%" },
-  { icon: "⭐", top: "91%", left: "62%" },
-  { icon: "✨", top: "96%", left: "84%" },
-];
-
-function DayNightSky() {
-  return (
-    <div className="daynight-sky" aria-hidden="true">
-      {SKY_ICONS.map((s, idx) => (
-        <span key={idx} className="sky-icon" style={{ top: s.top, left: s.left }}>
-          {s.icon}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 function ColumnHeader({ icon, title, count }: { icon: string; title: string; count: number }) {
   return (
     <div className="timeline-column-header">
@@ -210,8 +186,7 @@ export default function TimelineGrid({ records, onSelectRecord }: Props) {
   return (
     <section className="timeline-grid">
       {columns.map((col) => (
-        <div key={col.key} className={`timeline-column ${col.key === "an" ? "timeline-column-sky" : ""}`}>
-          {col.key === "an" && <DayNightSky />}
+        <div key={col.key} className="timeline-column">
           {col.groups ? (
             col.groups.map((group) => (
               <div key={group.key} className={`timeline-subgroup ${group.colorClass}`}>

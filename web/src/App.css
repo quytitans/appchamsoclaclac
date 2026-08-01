@@ -668,53 +668,6 @@ body {
   box-shadow: 0 6px 18px rgba(90, 61, 75, 0.1);
 }
 
-/* Bé Ăn: nền gradient mô phỏng chu kỳ ngày/đêm — trên/dưới (đầu/cuối ngày) tối hơn, giữa (ban ngày) sáng hơn */
-.timeline-column-sky {
-  background: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)),
-    linear-gradient(
-      to bottom,
-      #12123a 0%,
-      #2c2a5e 9%,
-      #5b53a6 18%,
-      #e98aae 26%,
-      #ffd9a0 33%,
-      #cfeeff 45%,
-      #cfeeff 55%,
-      #ffd9a0 67%,
-      #e98aae 74%,
-      #5b53a6 82%,
-      #2c2a5e 91%,
-      #12123a 100%
-    );
-}
-
-.daynight-sky {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.sky-icon {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  font-size: 11px;
-  opacity: 0.6;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
-}
-
-.timeline-column-sky > .group-an {
-  position: relative;
-  z-index: 1;
-}
-
-.timeline-column-sky .timeline-column-header {
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 12px;
-  padding: 6px 8px;
-  backdrop-filter: blur(2px);
-}
-
 .timeline-column-header {
   display: flex;
   align-items: center;
@@ -813,14 +766,13 @@ body {
   align-items: flex-start;
   gap: 2px;
   border: none;
-  border-left: 3px solid var(--accent, var(--dark-pink));
   font-family: inherit;
-  background: var(--white);
+  background: linear-gradient(135deg, var(--accent, var(--dark-pink)), color-mix(in srgb, var(--accent, var(--dark-pink)) 65%, black));
   border-radius: 10px;
   padding: 6px 8px;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
   transition: transform 0.12s ease;
 }
 
@@ -841,13 +793,15 @@ body {
 .timeline-card-time {
   font-weight: 800;
   font-size: 10.5px;
-  color: var(--accent, var(--deep-pink));
+  color: var(--white);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .timeline-card-detail {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-dark);
+  color: var(--white);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   line-height: 1.3;
 }
 
