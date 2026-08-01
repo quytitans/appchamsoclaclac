@@ -1,6 +1,7 @@
 interface ToggleOption {
   value: string;
   label: string;
+  icon?: string;
 }
 
 interface Props {
@@ -16,10 +17,17 @@ export default function ToggleGroup({ options, value, onChange }: Props) {
         <button
           key={opt.value}
           type="button"
-          className={`toggle-option ${value === opt.value ? "active" : ""}`}
+          className={`toggle-option ${opt.icon ? "has-icon" : ""} ${value === opt.value ? "active" : ""}`}
           onClick={() => onChange(opt.value)}
         >
-          {opt.label}
+          {opt.icon ? (
+            <>
+              <span className="toggle-option-icon">{opt.icon}</span>
+              <span>{opt.label}</span>
+            </>
+          ) : (
+            opt.label
+          )}
         </button>
       ))}
     </div>

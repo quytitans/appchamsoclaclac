@@ -436,6 +436,24 @@ body {
   color: var(--white);
 }
 
+/* Khi có icon riêng: xếp icon trên, chữ dưới (giống option-card) để tránh chữ 2 từ bị ngắt dòng xấu
+   khi nằm cùng dòng với icon trong ô hẹp trên điện thoại */
+.toggle-option.has-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 4px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.toggle-option-icon {
+  font-size: 18px;
+}
+
 .save-button {
   margin-top: 20px;
   width: 100%;

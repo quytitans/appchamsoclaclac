@@ -4,32 +4,32 @@ import type { RecordFormState } from "../recordForm";
 import type { RecordType } from "../types";
 
 const SIDE_OPTIONS = [
-  { value: "trai", label: "👈 Bên Trái" },
-  { value: "phai", label: "👉 Bên Phải" },
-  { value: "ca_hai", label: "🤲 Cả 2 bên" },
+  { value: "trai", label: "Bên Trái", icon: "👈" },
+  { value: "phai", label: "Bên Phải", icon: "👉" },
+  { value: "ca_hai", label: "Cả 2 bên", icon: "🤲" },
 ];
 
 const DI_NANG_OPTIONS = [
-  { value: "binh_thuong", label: "✅ Bình thường" },
-  { value: "co_van_de", label: "⚠️ Có vấn đề" },
+  { value: "binh_thuong", label: "Bình thường", icon: "✅" },
+  { value: "co_van_de", label: "Có vấn đề", icon: "⚠️" },
 ];
 
 const TI_ME_AMOUNT_OPTIONS = [
-  { value: "it", label: "🔅 Ít" },
-  { value: "trung_binh", label: "🔆 Trung bình" },
-  { value: "nhieu", label: "☀️ Nhiều" },
+  { value: "it", label: "Ít", icon: "🔅" },
+  { value: "trung_binh", label: "Trung bình", icon: "🔆" },
+  { value: "nhieu", label: "Nhiều", icon: "☀️" },
 ];
 
 const DI_NANG_AMOUNT_OPTIONS = [
-  { value: "it", label: "🔅 Ít" },
-  { value: "nhieu", label: "☀️ Nhiều" },
+  { value: "it", label: "Ít", icon: "🔅" },
+  { value: "nhieu", label: "Nhiều", icon: "☀️" },
 ];
 
 const NON_TRO_OPTIONS = [
-  { value: "nhe", label: "🤏 Nhẹ" },
-  { value: "trung_binh", label: "😐 Trung bình" },
-  { value: "nhieu", label: "😖 Nhiều" },
-  { value: "rat_nhieu", label: "😫 Rất nhiều" },
+  { value: "nhe", label: "Nhẹ", icon: "🤏" },
+  { value: "trung_binh", label: "Trung bình", icon: "😐" },
+  { value: "nhieu", label: "Nhiều", icon: "😖" },
+  { value: "rat_nhieu", label: "Rất nhiều", icon: "😫" },
 ];
 
 interface Props {
@@ -233,21 +233,11 @@ function DateTimeRow({
 }) {
   return (
     <div className="field-row">
-      <Field label="Ngày" icon="📅">
-        <input
-          className="input-with-icon"
-          type="date"
-          value={date}
-          onChange={(e) => onChange("date", e.target.value)}
-        />
+      <Field label="Ngày">
+        <input type="date" value={date} onChange={(e) => onChange("date", e.target.value)} />
       </Field>
-      <Field label={timeLabel} icon="⏰">
-        <input
-          className="input-with-icon"
-          type="time"
-          value={time}
-          onChange={(e) => onChange("time", e.target.value)}
-        />
+      <Field label={timeLabel}>
+        <input type="time" value={time} onChange={(e) => onChange("time", e.target.value)} />
       </Field>
     </div>
   );
