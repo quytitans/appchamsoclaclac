@@ -86,15 +86,27 @@ export default function NoteScreen({ session, onNavigate }: Props) {
         ))}
       </div>
 
-      <div className="note-form">
-        <RecordFields type={type} state={form} onChange={handleChange} />
+      <div className="entry-form-card">
+        <div className="entry-form-header">
+          <span className="entry-form-header-icon" style={{ "--accent": ACTIVITY_META[type].accent } as CSSProperties}>
+            {ACTIVITY_META[type].icon}
+          </span>
+          <div>
+            <div className="entry-form-header-title">{ACTIVITY_META[type].label}</div>
+            <div className="entry-form-header-subtitle">Ghi lại hoạt động của bé</div>
+          </div>
+        </div>
+
+        <div className="note-form">
+          <RecordFields type={type} state={form} onChange={handleChange} />
+        </div>
+
+        {error && <div className="message error">{error}</div>}
+
+        <button className="save-button" onClick={handleSave} disabled={saving}>
+          {saving ? "Đang lưu..." : "Lưu"}
+        </button>
       </div>
-
-      {error && <div className="message error">{error}</div>}
-
-      <button className="save-button" onClick={handleSave} disabled={saving}>
-        {saving ? "Đang lưu..." : "Lưu"}
-      </button>
 
       {showSuccess && (
         <div className="modal-overlay">

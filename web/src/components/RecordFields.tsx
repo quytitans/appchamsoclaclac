@@ -4,32 +4,32 @@ import type { RecordFormState } from "../recordForm";
 import type { RecordType } from "../types";
 
 const SIDE_OPTIONS = [
-  { value: "trai", label: "Bên Trái" },
-  { value: "phai", label: "Bên Phải" },
-  { value: "ca_hai", label: "Cả 2 bên" },
+  { value: "trai", label: "👈 Bên Trái" },
+  { value: "phai", label: "👉 Bên Phải" },
+  { value: "ca_hai", label: "🤲 Cả 2 bên" },
 ];
 
 const DI_NANG_OPTIONS = [
-  { value: "binh_thuong", label: "Bình thường" },
-  { value: "co_van_de", label: "Có vấn đề" },
+  { value: "binh_thuong", label: "✅ Bình thường" },
+  { value: "co_van_de", label: "⚠️ Có vấn đề" },
 ];
 
 const TI_ME_AMOUNT_OPTIONS = [
-  { value: "it", label: "Ít" },
-  { value: "trung_binh", label: "Trung bình" },
-  { value: "nhieu", label: "Nhiều" },
+  { value: "it", label: "🔅 Ít" },
+  { value: "trung_binh", label: "🔆 Trung bình" },
+  { value: "nhieu", label: "☀️ Nhiều" },
 ];
 
 const DI_NANG_AMOUNT_OPTIONS = [
-  { value: "it", label: "Ít" },
-  { value: "nhieu", label: "Nhiều" },
+  { value: "it", label: "🔅 Ít" },
+  { value: "nhieu", label: "☀️ Nhiều" },
 ];
 
 const NON_TRO_OPTIONS = [
-  { value: "nhe", label: "Nhẹ" },
-  { value: "trung_binh", label: "Trung bình" },
-  { value: "nhieu", label: "Nhiều" },
-  { value: "rat_nhieu", label: "Rất nhiều" },
+  { value: "nhe", label: "🤏 Nhẹ" },
+  { value: "trung_binh", label: "😐 Trung bình" },
+  { value: "nhieu", label: "😖 Nhiều" },
+  { value: "rat_nhieu", label: "😫 Rất nhiều" },
 ];
 
 interface Props {
@@ -58,8 +58,9 @@ export default function RecordFields({ type, state, onChange }: Props) {
           <Field label="Vị trí">
             <ToggleGroup options={SIDE_OPTIONS} value={state.side} onChange={(v) => onChange("side", v)} />
           </Field>
-          <Field label="Dung tích (ml)">
+          <Field label="Dung tích (ml)" icon="💧">
             <input
+              className="input-with-icon"
               type="number"
               min={0}
               inputMode="numeric"
@@ -88,8 +89,9 @@ export default function RecordFields({ type, state, onChange }: Props) {
       return (
         <>
           <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ ti bình" onChange={onChange} />
-          <Field label="Dung tích (ml)">
+          <Field label="Dung tích (ml)" icon="🍼">
             <input
+              className="input-with-icon"
               type="number"
               min={0}
               inputMode="numeric"
@@ -130,11 +132,17 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "can_nang":
       return (
         <>
-          <Field label="Ngày cân">
-            <input type="date" value={state.date} onChange={(e) => onChange("date", e.target.value)} />
-          </Field>
-          <Field label="Khối lượng (kg)">
+          <Field label="Ngày cân" icon="📅">
             <input
+              className="input-with-icon"
+              type="date"
+              value={state.date}
+              onChange={(e) => onChange("date", e.target.value)}
+            />
+          </Field>
+          <Field label="Khối lượng (kg)" icon="⚖️">
+            <input
+              className="input-with-icon"
               type="number"
               min={0}
               step="0.01"
@@ -150,11 +158,17 @@ export default function RecordFields({ type, state, onChange }: Props) {
     case "chieu_cao":
       return (
         <>
-          <Field label="Ngày đo">
-            <input type="date" value={state.date} onChange={(e) => onChange("date", e.target.value)} />
-          </Field>
-          <Field label="Kích thước (cm)">
+          <Field label="Ngày đo" icon="📅">
             <input
+              className="input-with-icon"
+              type="date"
+              value={state.date}
+              onChange={(e) => onChange("date", e.target.value)}
+            />
+          </Field>
+          <Field label="Kích thước (cm)" icon="📏">
+            <input
+              className="input-with-icon"
               type="number"
               min={0}
               step="0.1"
@@ -171,24 +185,27 @@ export default function RecordFields({ type, state, onChange }: Props) {
       return (
         <>
           <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ" onChange={onChange} />
-          <Field label="Tên hoạt động">
+          <Field label="Tên hoạt động" icon="✏️">
             <input
+              className="input-with-icon"
               type="text"
               placeholder="VD: Uống vitamin D"
               value={state.customName}
               onChange={(e) => onChange("customName", e.target.value)}
             />
           </Field>
-          <Field label="Giá trị">
+          <Field label="Giá trị" icon="🔢">
             <input
+              className="input-with-icon"
               type="text"
               placeholder="VD: 1 giọt"
               value={state.customValue}
               onChange={(e) => onChange("customValue", e.target.value)}
             />
           </Field>
-          <Field label="Trạng thái">
+          <Field label="Trạng thái" icon="📋">
             <input
+              className="input-with-icon"
               type="text"
               placeholder="VD: Bình thường"
               value={state.customStatus}
@@ -216,21 +233,38 @@ function DateTimeRow({
 }) {
   return (
     <div className="field-row">
-      <Field label="Ngày">
-        <input type="date" value={date} onChange={(e) => onChange("date", e.target.value)} />
+      <Field label="Ngày" icon="📅">
+        <input
+          className="input-with-icon"
+          type="date"
+          value={date}
+          onChange={(e) => onChange("date", e.target.value)}
+        />
       </Field>
-      <Field label={timeLabel}>
-        <input type="time" value={time} onChange={(e) => onChange("time", e.target.value)} />
+      <Field label={timeLabel} icon="⏰">
+        <input
+          className="input-with-icon"
+          type="time"
+          value={time}
+          onChange={(e) => onChange("time", e.target.value)}
+        />
       </Field>
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, icon, children }: { label: string; icon?: string; children: ReactNode }) {
   return (
     <div className="field">
       <label className="field-label">{label}</label>
-      {children}
+      {icon ? (
+        <div className="input-icon-wrap">
+          <span className="input-icon">{icon}</span>
+          {children}
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }

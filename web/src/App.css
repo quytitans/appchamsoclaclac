@@ -1577,8 +1577,12 @@ body {
   justify-content: center;
   font-size: 21px;
   color: var(--white);
-  background: linear-gradient(135deg, var(--dark-pink), var(--deep-pink));
-  box-shadow: 0 4px 10px rgba(255, 93, 143, 0.4);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent, var(--dark-pink)) 80%, black),
+    var(--accent, var(--deep-pink))
+  );
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--accent, var(--deep-pink)) 40%, transparent);
 }
 
 .entry-form-header-title {
