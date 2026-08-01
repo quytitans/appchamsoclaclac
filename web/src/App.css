@@ -1892,97 +1892,171 @@ body {
   --accent: #c9971f;
 }
 
-.diary-timeline {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 4px 0 20px;
-}
-
-.diary-timeline::before {
-  content: "";
-  position: absolute;
-  left: 15px;
-  top: 6px;
-  bottom: 6px;
-  width: 2px;
-  background: var(--main-pink);
-  border-radius: 1px;
-}
-
-.diary-entry-row {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.diary-entry-dot {
-  position: relative;
-  z-index: 1;
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  background: var(--soft-bg);
-  background: color-mix(in srgb, var(--accent) 20%, white);
-  box-shadow: 0 0 0 2px var(--white), 0 0 0 3.5px var(--accent);
-}
-
-.diary-entry-card {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border: none;
-  border-left: 3px solid var(--accent);
-  font-family: inherit;
-  background: var(--white);
-  border-radius: 14px;
-  padding: 9px 13px;
-  text-align: left;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transition: transform 0.12s ease;
-}
-
-.diary-entry-card:active {
-  transform: scale(0.98);
-}
-
-/* Rất Cao / Cực Kì Cao: nền gradient riêng để xứng với cấp bậc ưu tiên, thay vì chỉ viền màu như mức Cao */
-.diary-accent-rat-cao .diary-entry-card,
+/* Rất Cao / Cực Kì Cao trong Bộ Sưu Tập Ảnh: nền gradient riêng xứng với cấp bậc (khung lá dùng bộ style riêng bên dưới) */
 .diary-accent-rat-cao.diary-album-card {
   background: linear-gradient(135deg, #fff4ee 0%, #ffe1cd 100%);
 }
 
-.diary-accent-cuc-ky-cao .diary-entry-card,
 .diary-accent-cuc-ky-cao.diary-album-card {
   background: linear-gradient(135deg, #fffaea 0%, #ffedb0 100%);
 }
 
-.diary-accent-cuc-ky-cao .diary-entry-card {
-  box-shadow: 0 4px 16px rgba(201, 151, 31, 0.3), var(--shadow);
+/* Nhật Ký Của Mẹ — timeline dây leo: dây cong hình chữ S theo từng sự kiện, lá xen kẽ 2 bên */
+.diary-vine {
+  position: relative;
+  padding: 6px 0 10px;
 }
 
-.diary-entry-date {
-  font-size: 11.5px;
-  font-weight: 800;
-  color: var(--accent);
-  letter-spacing: 0.2px;
+.diary-leaf-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 92px;
+  margin-bottom: 26px;
 }
 
-.diary-entry-title {
-  font-size: 16px;
+.diary-leaf-row.left {
+  justify-content: flex-start;
+}
+
+.diary-leaf-row.right {
+  justify-content: flex-end;
+}
+
+.diary-vine-segment {
+  position: absolute;
+  left: 50%;
+  top: -13px;
+  bottom: -13px;
+  width: 32px;
+  transform: translateX(-50%);
+  z-index: 0;
+  overflow: visible;
+}
+
+.diary-vine-path {
+  fill: none;
+  stroke: #a8dfb8;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.diary-leaf-node {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  background: var(--white);
+  box-shadow: 0 0 0 2px #a8dfb8, 0 2px 6px rgba(90, 61, 75, 0.25);
+}
+
+.diary-leaf-card {
+  position: relative;
+  z-index: 1;
+  width: 44%;
+  border: none;
+  font-family: inherit;
+  background: linear-gradient(135deg, var(--main-pink), var(--dark-pink));
+  padding: 9px 12px;
+  text-align: left;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: transform 0.12s ease;
+}
+
+.diary-leaf-row.left .diary-leaf-card {
+  border-radius: 4px 18px 18px 18px;
+  margin-right: 6%;
+}
+
+.diary-leaf-row.right .diary-leaf-card {
+  border-radius: 18px 4px 18px 18px;
+  margin-left: 6%;
+}
+
+.diary-leaf-card:active {
+  transform: scale(0.97);
+}
+
+.diary-leaf-photo-badge {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  background: var(--white);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(90, 61, 75, 0.3);
+}
+
+.diary-leaf-date {
+  font-size: 10px;
   font-weight: 800;
+  color: #c2185b;
+}
+
+.diary-leaf-title {
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--text-dark);
   line-height: 1.3;
+}
+
+/* Rất Cao: màu nổi bật hơn hẳn mức Cao */
+.diary-leaf-card.diary-leaf-rat-cao {
+  background: linear-gradient(135deg, #ff9466, #e0562e);
+}
+
+.diary-leaf-card.diary-leaf-rat-cao .diary-leaf-date,
+.diary-leaf-card.diary-leaf-rat-cao .diary-leaf-title {
+  color: var(--white);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* Cực Kì Cao: viền RGB lấp lánh chạy quanh khung + nền vàng nổi bật */
+.diary-leaf-card.diary-leaf-cuc-ky-cao {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(135deg, #ffe27a, #f0a500) padding-box,
+    linear-gradient(270deg, #ff5d8f, #ffb347, #7ed957, #5fa8ff, #c77dff, #ff5d8f) border-box;
+  background-size: auto, 400% 400%;
+  animation: diary-leaf-rgb-shift 4s ease infinite;
+  box-shadow: 0 4px 16px rgba(240, 165, 0, 0.35), var(--shadow);
+}
+
+.diary-leaf-card.diary-leaf-cuc-ky-cao .diary-leaf-date,
+.diary-leaf-card.diary-leaf-cuc-ky-cao .diary-leaf-title {
+  color: var(--white);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes diary-leaf-rgb-shift {
+  0% {
+    background-position: 0 0, 0% 50%;
+  }
+  50% {
+    background-position: 0 0, 100% 50%;
+  }
+  100% {
+    background-position: 0 0, 0% 50%;
+  }
 }
 
 .diary-modal-sheet {

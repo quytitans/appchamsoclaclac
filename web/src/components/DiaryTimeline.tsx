@@ -46,6 +46,12 @@ function importanceIcon(entry: DiaryEntry): string {
   return "🍃";
 }
 
+function importanceLeafClass(entry: DiaryEntry): string {
+  if (entry.importance === "cuc_ky_cao") return "diary-leaf-cuc-ky-cao";
+  if (entry.importance === "rat_cao") return "diary-leaf-rat-cao";
+  return "diary-leaf-cao";
+}
+
 function importanceLabel(importance: string | null): string {
   if (importance === "cuc_ky_cao") return "Cực Kì Cao";
   if (importance === "rat_cao") return "Rất Cao";
@@ -174,16 +180,29 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
         filteredEntries.length === 0 ? (
           <p className="loading-text">Không tìm thấy nhật ký nào phù hợp</p>
         ) : (
-          <div className="diary-timeline">
-            {filteredEntries.map((entry) => (
-              <div key={entry.id} className={`diary-entry-row ${importanceAccentClass(entry)}`}>
-                <span className="diary-entry-dot">{importanceIcon(entry)}</span>
-                <button className="diary-entry-card" onClick={() => openEntry(entry)}>
-                  <span className="diary-entry-date">{formatVNDate(entry.entry_date)}</span>
-                  <span className="diary-entry-title">{entry.title}</span>
-                </button>
-              </div>
-            ))}
+          <div className="diary-vine">
+            {filteredEntries.map((entry, idx) => {
+              const side = idx % 2 === 0 ? "left" : "right";
+              return (
+                <div key={entry.id} className={`diary-leaf-row ${side}`}>
+                  <svg className="diary-vine-segment" viewBox="0 0 40 100" preserveAspectRatio="none" aria-hidden="true">
+                    <path
+                      className="diary-vine-path"
+                      d={side === "left" ? "M20,0 C5,30 5,70 20,100" : "M20,0 C35,30 35,70 20,100"}
+                    />
+                  </svg>
+                  <span className="diary-leaf-node">{importanceIcon(entry)}</span>
+                  <button
+                    className={`diary-leaf-card ${importanceLeafClass(entry)}`}
+                    onClick={() => openEntry(entry)}
+                  >
+                    {entry.photos.length > 0 && <span className="diary-leaf-photo-badge">📷</span>}
+                    <span className="diary-leaf-date">{formatVNDate(entry.entry_date)}</span>
+                    <span className="diary-leaf-title">{entry.title}</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )
       ) : galleryEntries.length === 0 ? (
