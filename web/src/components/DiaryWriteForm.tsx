@@ -1,15 +1,9 @@
 import { useState } from "react";
-import ToggleGroup from "./ToggleGroup";
+import DiaryImportancePicker from "./DiaryImportancePicker";
 import PhotoPicker from "./PhotoPicker";
 import { createDiaryEntry } from "../api";
 import { todayDateStr } from "../dateUtils";
 import type { DiaryImportance, Session, UploadedImage } from "../types";
-
-export const IMPORTANCE_OPTIONS = [
-  { value: "cao", label: "Cao" },
-  { value: "rat_cao", label: "Rất Cao" },
-  { value: "cuc_ky_cao", label: "Cực Kì Cao" },
-];
 
 interface Props {
   session: Session;
@@ -68,59 +62,99 @@ export default function DiaryWriteForm({ session, onSaved }: Props) {
   }
 
   return (
-    <div className="note-form">
-      <div className="field">
-        <label className="field-label">Ngày</label>
-        <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
-      </div>
-      <div className="field">
-        <label className="field-label">Tiêu đề</label>
-        <input
-          type="text"
-          placeholder="VD: Lần đầu con biết lật"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </div>
-      <div className="field">
-        <label className="field-label">Nội dung</label>
-        <textarea
-          rows={12}
-          placeholder="Viết những điều mẹ muốn lưu giữ..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
-      </div>
-      <div className="field">
-        <label className="field-label">Mức độ quan trọng của kỷ niệm</label>
-        <ToggleGroup
-          options={IMPORTANCE_OPTIONS}
-          value={importance}
-          onChange={(v) => setImportance(v as DiaryImportance)}
-        />
-      </div>
-
-      {session.isPremium && (
-        <div className="field">
-          <label className="field-label">📷 Ảnh (tối đa 12)</label>
-          <PhotoPicker
-            account={session.account}
-            token={session.token}
-            value={photos}
-            onChange={setPhotos}
-            onBusyChange={setPhotosBusy}
-            max={12}
-          />
+    <div className="vaccine-form">
+      <div className="entry-form-card">
+        <div className="entry-form-header">
+          <span className="entry-form-header-icon">📔</span>
+          <div>
+            <div className="entry-form-header-title">Viết kỷ niệm mới</div>
+            <div className="entry-form-header-subtitle">Lưu lại khoảnh khắc đáng nhớ của con</div>
+          </div>
         </div>
-      )}
 
-      {message && <div className="message error">{message}</div>}
+        <div className="note-form">
+          <div className="form-section">
+            <div className="form-section-title">
+              <span className="form-section-icon">🗓️</span> Thông tin chung
+            </div>
+            <div className="field">
+              <label className="field-label">Ngày</label>
+              <div className="input-icon-wrap">
+                <span className="input-icon">📅</span>
+                <input
+                  className="input-with-icon"
+                  type="date"
+                  value={entryDate}
+                  onChange={(e) => setEntryDate(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="field">
+              <label className="field-label">Tiêu đề</label>
+              <div className="input-icon-wrap">
+                <span className="input-icon">✏️</span>
+                <input
+                  className="input-with-icon"
+                  type="text"
+                  placeholder="VD: Lần đầu con biết lật"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
 
-      {photosBusy && <div className="message error">Đang xử lý ảnh, vui lòng đợi...</div>}
+          <div className="form-section">
+            <div className="form-section-title">
+              <span className="form-section-icon">💭</span> Nội dung
+            </div>
+            <div className="field">
+              <label className="field-label">Nội dung</label>
+              <textarea
+                rows={10}
+                placeholder="Viết những điều mẹ muốn lưu giữ..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </div>
+          </div>
 
-      <button className="save-button" onClick={handleSaveClick} disabled={saving || photosBusy}>
-        {saving ? "Đang lưu..." : "Lưu Nhật Ký"}
-      </button>
+          <div className="form-section">
+            <div className="form-section-title">
+              <span className="form-section-icon">⭐</span> Mức độ quan trọng
+            </div>
+            <div className="field">
+              <DiaryImportancePicker value={importance} onChange={setImportance} />
+            </div>
+          </div>
+
+          {session.isPremium && (
+            <div className="form-section">
+              <div className="form-section-title">
+                <span className="form-section-icon">📷</span> Ảnh (tối đa 12)
+              </div>
+              <div className="field">
+                <PhotoPicker
+                  account={session.account}
+                  token={session.token}
+                  value={photos}
+                  onChange={setPhotos}
+                  onBusyChange={setPhotosBusy}
+                  max={12}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {message && <div className="message error">{message}</div>}
+
+        {photosBusy && <div className="message error">Đang xử lý ảnh, vui lòng đợi...</div>}
+
+        <button className="save-button" onClick={handleSaveClick} disabled={saving || photosBusy}>
+          {saving ? "Đang lưu..." : "Lưu Nhật Ký"}
+        </button>
+      </div>
 
       {showConfirm && (
         <div className="modal-overlay">
@@ -131,7 +165,7 @@ export default function DiaryWriteForm({ session, onSaved }: Props) {
             <p className="pin-step-label">Lưu "{title.trim()}" và chuyển sang xem Nhật Ký của Mẹ?</p>
             <div className="modal-actions">
               <button className="secondary-button" onClick={handleCancel} disabled={saving}>
-                Cancel
+                Hủy
               </button>
               <button className="save-button" onClick={handleConfirm} disabled={saving}>
                 {saving ? "Đang lưu..." : "OK"}

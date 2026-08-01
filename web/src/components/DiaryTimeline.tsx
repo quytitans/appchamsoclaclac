@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import ToggleGroup from "./ToggleGroup";
+import DiaryImportancePicker from "./DiaryImportancePicker";
 import PhotoPicker from "./PhotoPicker";
 import PhotoLightbox from "./PhotoLightbox";
-import { IMPORTANCE_OPTIONS } from "./DiaryWriteForm";
 import { deleteDiaryEntry, fetchDiaryEntries, updateDiaryEntry } from "../api";
 import type { DiaryEntry, DiaryImportance, Session, UploadedImage } from "../types";
 
@@ -332,10 +332,9 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                     </div>
                     <div className="field">
                       <label className="field-label">Mức độ quan trọng của kỷ niệm</label>
-                      <ToggleGroup
-                        options={IMPORTANCE_OPTIONS}
+                      <DiaryImportancePicker
                         value={editForm.importance}
-                        onChange={(v) => setEditForm({ ...editForm, importance: v as DiaryImportance })}
+                        onChange={(v) => setEditForm({ ...editForm, importance: v })}
                       />
                     </div>
                     {session.isPremium && (

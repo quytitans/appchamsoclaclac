@@ -60,13 +60,23 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
 
   return (
     <div className="vaccine-form">
-      <VaccineFieldsEditor state={fields} onChange={setFields} />
+      <div className="entry-form-card">
+        <div className="entry-form-header">
+          <span className="entry-form-header-icon">💉</span>
+          <div>
+            <div className="entry-form-header-title">Thêm vắc-xin mới</div>
+            <div className="entry-form-header-subtitle">Nhập thông tin để bắt đầu theo dõi lịch tiêm</div>
+          </div>
+        </div>
 
-      {message && <div className={`message ${message.kind}`}>{message.text}</div>}
+        <VaccineFieldsEditor state={fields} onChange={setFields} />
 
-      <button className="save-button" onClick={handleSaveClick} disabled={saving}>
-        {saving ? "Đang lưu..." : "Lưu thông tin vắc-xin"}
-      </button>
+        {message && <div className={`message ${message.kind}`}>{message.text}</div>}
+
+        <button className="save-button" onClick={handleSaveClick} disabled={saving}>
+          {saving ? "Đang lưu..." : "Lưu thông tin vắc-xin"}
+        </button>
+      </div>
 
       {currentId != null && <DoseHistorySection account={account} vaccineId={currentId} />}
 

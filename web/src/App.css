@@ -189,6 +189,16 @@ body {
   animation: vaccine-pulse 1.4s ease-in-out infinite;
 }
 
+@keyframes vaccine-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
 .big-card-button {
   display: flex;
   flex-direction: column;
@@ -588,60 +598,119 @@ body {
   font-size: 17px;
 }
 
+.baby-info-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.baby-info-avatar {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.baby-info-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.baby-info-divider {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.baby-info-stat-inline {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--deep-pink);
+  white-space: nowrap;
+}
+
 .upcoming-doses-block {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 2px solid var(--soft-bg);
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--soft-bg);
 }
 
 .upcoming-doses-title {
   font-size: 13px;
   font-weight: 800;
   color: var(--deep-pink);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.upcoming-doses-table {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) auto auto;
-  column-gap: 10px;
-  row-gap: 2px;
-  align-items: baseline;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.7;
+.upcoming-doses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.upcoming-dose-row {
-  display: contents;
+.upcoming-dose-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: var(--soft-bg);
+  border-radius: 12px;
+  padding: 7px 10px;
+  transition: transform 0.12s ease;
 }
 
-.upcoming-dose-row.overdue .upcoming-dose-name,
-.upcoming-dose-row.overdue .upcoming-dose-date {
-  color: #e53935;
-  font-weight: 800;
+.upcoming-dose-item:active {
+  transform: scale(0.98);
+}
+
+.upcoming-dose-item.overdue {
+  background: color-mix(in srgb, #e53935 10%, white);
+}
+
+.upcoming-dose-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.upcoming-dose-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .upcoming-dose-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-align: left;
-  color: var(--deep-pink);
-  font-weight: 800;
-}
-
-.upcoming-dose-num {
-  text-align: left;
-  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--text-dark);
 }
 
+.upcoming-dose-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .upcoming-dose-date {
-  text-align: left;
-  white-space: nowrap;
-  color: var(--deep-pink);
+  flex-shrink: 0;
+  font-size: 11.5px;
   font-weight: 800;
+  color: var(--deep-pink);
+  background: var(--white);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.upcoming-dose-item.overdue .upcoming-dose-date {
+  color: var(--white);
+  background: #e53935;
 }
 
 .kpi-value {
@@ -1470,20 +1539,164 @@ body {
 }
 
 /* Vaccine screen */
+.entry-form-card {
+  position: relative;
+  background: var(--white);
+  border-radius: 22px;
+  padding: 20px 16px 18px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.entry-form-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--deep-pink), #ffb347, var(--deep-pink));
+}
+
+.entry-form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--soft-bg);
+}
+
+.entry-form-header-icon {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--dark-pink), var(--deep-pink));
+  box-shadow: 0 4px 10px rgba(255, 93, 143, 0.4);
+}
+
+.entry-form-header-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.entry-form-header-subtitle {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.form-section + .form-section {
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid rgba(90, 61, 75, 0.1);
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--deep-pink);
+  margin-bottom: 14px;
+}
+
+.form-section-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  background: color-mix(in srgb, var(--deep-pink) 14%, white);
+}
+
+.input-icon-wrap {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.input-icon-wrap input.input-with-icon {
+  padding-left: 40px;
+}
+
+/* Lưới thẻ lựa chọn dùng chung (thời hạn bảo vệ vắc-xin, mức độ quan trọng nhật ký...) —
+   viền/nền màu active theo --accent nếu có (ví dụ diary-accent-*), mặc định về deep-pink */
+.option-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid var(--soft-bg);
+  background: var(--white);
+  border-radius: 14px;
+  padding: 12px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+.option-card:active {
+  transform: scale(0.96);
+}
+
+.option-card-icon {
+  font-size: 21px;
+}
+
+.option-card.active {
+  border-color: var(--accent, var(--deep-pink));
+  background: color-mix(in srgb, var(--accent, var(--deep-pink)) 8%, white);
+  color: var(--accent, var(--deep-pink));
+}
+
+.form-section .field + .field {
+  margin-top: 14px;
+}
+
 .vaccine-doses-section {
   margin-top: 16px;
 }
 
 .dose-card {
-  background: var(--soft-bg);
-  border-radius: 14px;
+  background: var(--white);
+  border-left: 3px solid var(--soft-bg);
+  border-radius: 12px;
   padding: 12px;
   margin-bottom: 10px;
+  box-shadow: var(--shadow);
 }
 
 .dose-card.dose-editor {
   background: var(--white);
-  border: 2px solid var(--main-pink);
+  border-left: 3px solid var(--main-pink);
 }
 
 .dose-card.dose-editor .field-label {
@@ -1511,13 +1724,13 @@ body {
 }
 
 .dose-card.dose-upcoming {
-  background: #e3f2fd;
-  border: 2px solid #42a5f5;
+  background: color-mix(in srgb, #42a5f5 7%, white);
+  border-left-color: #42a5f5;
 }
 
 .dose-card.dose-overdue {
-  background: #ffebee;
-  border: 2px solid #e53935;
+  background: color-mix(in srgb, #e53935 7%, white);
+  border-left-color: #e53935;
 }
 
 .dose-upcoming-badge {
@@ -1632,6 +1845,13 @@ body {
   gap: 10px;
 }
 
+.vaccine-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
 .vaccine-list-card {
   background: var(--white);
   border-radius: 16px;
@@ -1639,130 +1859,280 @@ body {
   overflow: hidden;
 }
 
+/* Khung vuông cho mỗi thẻ vắc-xin trong lưới 2 cột */
 .vaccine-list-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
   width: 100%;
-  background: linear-gradient(135deg, var(--main-pink), var(--dark-pink));
+  aspect-ratio: 1 / 1;
+  background: var(--white);
   border: none;
   font-family: inherit;
-  padding: 14px;
+  padding: 12px;
   text-align: left;
   cursor: pointer;
 }
 
+.vaccine-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.vaccine-list-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  background: color-mix(in srgb, var(--deep-pink) 16%, white);
+}
+
 .vaccine-list-info {
   flex: 1;
-  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .vaccine-list-name {
   font-weight: 800;
-  font-size: 15px;
+  font-size: 13.5px;
+  line-height: 1.25;
   color: var(--text-dark);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .vaccine-list-disease {
-  font-size: 12px;
-  color: #8a5c68;
-  margin-top: 1px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vaccine-card-spacer {
+  flex: 1;
+  min-height: 6px;
 }
 
 .vaccine-list-latest {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-dark);
-  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .vaccine-list-next {
-  display: inline-block;
-  font-size: 12px;
+  display: block;
+  font-size: 10.5px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--text-muted);
   margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .vaccine-list-next.overdue {
-  color: var(--white);
-  background: #e53935;
-  padding: 2px 8px;
-  border-radius: 8px;
-  animation: vaccine-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes vaccine-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.65;
-  }
+  color: #c62828;
+  font-weight: 800;
 }
 
 .vaccine-confirm-row {
-  padding: 12px 14px 14px;
+  padding: 0 12px 12px;
 }
 
 .vaccine-confirm-button {
   width: 100%;
-  border: 2px solid #fb8c00;
-  background: #ffb300;
-  color: #4e2600;
-  font-size: 13px;
+  border: none;
+  background: linear-gradient(135deg, #ff9d4d, #e5652c);
+  color: var(--white);
+  font-size: 11.5px;
   font-weight: 800;
-  padding: 9px;
-  border-radius: 12px;
-  animation: vaccine-pulse 1.1s ease-in-out infinite;
+  padding: 8px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(229, 101, 44, 0.35);
 }
 
 .vaccine-confirm-inline {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .vaccine-confirm-inline input {
   flex: 1;
+  min-width: 0;
   border: 2px solid #fb8c00;
   border-radius: 10px;
-  padding: 8px;
-  font-size: 13px;
+  padding: 6px;
+  font-size: 11.5px;
 }
 
 .vaccine-list-reorder {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .vaccine-list-reorder .date-nav-button {
-  width: 28px;
-  height: 28px;
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.85);
+  width: 20px;
+  height: 20px;
+  font-size: 9px;
+  background: var(--soft-bg);
   color: var(--deep-pink);
+  box-shadow: none;
 }
 
 .vaccine-list-reorder .date-nav-button:disabled {
   opacity: 0.3;
 }
 
-.vaccine-detail-wrapper {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+/* Công tắc theo dõi/bỏ theo dõi — dạng toggle, không dùng icon ghim */
+.vaccine-follow-toggle {
+  flex-shrink: 0;
+  position: relative;
+  width: 26px;
+  height: 15px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 999px;
+  background: var(--soft-bg);
+  padding: 2px;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.vaccine-detail-wrapper.expanded {
-  max-height: 3000px;
+.vaccine-follow-toggle.on {
+  background: var(--deep-pink);
+}
+
+.vaccine-follow-toggle-knob {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transform: translateX(0);
+  transition: transform 0.15s ease;
+}
+
+.vaccine-follow-toggle.on .vaccine-follow-toggle-knob {
+  transform: translateX(11px);
+}
+
+/* Danh sách vắc-xin đã bỏ theo dõi — thu gọn còn 1 dòng, không chiếm chỗ trong lưới */
+.vaccine-collapsed-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vaccine-collapsed-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.vaccine-collapsed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border-radius: 12px;
+  padding: 6px 6px 6px 10px;
+  box-shadow: var(--shadow);
+}
+
+.vaccine-collapsed-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.vaccine-collapsed-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.vaccine-collapsed-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vaccine-collapsed-follow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+}
+
+.vaccine-collapsed-follow-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.vaccine-collapsed-follow .vaccine-follow-toggle {
+  margin-top: 0;
+}
+
+/* Popup chi tiết vắc-xin — thay cho kiểu xổ ra (accordion) cũ khi hiển thị dạng lưới */
+.vaccine-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(90, 61, 75, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 20px 16px;
+  animation: fade-in 180ms ease;
+}
+
+.vaccine-modal-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--soft-bg);
+  border-radius: 20px;
+  padding: 20px 16px;
+  box-shadow: 0 20px 60px rgba(90, 61, 75, 0.4);
+  animation: diary-page-pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .vaccine-detail-card {
-  padding: 0 14px 16px;
+  padding: 0;
 }
 
 .vaccine-info-toggle {
@@ -1776,9 +2146,9 @@ body {
 .vaccine-summary {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-top: 4px;
-  border-top: 2px solid var(--soft-bg);
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--soft-bg);
 }
 
 .vaccine-summary .kpi-line {

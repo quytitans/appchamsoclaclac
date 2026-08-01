@@ -4,21 +4,84 @@ import { todayDateStr } from "../dateUtils";
 import VaccineDetailCard from "./VaccineDetailCard";
 import type { VaccineSummary } from "../types";
 
-interface Props {
-  account: string;
+interface FocusRequest {
+  vaccineId: number;
+  nonce: number;
 }
 
-export default function VaccineList({ account }: Props) {
+interface Props {
+  account: string;
+  focusRequest?: FocusRequest | null;
+}
+
+function unfollowedStorageKey(account: string): string {
+  return `vaccine_unfollowed_${account}`;
+}
+
+function loadUnfollowedIds(account: string): Set<number> {
+  try {
+    const raw = localStorage.getItem(unfollowedStorageKey(account));
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function FollowToggle({
+  following,
+  onToggle,
+}: {
+  following: boolean;
+  onToggle: (e: MouseEvent) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`vaccine-follow-toggle ${following ? "on" : ""}`}
+      onClick={onToggle}
+      role="switch"
+      aria-checked={following}
+      aria-label={following ? "Bỏ theo dõi" : "Theo dõi lại"}
+      title={following ? "Bỏ theo dõi" : "Theo dõi lại"}
+    >
+      <span className="vaccine-follow-toggle-knob" />
+    </button>
+  );
+}
+
+export default function VaccineList({ account, focusRequest }: Props) {
   const [vaccines, setVaccines] = useState<VaccineSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [mountedIds, setMountedIds] = useState<Set<number>>(new Set());
+  const [modalId, setModalId] = useState<number | null>(null);
+  const [detailRefreshSignal, setDetailRefreshSignal] = useState(0);
+  const [unfollowedIds, setUnfollowedIds] = useState<Set<number>>(() => loadUnfollowedIds(account));
 
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [confirmDate, setConfirmDate] = useState("");
   const [confirming, setConfirming] = useState(false);
-  const [refreshKeys, setRefreshKeys] = useState<Map<number, number>>(new Map());
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setUnfollowedIds(loadUnfollowedIds(account));
+  }, [account]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(unfollowedStorageKey(account), JSON.stringify([...unfollowedIds]));
+    } catch {
+      // ignore storage errors (private mode, quota, etc.)
+    }
+  }, [account, unfollowedIds]);
+
+  function toggleFollow(id: number, e?: MouseEvent) {
+    e?.stopPropagation();
+    setUnfollowedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const filteredVaccines = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -27,6 +90,15 @@ export default function VaccineList({ account }: Props) {
       (v) => v.vaccine_name.toLowerCase().includes(q) || v.disease_name.toLowerCase().includes(q)
     );
   }, [vaccines, search]);
+
+  const gridVaccines = useMemo(
+    () => filteredVaccines.filter((v) => !unfollowedIds.has(v.id)),
+    [filteredVaccines, unfollowedIds]
+  );
+  const collapsedVaccines = useMemo(
+    () => filteredVaccines.filter((v) => unfollowedIds.has(v.id)),
+    [filteredVaccines, unfollowedIds]
+  );
 
   const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const prevRectsRef = useRef<Map<number, DOMRect> | null>(null);
@@ -41,6 +113,11 @@ export default function VaccineList({ account }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!focusRequest) return;
+    setModalId(focusRequest.vaccineId);
+  }, [focusRequest]);
 
   useLayoutEffect(() => {
     const prevRects = prevRectsRef.current;
@@ -71,14 +148,6 @@ export default function VaccineList({ account }: Props) {
     await load();
   }
 
-  function toggleExpand(id: number) {
-    setExpandedId((prev) => {
-      const next = prev === id ? null : id;
-      if (next != null) setMountedIds((s) => (s.has(next) ? s : new Set(s).add(next)));
-      return next;
-    });
-  }
-
   function openConfirm(v: VaccineSummary) {
     setConfirmingId(v.id);
     setConfirmDate(v.nextDue?.date ?? todayDateStr());
@@ -89,11 +158,7 @@ export default function VaccineList({ account }: Props) {
     try {
       await confirmVaccineDose(id, account, confirmDate);
       setConfirmingId(null);
-      setRefreshKeys((prev) => {
-        const next = new Map(prev);
-        next.set(id, (next.get(id) ?? 0) + 1);
-        return next;
-      });
+      setDetailRefreshSignal((k) => k + 1);
       await load();
     } finally {
       setConfirming(false);
@@ -115,89 +180,122 @@ export default function VaccineList({ account }: Props) {
         onChange={(e) => setSearch(e.target.value)}
       />
       {filteredVaccines.length === 0 && <p className="loading-text">Không tìm thấy vắc-xin nào</p>}
-      {filteredVaccines.map((v, idx) => {
-        const isOverdue = v.nextDue?.overdue ?? false;
-        return (
-          <div
-            key={v.id}
-            className="vaccine-list-card"
-            ref={(el) => {
-              if (el) itemRefs.current.set(v.id, el);
-              else itemRefs.current.delete(v.id);
-            }}
-          >
-            <button className="vaccine-list-item" onClick={() => toggleExpand(v.id)}>
-              <div className="vaccine-list-info">
-                <div className="vaccine-list-name">{v.vaccine_name}</div>
-                <div className="vaccine-list-disease">{v.disease_name}</div>
-                <div className="vaccine-list-latest">
-                  {v.latestDose ? `Mũi ${v.latestDose.dose_number} • ${v.latestDose.date}` : "Chưa tiêm mũi nào"}
-                </div>
-                {v.nextDue && (
-                  <div className={`vaccine-list-next ${isOverdue ? "overdue" : ""}`}>
-                    {isOverdue ? "⚠️" : "📅"} Mũi {v.nextDue.doseNumber} tiếp theo: {v.nextDue.date}
-                  </div>
-                )}
-              </div>
-              <div className="vaccine-list-reorder">
-                <button
-                  className="date-nav-button"
-                  disabled={idx === 0}
-                  onClick={(e) => handleMove(v.id, "up", e)}
-                >
-                  ▲
-                </button>
-                <button
-                  className="date-nav-button"
-                  disabled={idx === filteredVaccines.length - 1}
-                  onClick={(e) => handleMove(v.id, "down", e)}
-                >
-                  ▼
-                </button>
-              </div>
-            </button>
-
-            {isOverdue && (
-              <div className="vaccine-confirm-row">
-                {confirmingId === v.id ? (
-                  <div className="vaccine-confirm-inline">
-                    <input
-                      type="date"
-                      value={confirmDate}
-                      onChange={(e) => setConfirmDate(e.target.value)}
-                    />
+      <div className="vaccine-grid">
+        {gridVaccines.map((v, idx) => {
+          const isOverdue = v.nextDue?.overdue ?? false;
+          return (
+            <div
+              key={v.id}
+              className="vaccine-list-card"
+              ref={(el) => {
+                if (el) itemRefs.current.set(v.id, el);
+                else itemRefs.current.delete(v.id);
+              }}
+            >
+              <button className="vaccine-list-item" onClick={() => setModalId(v.id)}>
+                <div className="vaccine-card-top">
+                  <span className="vaccine-list-icon">💉</span>
+                  <div className="vaccine-list-reorder">
                     <button
                       className="date-nav-button"
-                      onClick={() => handleConfirm(v.id)}
-                      disabled={confirming}
+                      disabled={idx === 0}
+                      onClick={(e) => handleMove(v.id, "up", e)}
                     >
-                      ✓
+                      ▲
                     </button>
-                    <button className="date-nav-button" onClick={() => setConfirmingId(null)}>
-                      ✕
+                    <button
+                      className="date-nav-button"
+                      disabled={idx === gridVaccines.length - 1}
+                      onClick={(e) => handleMove(v.id, "down", e)}
+                    >
+                      ▼
                     </button>
+                    <FollowToggle following={!unfollowedIds.has(v.id)} onToggle={(e) => toggleFollow(v.id, e)} />
                   </div>
-                ) : (
-                  <button className="vaccine-confirm-button" onClick={() => openConfirm(v)}>
-                    ✅ Xác nhận đã tiêm
-                  </button>
-                )}
-              </div>
-            )}
+                </div>
+                <div className="vaccine-list-info">
+                  <div className="vaccine-list-name">{v.vaccine_name}</div>
+                  <div className="vaccine-list-disease">{v.disease_name}</div>
+                  <div className="vaccine-card-spacer" />
+                  <div className="vaccine-list-latest">
+                    {v.latestDose ? `Mũi ${v.latestDose.dose_number} • ${v.latestDose.date}` : "Chưa tiêm mũi nào"}
+                  </div>
+                  {v.nextDue && (
+                    <div className={`vaccine-list-next ${isOverdue ? "overdue" : ""}`}>
+                      {isOverdue ? "⚠️" : "📅"} Mũi {v.nextDue.doseNumber}: {v.nextDue.date}
+                    </div>
+                  )}
+                </div>
+              </button>
 
-            <div className={`vaccine-detail-wrapper ${expandedId === v.id ? "expanded" : ""}`}>
-              {mountedIds.has(v.id) && (
-                <VaccineDetailCard
-                  account={account}
-                  vaccineId={v.id}
-                  onChanged={load}
-                  refreshSignal={refreshKeys.get(v.id) ?? 0}
-                />
+              {isOverdue && (
+                <div className="vaccine-confirm-row">
+                  {confirmingId === v.id ? (
+                    <div className="vaccine-confirm-inline">
+                      <input
+                        type="date"
+                        value={confirmDate}
+                        onChange={(e) => setConfirmDate(e.target.value)}
+                      />
+                      <button
+                        className="date-nav-button"
+                        onClick={() => handleConfirm(v.id)}
+                        disabled={confirming}
+                      >
+                        ✓
+                      </button>
+                      <button className="date-nav-button" onClick={() => setConfirmingId(null)}>
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <button className="vaccine-confirm-button" onClick={() => openConfirm(v)}>
+                      ✅ Xác nhận đã tiêm
+                    </button>
+                  )}
+                </div>
               )}
             </div>
+          );
+        })}
+      </div>
+
+      {collapsedVaccines.length > 0 && (
+        <div className="vaccine-collapsed-list">
+          <div className="vaccine-collapsed-title">🔕 Đã bỏ theo dõi ({collapsedVaccines.length})</div>
+          {collapsedVaccines.map((v) => (
+            <div key={v.id} className="vaccine-collapsed-row">
+              <button type="button" className="vaccine-collapsed-info" onClick={() => setModalId(v.id)}>
+                <span className="vaccine-collapsed-icon">💉</span>
+                <span className="vaccine-collapsed-name">{v.vaccine_name}</span>
+              </button>
+              <div className="vaccine-collapsed-follow">
+                <span className="vaccine-collapsed-follow-label">Theo dõi lại</span>
+                <FollowToggle following={false} onToggle={(e) => toggleFollow(v.id, e)} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {modalId != null && (
+        <div className="vaccine-modal-overlay" onClick={() => setModalId(null)}>
+          <div className="vaccine-modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>💉 {vaccines.find((v) => v.id === modalId)?.vaccine_name}</h3>
+              <button className="modal-close" onClick={() => setModalId(null)} aria-label="Đóng">
+                ✕
+              </button>
+            </div>
+            <VaccineDetailCard
+              account={account}
+              vaccineId={modalId}
+              onChanged={load}
+              refreshSignal={detailRefreshSignal}
+            />
           </div>
-        );
-      })}
+        </div>
+      )}
     </div>
   );
 }

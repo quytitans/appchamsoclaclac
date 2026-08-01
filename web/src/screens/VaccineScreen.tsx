@@ -12,11 +12,17 @@ interface Props {
   onNavigate: (screen: Screen) => void;
 }
 
+interface FocusRequest {
+  vaccineId: number;
+  nonce: number;
+}
+
 export default function VaccineScreen({ session, onNavigate }: Props) {
   const [activeTab, setActiveTab] = useState<"entry" | "book">("book");
   const [entryKey, setEntryKey] = useState(0);
   const [growth, setGrowth] = useState<LatestGrowth | null>(null);
   const [upcomingDoses, setUpcomingDoses] = useState<UpcomingDose[]>([]);
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
 
   useEffect(() => {
     fetchLatestGrowth(session.account)
@@ -65,32 +71,36 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
 
       {activeTab === "book" && (
         <section className="month-section baby-info-card">
-          <div className="kpi-line">
-            <span className="kpi-line-icon">👶</span>
-            Tên em bé: <span className="kpi-value">{session.babyName}</span>
-          </div>
-          <div className="kpi-line">
-            <span className="kpi-line-icon">📏</span>
-            Chiều cao:{" "}
-            <span className="kpi-value">{growth?.heightCm != null ? `${growth.heightCm} cm` : "Chưa có dữ liệu"}</span>
-          </div>
-          <div className="kpi-line">
-            <span className="kpi-line-icon">⚖️</span>
-            Cân nặng:{" "}
-            <span className="kpi-value">{growth?.weightKg != null ? `${growth.weightKg} kg` : "Chưa có dữ liệu"}</span>
+          <div className="baby-info-header">
+            <span className="baby-info-avatar">👶</span>
+            <span className="baby-info-name">{session.babyName}</span>
+            <span className="baby-info-divider">•</span>
+            <span className="baby-info-stat-inline">
+              📏 {growth?.heightCm != null ? `${growth.heightCm}cm` : "—"}
+            </span>
+            <span className="baby-info-divider">•</span>
+            <span className="baby-info-stat-inline">
+              ⚖️ {growth?.weightKg != null ? `${growth.weightKg}kg` : "—"}
+            </span>
           </div>
           {upcomingDoses.length > 0 && (
             <div className="upcoming-doses-block">
               <div className="upcoming-doses-title">💉 Các mũi tiêm tiếp theo</div>
-              <div className="upcoming-doses-table">
+              <div className="upcoming-doses-list">
                 {upcomingDoses.map((d) => (
-                  <div key={d.vaccineId} className={`upcoming-dose-row ${d.overdue ? "overdue" : ""}`}>
-                    <span className="upcoming-dose-name">
-                      {d.overdue ? "⚠️" : "📅"} {d.vaccineName}
-                    </span>
-                    <span className="upcoming-dose-num">Mũi {d.doseNumber}</span>
+                  <button
+                    key={d.vaccineId}
+                    type="button"
+                    className={`upcoming-dose-item ${d.overdue ? "overdue" : ""}`}
+                    onClick={() => setFocusRequest({ vaccineId: d.vaccineId, nonce: Date.now() })}
+                  >
+                    <span className="upcoming-dose-icon">{d.overdue ? "⚠️" : "📅"}</span>
+                    <div className="upcoming-dose-text">
+                      <span className="upcoming-dose-name">{d.vaccineName}</span>
+                      <span className="upcoming-dose-num">Mũi {d.doseNumber}</span>
+                    </div>
                     <span className="upcoming-dose-date">{formatDateVN(d.date)}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -105,7 +115,7 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
           onConfirmedSaved={() => setActiveTab("book")}
         />
       )}
-      {activeTab === "book" && <VaccineList account={session.account} />}
+      {activeTab === "book" && <VaccineList account={session.account} focusRequest={focusRequest} />}
     </div>
   );
 }
