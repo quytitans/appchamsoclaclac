@@ -217,14 +217,6 @@ export default function VaccineList({ account, focusRequest }: Props) {
                   <div className="vaccine-list-name">{v.vaccine_name}</div>
                   <div className="vaccine-list-disease">{v.disease_name}</div>
                   <div className="vaccine-card-spacer" />
-                  <div className="vaccine-list-latest">
-                    {v.latestDose ? `Mũi ${v.latestDose.dose_number} • ${v.latestDose.date}` : "Chưa tiêm mũi nào"}
-                  </div>
-                  {v.nextDue && (
-                    <div className={`vaccine-list-next ${isOverdue ? "overdue" : ""}`}>
-                      {isOverdue ? "⚠️" : "📅"} Mũi {v.nextDue.doseNumber}: {v.nextDue.date}
-                    </div>
-                  )}
                 </div>
               </button>
 
