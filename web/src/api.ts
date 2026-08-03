@@ -64,9 +64,11 @@ export function deleteRecord(id: number, account: string): Promise<void> {
 }
 
 export function fetchThawedMilk(account: string): Promise<ThawedMilkEntry[]> {
-  return fetch(`${API_BASE}/thawed-milk?account=${encodeURIComponent(account)}`).then((res) =>
-    handleResponse<ThawedMilkEntry[]>(res)
-  );
+  // cache: "no-store" — phòng khi trình duyệt/proxy nào đó phớt lờ header Cache-Control của
+  // server, banner "hết hạn"/tự ẩn sau 12h dựa vào dữ liệu này nên không được phép stale.
+  return fetch(`${API_BASE}/thawed-milk?account=${encodeURIComponent(account)}`, {
+    cache: "no-store",
+  }).then((res) => handleResponse<ThawedMilkEntry[]>(res));
 }
 
 export function createThawedMilk(payload: ThawedMilkPayload): Promise<ThawedMilkEntry> {

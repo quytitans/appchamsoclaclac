@@ -455,6 +455,68 @@ body {
   margin-top: 2px;
 }
 
+.confirm-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(90, 61, 75, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 110;
+  padding: 20px;
+  animation: fade-in 180ms ease;
+}
+
+.confirm-dialog-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--white);
+  border-radius: 24px;
+  padding: 28px 24px;
+  box-shadow: 0 16px 40px rgba(90, 61, 75, 0.3);
+  max-width: 300px;
+  text-align: center;
+  animation: photo-upload-card-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.confirm-dialog-icon {
+  font-size: 36px;
+  margin-bottom: 4px;
+}
+
+.confirm-dialog-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.confirm-dialog-message {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.thawed-milk-card-expired-banner {
+  background: color-mix(in srgb, #c62828 12%, white);
+  border: 1px solid color-mix(in srgb, #c62828 35%, white);
+  color: #c62828;
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 6px 10px;
+  margin-top: 4px;
+}
+
 .thawed-milk-expiry-preview {
   background: color-mix(in srgb, #2a9df4 12%, white);
   border: 1px solid color-mix(in srgb, #2a9df4 30%, white);

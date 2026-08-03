@@ -6,6 +6,14 @@ import type { ThawedMilkBody, ThawedMilkRow } from "../types.js";
 
 export const thawedMilkRouter = Router();
 
+// Danh sách này quyết định banner "hết hạn"/tự ẩn sau 12h hiển thị trên client — nếu bị trình
+// duyệt/proxy nào đó cache lại response GET, client sẽ hiện thông tin cũ (ví dụ sữa đã hết hạn
+// nhưng vẫn hiện như còn hạn). Chặn tận gốc bằng no-store thay vì trông chờ hành vi mặc định.
+thawedMilkRouter.use((_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 const NAIVE_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 function validateBody(body: ThawedMilkBody): string | null {

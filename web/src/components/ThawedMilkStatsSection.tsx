@@ -23,14 +23,23 @@ function dotColor(t: number): string {
   return t < 0.5 ? lerp(GREEN, AMBER, t / 0.5) : lerp(AMBER, RED, (t - 0.5) / 0.5);
 }
 
-function formatRemaining(frac: number, expiryAt: string): string {
-  if (frac >= 1) return "Đã hết hạn";
+function formatRemaining(expiryAt: string): string {
   const msLeft = new Date(expiryAt).getTime() - Date.now();
   const hoursLeft = Math.floor(msLeft / 3600000);
   const minutesLeft = Math.round((msLeft % 3600000) / 60000);
   if (hoursLeft > 0) return `Còn ${hoursLeft} giờ ${minutesLeft} phút`;
   return `Còn ${minutesLeft} phút`;
 }
+
+// Ảnh hưởng của việc ẩn: hết hạn xong vẫn hiện thêm 12h kèm banner đỏ cảnh báo, sau đó tự ẩn
+// khỏi danh sách (không xoá dữ liệu, chỉ không hiển thị nữa).
+const HIDE_AFTER_EXPIRY_MS = 12 * 3600000;
+
+// Giá trị "đã hết hạn/còn bao lâu bị ẩn" được tính lại mỗi TICK_MS bằng Date.now() tại thời
+// điểm render — không lưu vào state, không phụ thuộc dữ liệu fetch — nên nếu màn Thống Kê bị
+// để mở nhiều giờ, các chỉ số này vẫn tự cập nhật đúng mà KHÔNG cần gọi lại API mỗi lần (tránh
+// tốn băng thông), đồng thời không bao giờ bị "đơ" ở giá trị cũ do cache dữ liệu.
+const TICK_MS = 60000;
 
 interface Props {
   account: string;
@@ -40,6 +49,7 @@ export default function ThawedMilkStatsSection({ account }: Props) {
   const [entries, setEntries] = useState<ThawedMilkEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingEntry, setEditingEntry] = useState<ThawedMilkEntry | null>(null);
+  const [, setTick] = useState(0);
 
   function load() {
     setLoading(true);
@@ -48,23 +58,38 @@ export default function ThawedMilkStatsSection({ account }: Props) {
       .finally(() => setLoading(false));
   }
 
-  // Chỉ fetch 1 lần khi vào màn Thống Kê (không phụ thuộc ngày đang chọn ở view theo ngày) —
-  // khớp yêu cầu "trạng thái tính toán lại mỗi lần vào view trang thống kê", không phải tick
-  // sống theo thời gian thực.
+  // Chỉ fetch dữ liệu 1 lần khi vào màn Thống Kê (không phụ thuộc ngày đang chọn ở view theo
+  // ngày) — data (danh sách bản ghi) hiếm khi đổi trong lúc đang xem, không cần gọi lại API.
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
-  if (loading || entries.length === 0) return null;
+  // Riêng phần "đã hết hạn chưa / còn bao lâu bị ẩn" phải tự làm mới định kỳ bằng đồng hồ cục bộ
+  // (không qua network) — nếu chỉ tính 1 lần lúc fetch, người dùng để tab mở qua lúc sữa hết hạn
+  // hoặc qua mốc ẩn sau 12h sẽ thấy thông tin sai cho đến khi rời màn hình rồi quay lại.
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  if (loading) return null;
+
+  const now = Date.now();
+  const visibleEntries = entries.filter(
+    (entry) => now < new Date(entry.expiry_at).getTime() + HIDE_AFTER_EXPIRY_MS
+  );
+
+  if (visibleEntries.length === 0) return null;
 
   return (
     <section className="thawed-milk-section">
       <div className="thawed-milk-section-title">🧊 Sữa Rã Đông</div>
       <div className="thawed-milk-list">
-        {entries.map((entry) => {
+        {visibleEntries.map((entry) => {
           const frac = elapsedFraction(entry.taken_out_at, entry.expiry_at);
           const filledCount = Math.round(frac * DOT_COUNT);
+          const isExpired = now >= new Date(entry.expiry_at).getTime();
           return (
             <div
               className="thawed-milk-card"
@@ -94,7 +119,13 @@ export default function ThawedMilkStatsSection({ account }: Props) {
                   );
                 })}
               </div>
-              <div className="thawed-milk-card-remaining">{formatRemaining(frac, entry.expiry_at)}</div>
+              {isExpired ? (
+                <div className="thawed-milk-card-expired-banner">
+                  ⚠️ Sữa đã hết hạn — dữ liệu sẽ bị ẩn sau 12h
+                </div>
+              ) : (
+                <div className="thawed-milk-card-remaining">{formatRemaining(entry.expiry_at)}</div>
+              )}
             </div>
           );
         })}

@@ -17,6 +17,7 @@ export default function ThawedMilkEditModal({ entry, account, onClose, onUpdated
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   function handleChange<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -40,8 +41,8 @@ export default function ThawedMilkEditModal({ entry, account, onClose, onUpdated
     }
   }
 
-  async function handleDelete() {
-    if (!window.confirm("Xóa bản ghi sữa rã đông này? Hành động không thể hoàn tác.")) return;
+  async function performDelete() {
+    setConfirmingDelete(false);
     setDeleting(true);
     setMessage(null);
     try {
@@ -71,7 +72,7 @@ export default function ThawedMilkEditModal({ entry, account, onClose, onUpdated
         {message && <div className="message error">{message}</div>}
 
         <div className="modal-actions">
-          <button className="delete-button" onClick={handleDelete} disabled={deleting || saving}>
+          <button className="delete-button" onClick={() => setConfirmingDelete(true)} disabled={deleting || saving}>
             {deleting ? "Đang xóa..." : "Xóa"}
           </button>
           <button className="save-button" onClick={handleSave} disabled={saving || deleting}>
@@ -79,6 +80,36 @@ export default function ThawedMilkEditModal({ entry, account, onClose, onUpdated
           </button>
         </div>
       </div>
+
+      {confirmingDelete && (
+        <div
+          className="confirm-dialog-overlay"
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmingDelete(false);
+          }}
+        >
+          <div className="confirm-dialog-card" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-dialog-icon">🗑️</div>
+            <div className="confirm-dialog-title">Xóa bản ghi này?</div>
+            <div className="confirm-dialog-message">
+              Sữa rã đông đã lưu sẽ bị xóa vĩnh viễn, không thể hoàn tác.
+            </div>
+            <div className="confirm-dialog-actions">
+              <button
+                className="secondary-button"
+                onClick={() => setConfirmingDelete(false)}
+                disabled={deleting}
+              >
+                Hủy
+              </button>
+              <button className="delete-button" onClick={performDelete} disabled={deleting}>
+                {deleting ? "Đang xóa..." : "Xóa"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
