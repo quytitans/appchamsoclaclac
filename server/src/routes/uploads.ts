@@ -81,8 +81,14 @@ uploadsRouter.post("/image", (req, res) => {
       res.status(201).json(row);
     } catch (err) {
       console.error("Lỗi upload ảnh lên Google Drive:", err);
-      const message = err instanceof Error ? err.message : "Upload ảnh lên Google Drive thất bại";
-      logError("POST /api/uploads/image", 502, message, account);
+      const rawMessage = err instanceof Error ? err.message : "Upload ảnh lên Google Drive thất bại";
+      logError("POST /api/uploads/image", 502, rawMessage, account);
+      // Google's OAuth error strings ("invalid_grant" etc.) are meaningless to end users
+      // and leak infra detail — the raw message is still preserved in error_logs above.
+      const isAuthError = /invalid_grant|invalid_client|unauthorized_client/i.test(rawMessage);
+      const message = isAuthError
+        ? "Không thể kết nối Google Drive để lưu ảnh. Vui lòng thử lại sau ít phút hoặc báo cho quản trị viên."
+        : rawMessage;
       res.status(502).json({ error: message });
     }
   });

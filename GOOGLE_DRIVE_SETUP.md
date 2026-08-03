@@ -17,7 +17,7 @@ App dùng chính Google Drive cá nhân của bạn để lưu ảnh (qua OAuth2
 1. Vào **APIs & Services → OAuth consent screen**.
 2. Chọn **External**, bấm **Create**.
 3. Điền tên app (ví dụ "Lạc Lạc Bé Yêu"), email liên hệ — các trường khác để mặc định, **Save and Continue** qua các bước.
-4. Ở bước **Test users**, bấm **Add users** và thêm chính email Google bạn dùng để lưu ảnh vào. (App ở trạng thái "Testing" vẫn dùng được bình thường, không cần Google duyệt, miễn account của bạn nằm trong danh sách test user.)
+4. Ở bước **Test users**, bấm **Add users** và thêm chính email Google bạn dùng để lưu ảnh vào. App ở trạng thái "Testing" vẫn dùng được ngay, không cần Google duyệt — **nhưng refresh token sẽ tự hết hạn sau 7 ngày** khi còn ở Testing (đây là giới hạn cứng của Google, không liên quan gì đến việc dùng app hay không). Vì vậy **bắt buộc** phải làm thêm bước sau: vào **OAuth consent screen → Audience** và bấm **"Publish App"** để chuyển sang **"In production"** — việc này không cần Google verify (vì chỉ xin scope hẹp `drive.file`), chỉ hiện cảnh báo "unverified app" một lần lúc xin quyền (bấm Advanced → Go to [tên app] (unsafe) là qua). Bỏ qua bước Publish App là nguyên nhân phổ biến nhất khiến upload ảnh đột nhiên báo lỗi `invalid_grant` sau ~1 tuần.
 
 ## 4. Tạo OAuth Client ID
 
@@ -72,5 +72,5 @@ Từ giờ mọi ảnh upload qua API `/api/uploads/image` sẽ được resize 
 ## Lưu ý
 
 - Quyền xin chỉ giới hạn ở scope `drive.file` — app chỉ đọc/ghi/xoá được **các file do chính app tạo ra**, không đụng tới file khác trong Drive của bạn.
-- Refresh token không hết hạn trừ khi bạn tự thu hồi quyền tại https://myaccount.google.com/permissions hoặc đổi mật khẩu Google.
+- Refresh token không tự hết hạn theo thời gian **miễn app đã ở trạng thái "In production"** (xem bước 3). Nó chỉ chết nếu bạn tự thu hồi quyền tại https://myaccount.google.com/permissions, đổi mật khẩu Google, hoặc không dùng suốt 6 tháng liền.
 - Nếu sau này cần đổi sang Google account khác hoặc đổi folder lưu ảnh, lặp lại bước 5–7.
