@@ -339,7 +339,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                     </div>
                     {session.isPremium && (
                       <div className="field">
-                        <label className="field-label">📷 Ảnh (tối đa 12)</label>
+                        <label className="field-label">📷 Ảnh (tối đa 24)</label>
                         <PhotoPicker
                           account={session.account}
                           token={session.token}
@@ -348,7 +348,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                             setEditForm((prev) => (prev ? { ...prev, photos: updater(prev.photos) } : prev))
                           }
                           onBusyChange={setPhotosBusy}
-                          max={12}
+                          max={24}
                         />
                       </div>
                     )}

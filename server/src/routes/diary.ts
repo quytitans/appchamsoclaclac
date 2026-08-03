@@ -8,7 +8,7 @@ import type { DiaryEntryRow, DriveUploadRow } from "../types.js";
 export const diaryRouter = Router();
 
 const VALID_IMPORTANCE = ["cao", "rat_cao", "cuc_ky_cao"];
-const MAX_PHOTOS = 12;
+const MAX_PHOTOS = 24;
 
 interface DiaryBody {
   account?: string;

@@ -26,7 +26,7 @@ interface Props {
   max?: number;
 }
 
-export default function PhotoPicker({ account, token, value, onChange, onBusyChange, max = 12 }: Props) {
+export default function PhotoPicker({ account, token, value, onChange, onBusyChange, max = 24 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<PendingSlot[]>([]);
   const [removingIds, setRemovingIds] = useState<Set<number>>(new Set());
