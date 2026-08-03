@@ -31,6 +31,11 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
   const [pending, setPending] = useState<PendingSlot[]>([]);
   const [removingIds, setRemovingIds] = useState<Set<number>>(new Set());
   const [overflowMessage, setOverflowMessage] = useState<string | null>(null);
+  // Tracks the current upload "batch" for the dot progress indicator — separate from
+  // `pending` because completed slots leave `pending` (merged into `value`), so we'd
+  // otherwise lose the count of how many finished once they're done.
+  const [batchTotal, setBatchTotal] = useState(0);
+  const [batchDone, setBatchDone] = useState(0);
 
   const fileByKeyRef = useRef<Map<string, File>>(new Map());
   const uploadQueueRef = useRef<string[]>([]);
@@ -75,6 +80,7 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
         if (slot) URL.revokeObjectURL(slot.previewUrl);
         return prev.filter((p) => p.key !== key);
       });
+      setBatchDone((d) => d + 1);
       onChange((prev) => [...prev, uploaded]);
     } catch (err) {
       if (cancelledKeysRef.current.has(key)) return;
@@ -136,6 +142,14 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
       file,
     }));
     setPending((prev) => [...prev, ...newSlots]);
+    // Starting fresh (nothing currently uploading) resets the dot progress to this new
+    // batch; adding more photos mid-upload just extends the current batch's total.
+    if (uploadingSlots.length === 0) {
+      setBatchDone(0);
+      setBatchTotal(newSlots.length);
+    } else {
+      setBatchTotal((t) => t + newSlots.length);
+    }
     newSlots.forEach((slot) => enqueueUpload(slot.key, slot.file));
   }
 
@@ -154,6 +168,7 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
       if (slot) URL.revokeObjectURL(slot.previewUrl);
       return prev.filter((p) => p.key !== key);
     });
+    setBatchTotal((t) => Math.max(0, t - 1));
   }
 
   // Cancels every slot still queued or actively uploading (leaves already-failed slots
@@ -174,6 +189,8 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
       prev.filter((p) => keysToCancel.includes(p.key)).forEach((p) => URL.revokeObjectURL(p.previewUrl));
       return prev.filter((p) => !keysToCancel.includes(p.key));
     });
+    setBatchTotal(0);
+    setBatchDone(0);
   }
 
   // Xoá luôn xử lý tuần tự (tối đa 1 request DELETE cùng lúc) dù người dùng bấm X liên
@@ -219,9 +236,22 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
           <div className="photo-upload-global-card">
             <div className="photo-upload-spinner" aria-hidden="true" />
             <div className="photo-upload-global-title">Đang tải ảnh lên</div>
-            <div className="photo-upload-global-subtitle">
-              Còn {uploadingSlots.length} ảnh — vui lòng chờ trước khi lưu
+            <div
+              className="photo-upload-dots"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={batchTotal}
+              aria-valuenow={batchDone}
+              aria-label={`Đã tải ${batchDone} trên ${batchTotal} ảnh`}
+            >
+              {Array.from({ length: batchTotal }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`photo-upload-dot${i < batchDone ? " photo-upload-dot-done" : ""}`}
+                />
+              ))}
             </div>
+            <div className="photo-upload-global-subtitle">Vui lòng chờ trước khi lưu</div>
             <button type="button" className="photo-upload-global-cancel" onClick={cancelAllUploads}>
               Hủy tải ảnh
             </button>
