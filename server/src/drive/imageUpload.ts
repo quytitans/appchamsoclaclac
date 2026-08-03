@@ -5,11 +5,9 @@ import { getDriveClient, getDriveFolderId } from "./client.js";
 const FULL_MAX_DIMENSION = 1600;
 const FULL_QUALITY = 82;
 const THUMB_MAX_DIMENSION = 480;
-const THUMB_QUALITY = 70;
 
 export interface ProcessedImage {
   fullBuffer: Buffer;
-  thumbBuffer: Buffer;
   width: number;
   height: number;
 }
@@ -24,22 +22,18 @@ export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
     throw new Error("Không đọc được ảnh — định dạng có thể không được hỗ trợ (thử lại với JPEG/PNG/WebP)");
   }
 
-  const [fullBuffer, thumbBuffer] = await Promise.all([
-    sharp(buffer)
-      .rotate()
-      .resize({ width: FULL_MAX_DIMENSION, height: FULL_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: FULL_QUALITY })
-      .toBuffer(),
-    sharp(buffer)
-      .rotate()
-      .resize({ width: THUMB_MAX_DIMENSION, height: THUMB_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: THUMB_QUALITY })
-      .toBuffer(),
-  ]);
+  // Trước đây còn resize+encode thêm 1 bản "thumb" (480px) riêng để upload thành file thứ 2 trên
+  // Drive. Dư thừa: Google đã tự resize theo tham số =w{N} khi hotlink qua lh3.googleusercontent.com
+  // (xem driveImageUrl bên dưới), nên chỉ cần 1 file gốc — thumbUrl trỏ vào chính file đó với width
+  // nhỏ hơn. Bỏ bản thumb giúp giảm một nửa số lần resize/encode (CPU) và số round-trip Drive/ảnh.
+  const fullBuffer = await sharp(buffer)
+    .rotate()
+    .resize({ width: FULL_MAX_DIMENSION, height: FULL_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: FULL_QUALITY })
+    .toBuffer();
 
   return {
     fullBuffer,
-    thumbBuffer,
     width: metadata.width ?? 0,
     height: metadata.height ?? 0,
   };
@@ -95,16 +89,15 @@ export async function uploadImage(buffer: Buffer): Promise<UploadImageResult> {
   const processed = await processImage(buffer);
   const stamp = Date.now();
 
-  const [fullFileId, thumbFileId] = await Promise.all([
-    uploadBufferToDrive(processed.fullBuffer, `laclac_${stamp}_full.webp`),
-    uploadBufferToDrive(processed.thumbBuffer, `laclac_${stamp}_thumb.webp`),
-  ]);
+  // 1 file duy nhất, 1 lần create + 1 lần permissions.create — full_url và thumb_url đều trỏ
+  // vào cùng fileId, chỉ khác tham số width để Google CDN tự resize khi phục vụ.
+  const fullFileId = await uploadBufferToDrive(processed.fullBuffer, `laclac_${stamp}_full.webp`);
 
   return {
     fullFileId,
     fullUrl: driveImageUrl(fullFileId, FULL_MAX_DIMENSION),
-    thumbFileId,
-    thumbUrl: driveImageUrl(thumbFileId, THUMB_MAX_DIMENSION),
+    thumbFileId: fullFileId,
+    thumbUrl: driveImageUrl(fullFileId, THUMB_MAX_DIMENSION),
     width: processed.width,
     height: processed.height,
   };
@@ -112,8 +105,12 @@ export async function uploadImage(buffer: Buffer): Promise<UploadImageResult> {
 
 export async function deleteDriveFiles(fileIds: string[]): Promise<void> {
   const drive = getDriveClient();
+  // full_file_id và thumb_file_id nay thường trỏ cùng 1 file (xem uploadImage) — dedupe để không
+  // gọi delete 2 lần trên cùng 1 fileId (lần 2 sẽ 404, chỉ gây log lỗi thừa chứ không hại gì,
+  // nhưng dedupe vẫn sạch hơn và đỡ tốn 1 request Drive không cần thiết).
+  const uniqueIds = [...new Set(fileIds)];
   await Promise.all(
-    fileIds.map((fileId) =>
+    uniqueIds.map((fileId) =>
       drive.files.delete({ fileId }).catch((err) => {
         console.error(`Không xoá được file Drive ${fileId}:`, err);
       })
