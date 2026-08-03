@@ -35,12 +35,15 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
   const fileByKeyRef = useRef<Map<string, File>>(new Map());
   const uploadQueueRef = useRef<string[]>([]);
   const activeUploadsRef = useRef(0);
+  const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
+  const cancelledKeysRef = useRef<Set<string>>(new Set());
 
   const removeQueueRef = useRef<UploadedImage[]>([]);
   const removingActiveRef = useRef(false);
 
   const totalCount = value.length + pending.length;
   const canAddMore = totalCount < max;
+  const uploadingSlots = pending.filter((p) => p.uploading);
 
   useEffect(() => {
     onBusyChange?.(pending.some((p) => p.uploading) || removingIds.size > 0);
@@ -55,9 +58,18 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
   // (functional updater), không được tính dựa trên `value` chụp tại thời điểm chọn ảnh,
   // nếu không các lần ghi đè lẫn nhau và chỉ còn 1 ảnh sống sót.
   async function runUpload(key: string, file: File) {
+    const controller = new AbortController();
+    abortControllersRef.current.set(key, controller);
     try {
       const compressed = await compressForUpload(file);
-      const uploaded = await uploadImage(compressed, account, token);
+      if (cancelledKeysRef.current.has(key)) return;
+      const uploaded = await uploadImage(compressed, account, token, controller.signal);
+      if (cancelledKeysRef.current.has(key)) {
+        // User cancelled right as the upload finished — the file already landed on
+        // Drive/DB, so clean it up instead of leaving an orphan the user never asked for.
+        deleteUpload(uploaded.id, account, token).catch(() => {});
+        return;
+      }
       setPending((prev) => {
         const slot = prev.find((p) => p.key === key);
         if (slot) URL.revokeObjectURL(slot.previewUrl);
@@ -65,8 +77,12 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
       });
       onChange((prev) => [...prev, uploaded]);
     } catch (err) {
+      if (cancelledKeysRef.current.has(key)) return;
       const message = err instanceof Error ? err.message : "Upload ảnh thất bại";
       setPending((prev) => prev.map((p) => (p.key === key ? { ...p, uploading: false, error: message } : p)));
+    } finally {
+      abortControllersRef.current.delete(key);
+      cancelledKeysRef.current.delete(key);
     }
   }
 
@@ -140,6 +156,26 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
     });
   }
 
+  // Cancels every slot still queued or actively uploading (leaves already-failed slots
+  // alone so the user can still retry/dismiss those individually).
+  function cancelAllUploads() {
+    const keysToCancel = pending.filter((p) => p.uploading).map((p) => p.key);
+    if (keysToCancel.length === 0) return;
+
+    keysToCancel.forEach((key) => {
+      cancelledKeysRef.current.add(key);
+      abortControllersRef.current.get(key)?.abort();
+      abortControllersRef.current.delete(key);
+      fileByKeyRef.current.delete(key);
+    });
+    uploadQueueRef.current = uploadQueueRef.current.filter((k) => !keysToCancel.includes(k));
+
+    setPending((prev) => {
+      prev.filter((p) => keysToCancel.includes(p.key)).forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      return prev.filter((p) => !keysToCancel.includes(p.key));
+    });
+  }
+
   // Xoá luôn xử lý tuần tự (tối đa 1 request DELETE cùng lúc) dù người dùng bấm X liên
   // tiếp nhiều ảnh — mỗi lần bấm chỉ ghi nhận vào hàng đợi và hiện overlay "Đang xoá..."
   // ngay lập tức, ảnh chỉ thực sự biến mất khi request của nó tới lượt và hoàn tất.
@@ -178,6 +214,20 @@ export default function PhotoPicker({ account, token, value, onChange, onBusyCha
 
   return (
     <div className="photo-picker">
+      {uploadingSlots.length > 0 && (
+        <div className="photo-upload-global-overlay">
+          <div className="photo-upload-global-card">
+            <div className="photo-upload-spinner" aria-hidden="true" />
+            <div className="photo-upload-global-title">Đang tải ảnh lên</div>
+            <div className="photo-upload-global-subtitle">
+              Còn {uploadingSlots.length} ảnh — vui lòng chờ trước khi lưu
+            </div>
+            <button type="button" className="photo-upload-global-cancel" onClick={cancelAllUploads}>
+              Hủy tải ảnh
+            </button>
+          </div>
+        </div>
+      )}
       <input ref={inputRef} type="file" accept="image/*" multiple onChange={handleFileChange} hidden />
       <div className="photo-grid">
         {value.map((img) => (

@@ -277,7 +277,12 @@ export function deleteDiaryEntry(id: number, account: string): Promise<void> {
   }).then((res) => handleResponse<void>(res));
 }
 
-export function uploadImage(file: File | Blob, account: string, token: string): Promise<UploadedImage> {
+export function uploadImage(
+  file: File | Blob,
+  account: string,
+  token: string,
+  signal?: AbortSignal
+): Promise<UploadedImage> {
   const formData = new FormData();
   formData.append("image", file);
   formData.append("account", account);
@@ -285,6 +290,7 @@ export function uploadImage(file: File | Blob, account: string, token: string): 
   return fetch(`${API_BASE}/uploads/image`, {
     method: "POST",
     body: formData,
+    signal,
   }).then((res) => handleResponse<UploadedImage>(res));
 }
 
