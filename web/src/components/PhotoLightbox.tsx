@@ -22,6 +22,12 @@ export default function PhotoLightbox({ photos, startIndex, onClose }: Props) {
   const [dragging, setDragging] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  // While a finger is actively driving zoom/pan, the transform must apply instantly —
+  // any CSS transition on it fights the touch, since each pointermove sets a new target
+  // before the previous transition finishes, so the image visibly lags/judders behind
+  // the finger (very noticeable on iOS Safari's compositor). Only animate outside of
+  // that window (double-tap toggle, release-to-reset snap).
+  const [isInteracting, setIsInteracting] = useState(false);
 
   const startX = useRef(0);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -77,6 +83,7 @@ export default function PhotoLightbox({ photos, startIndex, onClose }: Props) {
     if (pointers.current.size === 2) {
       setDragging(false);
       setDragOffset(0);
+      setIsInteracting(true);
       const pts = Array.from(pointers.current.values());
       pinchStartDist.current = distance(pts[0], pts[1]);
       pinchStartZoom.current = zoom;
@@ -92,6 +99,7 @@ export default function PhotoLightbox({ photos, startIndex, onClose }: Props) {
         return;
       }
       if (zoom > 1) {
+        setIsInteracting(true);
         panStart.current = { x: e.clientX, y: e.clientY };
         panOrigin.current = pan;
       } else {
@@ -137,6 +145,7 @@ export default function PhotoLightbox({ photos, startIndex, onClose }: Props) {
         panStart.current = pos;
         panOrigin.current = pan;
       } else {
+        setIsInteracting(false);
         startX.current = pos.x;
         setDragging(true);
       }
@@ -145,6 +154,10 @@ export default function PhotoLightbox({ photos, startIndex, onClose }: Props) {
     if (pointers.current.size < 2) {
       pinchStartDist.current = 0;
       if (zoom < MIN_ZOOM + 0.02) resetZoom();
+    }
+
+    if (pointers.current.size === 0) {
+      setIsInteracting(false);
     }
 
     if (pointers.current.size === 0 && dragging) {
@@ -223,7 +236,10 @@ export default function PhotoLightbox({ photos, startIndex, onClose }: Props) {
               draggable={false}
               style={
                 i === index
-                  ? { transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }
+                  ? {
+                      transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                      transition: isInteracting ? "none" : "transform 200ms ease",
+                    }
                   : undefined
               }
             />
