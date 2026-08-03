@@ -10,6 +10,8 @@ import type {
   RecordItem,
   Session,
   StatsResponse,
+  ThawedMilkEntry,
+  ThawedMilkPayload,
   UpcomingDose,
   UploadedImage,
   UsageLogEntry,
@@ -57,6 +59,34 @@ export function updateRecord(id: number, payload: CreateRecordPayload): Promise<
 
 export function deleteRecord(id: number, account: string): Promise<void> {
   return fetch(`${API_BASE}/records/${id}?account=${encodeURIComponent(account)}`, {
+    method: "DELETE",
+  }).then((res) => handleResponse<void>(res));
+}
+
+export function fetchThawedMilk(account: string): Promise<ThawedMilkEntry[]> {
+  return fetch(`${API_BASE}/thawed-milk?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<ThawedMilkEntry[]>(res)
+  );
+}
+
+export function createThawedMilk(payload: ThawedMilkPayload): Promise<ThawedMilkEntry> {
+  return fetch(`${API_BASE}/thawed-milk`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<ThawedMilkEntry>(res));
+}
+
+export function updateThawedMilk(id: number, payload: ThawedMilkPayload): Promise<ThawedMilkEntry> {
+  return fetch(`${API_BASE}/thawed-milk/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<ThawedMilkEntry>(res));
+}
+
+export function deleteThawedMilk(id: number, account: string): Promise<void> {
+  return fetch(`${API_BASE}/thawed-milk/${id}?account=${encodeURIComponent(account)}`, {
     method: "DELETE",
   }).then((res) => handleResponse<void>(res));
 }

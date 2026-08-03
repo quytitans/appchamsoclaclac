@@ -213,6 +213,23 @@ export interface DiaryEntryPayload {
   photoUploadIds?: number[];
 }
 
+export interface ThawedMilkEntry {
+  id: number;
+  account: string;
+  storage_date: string | null;
+  taken_out_at: string;
+  expiry_hours: number;
+  expiry_at: string;
+  created_at: string;
+}
+
+export interface ThawedMilkPayload {
+  account: string;
+  storageDate?: string | null;
+  takenOutAt: string;
+  expiryHours: number;
+}
+
 export interface UploadedImage {
   id: number;
   full_file_id: string;

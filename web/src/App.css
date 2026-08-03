@@ -381,6 +381,89 @@ body {
   color: var(--text-dark);
 }
 
+.field-label-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.thawed-milk-section {
+  margin-top: 20px;
+}
+
+.thawed-milk-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--deep-pink);
+  margin-bottom: 10px;
+}
+
+.thawed-milk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.thawed-milk-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.thawed-milk-card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.thawed-milk-card-label {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.thawed-milk-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.thawed-milk-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #e6e6ea;
+  flex: 0 0 auto;
+  transition: background-color 240ms ease, box-shadow 240ms ease, transform 240ms ease;
+}
+
+.thawed-milk-dot-filled {
+  transform: scale(1.05);
+}
+
+.thawed-milk-card-remaining {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.thawed-milk-expiry-preview {
+  background: color-mix(in srgb, #2a9df4 12%, white);
+  border: 1px solid color-mix(in srgb, #2a9df4 30%, white);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
 .field input,
 .field select,
 .field textarea {

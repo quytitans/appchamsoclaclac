@@ -5,6 +5,7 @@ import type { RecordItem, Session, StatsResponse } from "../types";
 import AppHeader from "../components/AppHeader";
 import TimelineGrid from "../components/TimelineGrid";
 import EditRecordModal from "../components/EditRecordModal";
+import ThawedMilkStatsSection from "../components/ThawedMilkStatsSection";
 import MonthView from "./MonthView";
 import type { Screen } from "../App";
 
@@ -165,7 +166,10 @@ export default function StatsScreen({ session, onNavigate }: Props) {
               )}
 
               {detailView === "chi_tiet" && (
-                <TimelineGrid records={records} onSelectRecord={setEditingRecord} />
+                <>
+                  <TimelineGrid records={records} onSelectRecord={setEditingRecord} />
+                  <ThawedMilkStatsSection account={session.account} />
+                </>
               )}
             </>
           )}

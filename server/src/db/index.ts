@@ -249,3 +249,17 @@ db.exec(`
 `);
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_usage_logs_created_at ON usage_logs(created_at)`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS thawed_milk (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT NOT NULL,
+    storage_date TEXT,
+    taken_out_at TEXT NOT NULL,
+    expiry_hours REAL NOT NULL,
+    expiry_at TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_thawed_milk_account ON thawed_milk(account)`);

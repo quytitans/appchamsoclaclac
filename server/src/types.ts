@@ -131,3 +131,20 @@ export interface UsageLogRow {
   status_code: number;
   account: string | null;
 }
+
+export interface ThawedMilkRow {
+  id: number;
+  account: string;
+  storage_date: string | null;
+  taken_out_at: string;
+  expiry_hours: number;
+  expiry_at: string;
+  created_at: string;
+}
+
+export interface ThawedMilkBody {
+  account?: string;
+  storageDate?: string | null;
+  takenOutAt?: string;
+  expiryHours?: number;
+}

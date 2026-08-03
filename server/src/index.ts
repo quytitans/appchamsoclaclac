@@ -9,6 +9,7 @@ import { authRouter } from "./routes/auth.js";
 import { vaccinesRouter } from "./routes/vaccines.js";
 import { diaryRouter } from "./routes/diary.js";
 import { uploadsRouter } from "./routes/uploads.js";
+import { thawedMilkRouter } from "./routes/thawedMilk.js";
 import { logError } from "./errorLog.js";
 import { logUsage } from "./usageLog.js";
 
@@ -41,6 +42,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/vaccines", vaccinesRouter);
 app.use("/api/diary", diaryRouter);
 app.use("/api/uploads", uploadsRouter);
+app.use("/api/thawed-milk", thawedMilkRouter);
 
 const webDist = path.join(__dirname, "..", "..", "web", "dist");
 app.use(express.static(webDist));
