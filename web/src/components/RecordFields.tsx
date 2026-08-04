@@ -127,7 +127,7 @@ export default function RecordFields({ type, state, onChange }: Props) {
       );
 
     case "di_nhe":
-      return <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ đi nhẹ" onChange={onChange} />;
+      return <DateTimeRow date={state.date} time={state.time} timeLabel="Giờ thay bỉm" onChange={onChange} />;
 
     case "can_nang":
       return (

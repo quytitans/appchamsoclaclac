@@ -125,7 +125,7 @@ function cardText(record: RecordItem): string {
       return `Đi nặng | ${parts.join(" | ")}`;
     }
     case "di_nhe":
-      return "Đi nhẹ";
+      return "Thay Bỉm";
     case "can_nang":
       return `Cân nặng | ${record.weight_kg}kg`;
     case "chieu_cao":

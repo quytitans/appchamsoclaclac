@@ -51,7 +51,7 @@ function validateBody(body: CreateRecordBody): string | null {
       if (body.status !== "binh_thuong" && body.status !== "co_van_de") return "Thiếu trạng thái";
       break;
     case "di_nhe":
-      if (!body.time) return "Thiếu giờ đi nhẹ";
+      if (!body.time) return "Thiếu giờ thay bỉm";
       break;
     case "can_nang":
       if (typeof body.weightKg !== "number") return "Thiếu khối lượng";
@@ -94,6 +94,25 @@ recordsRouter.post("/", (req, res) => {
     new Date().toISOString(),
     body.account as string
   );
+
+  if (body.type === "di_nang") {
+    stmt.run(
+      "di_nhe",
+      body.date,
+      body.time ?? null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      new Date().toISOString(),
+      body.account as string
+    );
+  }
 
   const row = db
     .prepare("SELECT * FROM records WHERE id = ?")

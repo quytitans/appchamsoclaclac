@@ -1089,7 +1089,7 @@ body {
   --accent: #6a5fcf;
 }
 
-/* Vệ sinh: phân biệt đi nặng/đi nhẹ bằng 2 sắc xanh lá đậm nhạt */
+/* Vệ sinh: phân biệt đi nặng/thay bỉm bằng 2 sắc xanh lá đậm nhạt */
 .timeline-item.vesinh-nang {
   --accent: #1baf7a;
 }

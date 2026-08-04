@@ -159,7 +159,7 @@ export default function StatsScreen({ session, onNavigate }: Props) {
                     title="Vệ sinh"
                     lines={[
                       { icon: "💩", text: `${stats.poop.count} lần đi nặng` },
-                      { icon: "💦", text: `${stats.pee.count} lần đi nhẹ` },
+                      { icon: "💦", text: `${stats.pee.count} lần thay bỉm` },
                     ]}
                   />
                 </section>

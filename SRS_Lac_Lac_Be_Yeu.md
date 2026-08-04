@@ -55,7 +55,7 @@ Hệ thống cho phép ghi nhận các nhóm thông tin sau:
 2. **Ti Mẹ:** Giờ ti mẹ (Time picker), Vị trí (Chọn: Bên Trái / Bên Phải).
 3. **Ti bình:** Giờ ti bình (Time picker), Dung tích (Số - đơn vị: ml).
 4. **Đi nặng:** Giờ đi nặng (Time picker), Trạng thái (Chọn nhanh: Bình thường / Có vấn đề).
-5. **Đi nhẹ:** Giờ đi nhẹ (Time picker).
+5. **Thay Bỉm:** Giờ thay bỉm (Time picker). Tự động tạo thêm 1 bản ghi Thay Bỉm cùng ngày giờ mỗi khi note "Đi nặng".
 6. **Cân nặng:** Ngày cân (Date picker), Khối lượng (Số - đơn vị: kg).
 7. **Chiều cao:** Kích thước (Số - đơn vị: cm).
 8. **Custom (Tùy chọn):** Cho phép người dùng tự định nghĩa thêm hoạt động với các trường: Tên hoạt động, Giá trị, Trạng thái, Ghi chú.
@@ -72,7 +72,7 @@ Hiển thị các số liệu tổng hợp tính từ đầu ngày đến giờ 
     * Tổng số lần hút sữa & Tổng số ml sữa đã hút.
     * Tổng số lần ti mẹ.
     * Tổng số lần ti bình, Tổng số ml đã ti bình & **Số ml trung bình/mỗi lần ti bình** (= Tổng ml ti bình / Số lần ti bình).
-* **Vệ sinh:** Tổng số lần đi nặng & Tổng số lần đi nhẹ.
+* **Vệ sinh:** Tổng số lần đi nặng & Tổng số lần thay bỉm.
 * **Thể chất (Cân nặng):**
     * Cân nặng hiện tại (lấy bản ghi mới nhất của bé).
     * Chỉ số tăng trưởng: Hệ thống tự động tính toán từ DB và hiển thị số kg tăng thêm trong **1 tuần qua** và **1 tháng qua**.
