@@ -96,7 +96,10 @@ recordsRouter.post("/", (req, res) => {
   );
 
   if (body.type === "di_nang") {
-    stmt.run(
+    db.prepare(
+      `INSERT INTO records (type, date, time, side, volume_ml, status, amount, weight_kg, height_cm, custom_name, custom_value, note, created_at, account, linked_record_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
       "di_nhe",
       body.date,
       body.time ?? null,
@@ -110,7 +113,8 @@ recordsRouter.post("/", (req, res) => {
       null,
       null,
       new Date().toISOString(),
-      body.account as string
+      body.account as string,
+      result.lastInsertRowid
     );
   }
 
@@ -169,6 +173,15 @@ recordsRouter.put("/:id", (req, res) => {
     account
   );
 
+  if (body.type === "di_nang") {
+    db.prepare(`UPDATE records SET date = ?, time = ? WHERE linked_record_id = ? AND account = ?`).run(
+      body.date,
+      body.time ?? null,
+      id,
+      account
+    );
+  }
+
   const row = db.prepare("SELECT * FROM records WHERE id = ?").get(id) as unknown as RecordRow;
   res.json(row);
 });
@@ -181,5 +194,6 @@ recordsRouter.delete("/:id", (req, res) => {
     return;
   }
   db.prepare("DELETE FROM records WHERE id = ? AND account = ?").run(id, account);
+  db.prepare("DELETE FROM records WHERE linked_record_id = ? AND account = ?").run(id, account);
   res.status(204).end();
 });
