@@ -5,7 +5,9 @@ interface Props {
 export default function AppHeader({ onGoHome }: Props) {
   return (
     <button className="app-header" onClick={onGoHome}>
-      <span className="app-header-logo">🍼</span>
+      <span className="app-header-badge">
+        <span className="app-header-logo">🍼</span>
+      </span>
       <span className="app-header-name">Trộm Vía Trộm Vía</span>
     </button>
   );
