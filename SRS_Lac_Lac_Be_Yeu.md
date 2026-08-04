@@ -55,7 +55,7 @@ Hệ thống cho phép ghi nhận các nhóm thông tin sau:
 2. **Ti Mẹ:** Giờ ti mẹ (Time picker), Vị trí (Chọn: Bên Trái / Bên Phải).
 3. **Ti bình:** Giờ ti bình (Time picker), Dung tích (Số - đơn vị: ml).
 4. **Đi nặng:** Giờ đi nặng (Time picker), Trạng thái (Chọn nhanh: Bình thường / Có vấn đề).
-5. **Thay Bỉm:** Giờ thay bỉm (Time picker). Tự động tạo thêm 1 bản ghi Thay Bỉm cùng ngày giờ mỗi khi note "Đi nặng".
+5. **Thay Bỉm:** Giờ thay bỉm (Time picker).
 6. **Cân nặng:** Ngày cân (Date picker), Khối lượng (Số - đơn vị: kg).
 7. **Chiều cao:** Kích thước (Số - đơn vị: cm).
 8. **Custom (Tùy chọn):** Cho phép người dùng tự định nghĩa thêm hoạt động với các trường: Tên hoạt động, Giá trị, Trạng thái, Ghi chú.

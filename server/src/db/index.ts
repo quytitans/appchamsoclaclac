@@ -78,7 +78,6 @@ const REQUIRED_COLUMNS: Record<string, string> = {
   note: "TEXT",
   created_at: "TEXT",
   account: "TEXT",
-  linked_record_id: "INTEGER",
 };
 
 function syncSchema() {

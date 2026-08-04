@@ -29,7 +29,6 @@ export interface RecordRow {
   note: string | null;
   created_at: string;
   account: string;
-  linked_record_id: number | null;
 }
 
 export interface CreateRecordBody {
