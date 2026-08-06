@@ -77,6 +77,7 @@ export default function GrowthStatsTable({ records, onSelectRecord }: Props) {
               <th>Tăng Trưởng</th>
               <th>Chiều Cao</th>
               <th>Xu Hướng</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -88,6 +89,19 @@ export default function GrowthStatsTable({ records, onSelectRecord }: Props) {
                 <td>{row.heightText}</td>
                 <td>
                   <span className={`growth-trend growth-trend-${row.trend}`}>{TREND_ICON[row.trend]}</span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="growth-table-edit-btn"
+                    aria-label="Sửa hoặc xoá"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectRecord(row.record);
+                    }}
+                  >
+                    ✏️
+                  </button>
                 </td>
               </tr>
             ))}

@@ -3079,7 +3079,7 @@ body {
 
 .growth-table {
   width: 100%;
-  min-width: 460px;
+  min-width: 500px;
   border-collapse: collapse;
   font-size: 13px;
 }
@@ -3121,6 +3121,22 @@ body {
 .growth-table-label {
   font-weight: 800;
   color: var(--deep-pink);
+}
+
+.growth-table-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--deep-pink) 10%, white);
+  font-size: 13px;
+}
+
+.growth-table-edit-btn:active {
+  background: color-mix(in srgb, var(--deep-pink) 20%, white);
 }
 
 .growth-table-growth {
