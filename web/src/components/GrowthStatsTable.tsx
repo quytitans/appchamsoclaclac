@@ -10,7 +10,6 @@ interface Row {
   record: GrowthRecord;
   label: string;
   weightText: string;
-  growthText: string;
   heightText: string;
   trend: "up" | "down" | "flat" | "none";
 }
@@ -24,27 +23,14 @@ function buildRows(records: GrowthRecord[]): Row[] {
     const weightText = record.weight_kg != null ? `${record.weight_kg}kg` : "—";
     const heightText = record.height_cm != null ? `${record.height_cm}cm` : "—";
 
-    let growthText = "—";
     let trend: Row["trend"] = "none";
-
     if (record.weight_kg != null && prevWeight != null) {
-      const delta = record.weight_kg - prevWeight;
-      const rounded = Math.round(delta * 100) / 100;
-      if (rounded > 0) {
-        growthText = `Tăng ${rounded}kg`;
-        trend = "up";
-      } else if (rounded < 0) {
-        growthText = `Giảm ${Math.abs(rounded)}kg`;
-        trend = "down";
-      } else {
-        growthText = "Không đổi";
-        trend = "flat";
-      }
+      const delta = Math.round((record.weight_kg - prevWeight) * 100) / 100;
+      trend = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
     }
-
     if (record.weight_kg != null) prevWeight = record.weight_kg;
 
-    return { record, label, weightText, growthText, heightText, trend };
+    return { record, label, weightText, heightText, trend };
   });
 }
 
@@ -68,46 +54,45 @@ export default function GrowthStatsTable({ records, onSelectRecord }: Props) {
 
   return (
     <div className="growth-table-card">
-      <div className="growth-table-scroll">
-        <table className="growth-table">
-          <thead>
-            <tr>
-              <th>Mốc Đo</th>
-              <th>Cân Nặng</th>
-              <th>Tăng Trưởng</th>
-              <th>Chiều Cao</th>
-              <th>Xu Hướng</th>
-              <th></th>
+      <table className="growth-table">
+        <colgroup>
+          <col style={{ width: "36%" }} />
+          <col style={{ width: "23%" }} />
+          <col style={{ width: "23%" }} />
+          <col style={{ width: "18%" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Mốc Đo</th>
+            <th>Cân Nặng</th>
+            <th>Chiều Cao</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.record.id} onClick={() => onSelectRecord(row.record)}>
+              <td className="growth-table-label">{row.label}</td>
+              <td>{row.weightText}</td>
+              <td>{row.heightText}</td>
+              <td className="growth-table-actions">
+                <span className={`growth-trend growth-trend-${row.trend}`}>{TREND_ICON[row.trend]}</span>
+                <button
+                  type="button"
+                  className="growth-table-edit-btn"
+                  aria-label="Sửa hoặc xoá"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectRecord(row.record);
+                  }}
+                >
+                  ✏️
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.record.id} onClick={() => onSelectRecord(row.record)}>
-                <td className="growth-table-label">{row.label}</td>
-                <td>{row.weightText}</td>
-                <td className="growth-table-growth">{row.growthText}</td>
-                <td>{row.heightText}</td>
-                <td>
-                  <span className={`growth-trend growth-trend-${row.trend}`}>{TREND_ICON[row.trend]}</span>
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className="growth-table-edit-btn"
-                    aria-label="Sửa hoặc xoá"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectRecord(row.record);
-                    }}
-                  >
-                    ✏️
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

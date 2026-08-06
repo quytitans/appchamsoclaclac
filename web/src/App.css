@@ -3059,51 +3059,45 @@ body {
   background: linear-gradient(135deg, #2a9df4, #35b39e) !important;
 }
 
-/* Bảng thống kê */
+/* Bảng thống kê — table-layout: fixed với % cột cố định để KHÔNG BAO GIỜ cần cuộn ngang,
+   kể cả màn hình rất nhỏ; cột Xu Hướng + nút sửa gộp chung 1 cột cuối, xếp dọc cho gọn. */
 .growth-table-card {
   background: var(--white);
   border-radius: 18px;
-  padding: 6px;
+  padding: 4px 2px;
   margin-bottom: 16px;
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .growth-table-card .loading-text {
   padding: 20px 14px;
 }
 
-.growth-table-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
 .growth-table {
   width: 100%;
-  min-width: 500px;
+  table-layout: fixed;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14.5px;
 }
 
 .growth-table th {
-  position: sticky;
-  top: 0;
   text-align: left;
-  padding: 10px 10px;
+  padding: 10px 8px;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.3px;
   text-transform: uppercase;
   color: var(--text-muted);
   border-bottom: 2px solid var(--soft-bg);
-  white-space: nowrap;
 }
 
 .growth-table td {
-  padding: 12px 10px;
+  padding: 13px 8px;
   color: var(--text-dark);
-  font-weight: 600;
+  font-weight: 700;
   border-bottom: 1px solid var(--soft-bg);
-  white-space: nowrap;
+  overflow-wrap: break-word;
 }
 
 .growth-table tbody tr {
@@ -3120,39 +3114,44 @@ body {
 
 .growth-table-label {
   font-weight: 800;
+  font-size: 15px;
   color: var(--deep-pink);
+  line-height: 1.3;
+}
+
+.growth-table-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .growth-table-edit-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border: none;
   border-radius: 50%;
   background: color-mix(in srgb, var(--deep-pink) 10%, white);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .growth-table-edit-btn:active {
   background: color-mix(in srgb, var(--deep-pink) 20%, white);
 }
 
-.growth-table-growth {
-  color: var(--text-muted);
-  font-weight: 700;
-  font-size: 12.5px;
-}
-
 .growth-trend {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
 }
 
