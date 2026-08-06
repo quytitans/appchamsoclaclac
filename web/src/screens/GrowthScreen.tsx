@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function GrowthScreen({ session, onNavigate }: Props) {
-  const [view, setView] = useState<"entry" | "stats">("entry");
+  const [view, setView] = useState<"entry" | "stats">("stats");
   const [records, setRecords] = useState<GrowthRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(() => emptyGrowthFormState(todayDateStr()));
