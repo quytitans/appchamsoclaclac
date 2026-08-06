@@ -4,6 +4,7 @@ import type { GrowthFormState } from "../growthForm";
 interface Props {
   state: GrowthFormState;
   onChange: <K extends keyof GrowthFormState>(key: K, value: GrowthFormState[K]) => void;
+  disabled?: boolean;
 }
 
 function onNonNegativeChange(key: "heightCm" | "weightKg", onChange: Props["onChange"]) {
@@ -14,18 +15,24 @@ function onNonNegativeChange(key: "heightCm" | "weightKg", onChange: Props["onCh
   };
 }
 
-export default function GrowthFields({ state, onChange }: Props) {
+export default function GrowthFields({ state, onChange, disabled }: Props) {
   return (
     <>
       <div className="field">
         <label className="field-label">Ngày nhập</label>
-        <input type="date" value={state.date} onChange={(e) => onChange("date", e.target.value)} />
+        <input
+          type="date"
+          disabled={disabled}
+          value={state.date}
+          onChange={(e) => onChange("date", e.target.value)}
+        />
       </div>
 
       <div className="field">
         <label className="field-label">Mốc đo</label>
         <input
           type="text"
+          disabled={disabled}
           placeholder="VD: Tháng 1"
           value={state.milestoneLabel}
           onChange={(e) => onChange("milestoneLabel", e.target.value)}
@@ -44,6 +51,7 @@ export default function GrowthFields({ state, onChange }: Props) {
               step="0.1"
               inputMode="decimal"
               placeholder="cm"
+              disabled={disabled}
               value={state.heightCm}
               onChange={onNonNegativeChange("heightCm", onChange)}
             />
@@ -60,6 +68,7 @@ export default function GrowthFields({ state, onChange }: Props) {
               step="0.01"
               inputMode="decimal"
               placeholder="kg"
+              disabled={disabled}
               value={state.weightKg}
               onChange={onNonNegativeChange("weightKg", onChange)}
             />

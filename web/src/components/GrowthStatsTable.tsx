@@ -57,10 +57,10 @@ export default function GrowthStatsTable({ records, onSelectRecord }: Props) {
       <div className="growth-table-scroll-y">
         <table className="growth-table">
           <colgroup>
-            <col style={{ width: "30%" }} />
-            <col style={{ width: "19%" }} />
-            <col style={{ width: "19%" }} />
-            <col style={{ width: "32%" }} />
+            <col style={{ width: "36%" }} />
+            <col style={{ width: "22%" }} />
+            <col style={{ width: "22%" }} />
+            <col style={{ width: "20%" }} />
           </colgroup>
           <thead>
             <tr>
@@ -78,17 +78,6 @@ export default function GrowthStatsTable({ records, onSelectRecord }: Props) {
                 <td>{row.heightText}</td>
                 <td className="growth-table-actions">
                   <span className={`growth-trend growth-trend-${row.trend}`}>{TREND_ICON[row.trend]}</span>
-                  <button
-                    type="button"
-                    className="growth-table-edit-btn"
-                    aria-label="Sửa hoặc xoá"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectRecord(row.record);
-                    }}
-                  >
-                    ✏️
-                  </button>
                 </td>
               </tr>
             ))}

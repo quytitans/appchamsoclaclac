@@ -13,6 +13,7 @@ interface Props {
 }
 
 export default function GrowthEditModal({ record, account, onClose, onUpdated, onDeleted }: Props) {
+  const [mode, setMode] = useState<"view" | "edit">("view");
   const [form, setForm] = useState(() => growthRecordToFormState(record));
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -58,26 +59,32 @@ export default function GrowthEditModal({ record, account, onClose, onUpdated, o
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>📏 Sửa Số Đo</h3>
+          <h3>📏 {mode === "edit" ? "Sửa Số Đo" : "Chi Tiết Số Đo"}</h3>
           <button className="modal-close" onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className="note-form">
-          <GrowthFields state={form} onChange={handleChange} />
+          <GrowthFields state={form} onChange={handleChange} disabled={mode === "view"} />
         </div>
 
         {message && <div className="message error">{message}</div>}
 
-        <div className="modal-actions">
-          <button className="delete-button" onClick={handleDelete} disabled={deleting || saving}>
-            {deleting ? "Đang xóa..." : "Xóa"}
+        {mode === "view" ? (
+          <button className="save-button" onClick={() => setMode("edit")}>
+            ✏️ Sửa
           </button>
-          <button className="save-button" onClick={handleSave} disabled={saving || deleting}>
-            {saving ? "Đang lưu..." : "Lưu"}
-          </button>
-        </div>
+        ) : (
+          <div className="modal-actions">
+            <button className="delete-button" onClick={handleDelete} disabled={deleting || saving}>
+              {deleting ? "Đang xóa..." : "Xóa"}
+            </button>
+            <button className="save-button" onClick={handleSave} disabled={saving || deleting}>
+              {saving ? "Đang lưu..." : "Lưu"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
