@@ -54,45 +54,47 @@ export default function GrowthStatsTable({ records, onSelectRecord }: Props) {
 
   return (
     <div className="growth-table-card">
-      <table className="growth-table">
-        <colgroup>
-          <col style={{ width: "36%" }} />
-          <col style={{ width: "23%" }} />
-          <col style={{ width: "23%" }} />
-          <col style={{ width: "18%" }} />
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Mốc Đo</th>
-            <th>Cân Nặng</th>
-            <th>Chiều Cao</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.record.id} onClick={() => onSelectRecord(row.record)}>
-              <td className="growth-table-label">{row.label}</td>
-              <td>{row.weightText}</td>
-              <td>{row.heightText}</td>
-              <td className="growth-table-actions">
-                <span className={`growth-trend growth-trend-${row.trend}`}>{TREND_ICON[row.trend]}</span>
-                <button
-                  type="button"
-                  className="growth-table-edit-btn"
-                  aria-label="Sửa hoặc xoá"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectRecord(row.record);
-                  }}
-                >
-                  ✏️
-                </button>
-              </td>
+      <div className="growth-table-scroll-y">
+        <table className="growth-table">
+          <colgroup>
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "19%" }} />
+            <col style={{ width: "19%" }} />
+            <col style={{ width: "32%" }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Mốc Đo</th>
+              <th>Cân Nặng</th>
+              <th>Chiều Cao</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.record.id} onClick={() => onSelectRecord(row.record)}>
+                <td className="growth-table-label">{row.label}</td>
+                <td>{row.weightText}</td>
+                <td>{row.heightText}</td>
+                <td className="growth-table-actions">
+                  <span className={`growth-trend growth-trend-${row.trend}`}>{TREND_ICON[row.trend]}</span>
+                  <button
+                    type="button"
+                    className="growth-table-edit-btn"
+                    aria-label="Sửa hoặc xoá"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectRecord(row.record);
+                    }}
+                  >
+                    ✏️
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
