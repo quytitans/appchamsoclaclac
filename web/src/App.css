@@ -3052,3 +3052,238 @@ body {
 .lightbox-nav-next {
   right: 12px;
 }
+
+/* ==== Growth (Chiều Cao Cân Nặng) ==== */
+
+.growth-entry-icon {
+  background: linear-gradient(135deg, #2a9df4, #35b39e) !important;
+}
+
+/* Bảng thống kê */
+.growth-table-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 6px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.growth-table-card .loading-text {
+  padding: 20px 14px;
+}
+
+.growth-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.growth-table {
+  width: 100%;
+  min-width: 460px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.growth-table th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  padding: 10px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--soft-bg);
+  white-space: nowrap;
+}
+
+.growth-table td {
+  padding: 12px 10px;
+  color: var(--text-dark);
+  font-weight: 600;
+  border-bottom: 1px solid var(--soft-bg);
+  white-space: nowrap;
+}
+
+.growth-table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.growth-table tbody tr:active {
+  background: var(--soft-bg);
+}
+
+.growth-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.growth-table-label {
+  font-weight: 800;
+  color: var(--deep-pink);
+}
+
+.growth-table-growth {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 12.5px;
+}
+
+.growth-trend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.growth-trend-up {
+  background: color-mix(in srgb, #1baf7a 16%, white);
+  color: #1baf7a;
+}
+
+.growth-trend-down {
+  background: color-mix(in srgb, #e53935 14%, white);
+  color: #e53935;
+}
+
+.growth-trend-flat {
+  background: color-mix(in srgb, #ffb347 20%, white);
+  color: #c47a13;
+}
+
+.growth-trend-none {
+  background: var(--soft-bg);
+  color: var(--text-muted);
+}
+
+/* Biểu đồ */
+.growth-chart-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 16px 14px 14px;
+  box-shadow: var(--shadow);
+}
+
+.growth-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.growth-chart-header .month-section-title {
+  margin: 0;
+}
+
+.growth-chart-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.growth-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.growth-legend-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.growth-view-toggle {
+  margin-top: 12px;
+}
+
+.growth-view-toggle .view-toggle-btn {
+  font-size: 10.5px;
+  padding: 6px 2px;
+}
+
+.growth-custom-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.growth-custom-range input {
+  flex: 1;
+  border: 2px solid var(--main-pink);
+  border-radius: 10px;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  background: var(--white);
+  min-width: 0;
+}
+
+.growth-chart-svg {
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+  overflow: visible;
+}
+
+.growth-chart-gridline {
+  stroke: var(--soft-bg);
+  stroke-width: 1;
+}
+
+.growth-chart-axis-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  fill: var(--text-muted);
+}
+
+.growth-chart-point {
+  cursor: pointer;
+}
+
+.growth-chart-crosshair {
+  stroke: var(--main-pink);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.growth-chart-tooltip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--soft-bg);
+  border-radius: 12px;
+}
+
+.growth-chart-tooltip-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--deep-pink);
+}
+
+.growth-chart-tooltip-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+}

@@ -111,6 +111,12 @@ export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpd
             <span className="big-card-label">Nhật Ký Của Mẹ</span>
           </button>
         </div>
+        <div className="home-actions-row">
+          <button className="big-card-button" onClick={() => onNavigate("GROWTH")}>
+            <span className="big-card-icon">📏</span>
+            <span className="big-card-label">Chiều Cao Cân Nặng</span>
+          </button>
+        </div>
       </div>
 
       {showChangePin && (

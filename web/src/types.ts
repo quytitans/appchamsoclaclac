@@ -230,6 +230,24 @@ export interface ThawedMilkPayload {
   expiryHours: number;
 }
 
+export interface GrowthRecord {
+  id: number;
+  account: string;
+  date: string;
+  milestone_label: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  created_at: string;
+}
+
+export interface GrowthRecordPayload {
+  account: string;
+  date: string;
+  milestoneLabel?: string;
+  heightCm?: number;
+  weightKg?: number;
+}
+
 export interface UploadedImage {
   id: number;
   full_file_id: string;

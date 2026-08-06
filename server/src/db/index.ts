@@ -263,3 +263,17 @@ db.exec(`
 `);
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_thawed_milk_account ON thawed_milk(account)`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS growth_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT NOT NULL,
+    date TEXT NOT NULL,
+    milestone_label TEXT,
+    height_cm REAL,
+    weight_kg REAL,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_growth_records_account ON growth_records(account)`);

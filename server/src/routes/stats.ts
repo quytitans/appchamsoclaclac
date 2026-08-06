@@ -39,8 +39,8 @@ function getLatestWeightOnOrBefore(account: string, dateStr: string): number | n
 function getLatestHeight(account: string): number | null {
   const row = db
     .prepare(
-      `SELECT height_cm FROM records
-       WHERE type = 'chieu_cao' AND height_cm IS NOT NULL AND account = ?
+      `SELECT height_cm FROM growth_records
+       WHERE height_cm IS NOT NULL AND account = ?
        ORDER BY date DESC, created_at DESC LIMIT 1`
     )
     .get(account) as { height_cm: number } | undefined;
@@ -50,8 +50,8 @@ function getLatestHeight(account: string): number | null {
 function getLatestWeight(account: string): number | null {
   const row = db
     .prepare(
-      `SELECT weight_kg FROM records
-       WHERE type = 'can_nang' AND weight_kg IS NOT NULL AND account = ?
+      `SELECT weight_kg FROM growth_records
+       WHERE weight_kg IS NOT NULL AND account = ?
        ORDER BY date DESC, created_at DESC LIMIT 1`
     )
     .get(account) as { weight_kg: number } | undefined;

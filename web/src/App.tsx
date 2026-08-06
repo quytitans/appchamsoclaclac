@@ -6,11 +6,12 @@ import LoginScreen from "./screens/LoginScreen";
 import AdminScreen from "./screens/AdminScreen";
 import VaccineScreen from "./screens/VaccineScreen";
 import DiaryScreen from "./screens/DiaryScreen";
+import GrowthScreen from "./screens/GrowthScreen";
 import { verifyToken } from "./api";
 import { clearSession, loadSession, saveSession } from "./session";
 import type { Session } from "./types";
 
-export type Screen = "HOME" | "NOTE" | "STATS" | "ADMIN" | "VACCINE" | "DIARY";
+export type Screen = "HOME" | "NOTE" | "STATS" | "ADMIN" | "VACCINE" | "DIARY" | "GROWTH";
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -73,6 +74,7 @@ function App() {
           {screen === "STATS" && <StatsScreen session={session} onNavigate={setScreen} />}
           {screen === "VACCINE" && <VaccineScreen session={session} onNavigate={setScreen} />}
           {screen === "DIARY" && <DiaryScreen session={session} onNavigate={setScreen} />}
+          {screen === "GROWTH" && <GrowthScreen session={session} onNavigate={setScreen} />}
           {screen === "ADMIN" && session.isAdmin && (
             <AdminScreen
               session={session}

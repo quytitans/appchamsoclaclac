@@ -5,6 +5,8 @@ import type {
   DiaryEntryPayload,
   DosePayload,
   ErrorLogEntry,
+  GrowthRecord,
+  GrowthRecordPayload,
   LatestGrowth,
   MonthStatsResponse,
   RecordItem,
@@ -89,6 +91,34 @@ export function updateThawedMilk(id: number, payload: ThawedMilkPayload): Promis
 
 export function deleteThawedMilk(id: number, account: string): Promise<void> {
   return fetch(`${API_BASE}/thawed-milk/${id}?account=${encodeURIComponent(account)}`, {
+    method: "DELETE",
+  }).then((res) => handleResponse<void>(res));
+}
+
+export function fetchGrowthRecords(account: string): Promise<GrowthRecord[]> {
+  return fetch(`${API_BASE}/growth?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<GrowthRecord[]>(res)
+  );
+}
+
+export function createGrowthRecord(payload: GrowthRecordPayload): Promise<GrowthRecord> {
+  return fetch(`${API_BASE}/growth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<GrowthRecord>(res));
+}
+
+export function updateGrowthRecord(id: number, payload: GrowthRecordPayload): Promise<GrowthRecord> {
+  return fetch(`${API_BASE}/growth/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<GrowthRecord>(res));
+}
+
+export function deleteGrowthRecord(id: number, account: string): Promise<void> {
+  return fetch(`${API_BASE}/growth/${id}?account=${encodeURIComponent(account)}`, {
     method: "DELETE",
   }).then((res) => handleResponse<void>(res));
 }

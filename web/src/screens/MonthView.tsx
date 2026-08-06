@@ -87,33 +87,6 @@ export default function MonthView({ account, onSelectDate }: Props) {
               </span>
             </div>
           </section>
-
-          <section className="month-section">
-            <h3 className="month-section-title">⚖️ Cân nặng &amp; chiều cao</h3>
-            <MonthCalendar
-              year={year}
-              monthNum={monthNum}
-              onSelectDay={handleSelectDay}
-              renderCell={(day) => {
-                const stat = dayMap.get(day);
-                if (!stat) return null;
-                return (
-                  <>
-                    {stat.weightKg != null && <div className="calendar-stat weight">{stat.weightKg}kg</div>}
-                    {stat.heightCm != null && <div className="calendar-stat height">{stat.heightCm}cm</div>}
-                  </>
-                );
-              }}
-            />
-            <div className="calendar-legend">
-              <span>
-                <i className="legend-dot weight" /> Cân nặng (kg)
-              </span>
-              <span>
-                <i className="legend-dot height" /> Chiều cao (cm)
-              </span>
-            </div>
-          </section>
         </>
       )}
     </div>

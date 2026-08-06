@@ -1,8 +1,9 @@
 import type { RecordType } from "./types";
 
 // "custom" ("Tùy chọn") đã bị bỏ khỏi NOTE_TYPE_ORDER (không cho tạo mới nữa, thay bằng
-// "sua_ra_dong") nhưng vẫn giữ meta ở đây để các bản ghi "custom" cũ đã lưu trước đây vẫn
-// hiển thị đúng icon/nhãn trong Timeline/lịch sử — xoá hẳn sẽ làm crash phần render dữ liệu cũ.
+// "sua_ra_dong"), và "can_nang"/"chieu_cao" cũng đã bị bỏ (thay bằng màn hình riêng
+// "Chiều Cao Cân Nặng" ở Home) nhưng vẫn giữ meta ở đây để các bản ghi cũ đã lưu trước đây
+// vẫn hiển thị đúng icon/nhãn trong Timeline/lịch sử — xoá hẳn sẽ làm crash phần render dữ liệu cũ.
 export const ACTIVITY_META: Record<RecordType, { label: string; icon: string; accent: string }> = {
   hut_sua: { label: "Hút sữa", icon: "🍼", accent: "#2a78d6" },
   ti_me: { label: "Ti mẹ", icon: "🤱", accent: "#e0467a" },
@@ -30,7 +31,5 @@ export const NOTE_TYPE_ORDER: NoteTab[] = [
   "non_tro",
   "di_nang",
   "di_nhe",
-  "can_nang",
-  "chieu_cao",
   "sua_ra_dong",
 ];

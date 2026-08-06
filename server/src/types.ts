@@ -148,3 +148,21 @@ export interface ThawedMilkBody {
   takenOutAt?: string;
   expiryHours?: number;
 }
+
+export interface GrowthRecordRow {
+  id: number;
+  account: string;
+  date: string;
+  milestone_label: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  created_at: string;
+}
+
+export interface GrowthRecordBody {
+  account?: string;
+  date?: string;
+  milestoneLabel?: string;
+  heightCm?: number;
+  weightKg?: number;
+}
