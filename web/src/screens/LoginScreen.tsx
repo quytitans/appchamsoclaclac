@@ -8,13 +8,14 @@ interface Props {
 }
 
 export default function LoginScreen({ onLogin }: Props) {
-  const [accountMode, setAccountMode] = useState<"laclac" | "other">("laclac");
+  const [accountMode, setAccountMode] = useState<"laclac" | "admin" | "other">("laclac");
   const [otherAccount, setOtherAccount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [checking, setChecking] = useState(false);
 
-  const account = accountMode === "laclac" ? "laclac" : otherAccount.trim();
+  const account =
+    accountMode === "laclac" ? "laclac" : accountMode === "admin" ? "admin" : otherAccount.trim();
 
   async function handleComplete(pin: string) {
     if (!account) {
@@ -53,6 +54,18 @@ export default function LoginScreen({ onLogin }: Props) {
           }}
         >
           🍼 Lạc Lạc
+        </button>
+        <button
+          type="button"
+          className={`account-radio ${accountMode === "admin" ? "active" : ""}`}
+          onClick={() => {
+            setAccountMode("admin");
+            setOtherAccount("");
+            setError(null);
+            setResetKey((k) => k + 1);
+          }}
+        >
+          👑 Admin
         </button>
         <button
           type="button"

@@ -1296,10 +1296,10 @@ body {
 
 .account-toggle {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin: 20px 0 12px;
   width: 100%;
-  max-width: 280px;
+  max-width: 340px;
 }
 
 .account-radio {
@@ -1307,10 +1307,11 @@ body {
   border: 2px solid var(--main-pink);
   background: var(--white);
   color: var(--text-dark);
-  padding: 12px 8px;
+  padding: 12px 6px;
   border-radius: 14px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .account-radio.active {
