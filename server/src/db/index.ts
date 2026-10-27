@@ -141,6 +141,9 @@ db.exec(`
   if (!existingVaccineColumns.includes("note")) {
     db.exec(`ALTER TABLE vaccines ADD COLUMN note TEXT`);
   }
+  if (!existingVaccineColumns.includes("followed")) {
+    db.exec(`ALTER TABLE vaccines ADD COLUMN followed INTEGER NOT NULL DEFAULT 1`);
+  }
 }
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccines_account ON vaccines(account)`);

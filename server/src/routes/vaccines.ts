@@ -51,6 +51,10 @@ function mapDose(d: VaccineDoseRow) {
   return { ...d, planned: d.planned === 1 };
 }
 
+function mapVaccine(v: VaccineRow) {
+  return { ...v, followed: v.followed === 1 };
+}
+
 function getDosesSummary(vaccineId: number) {
   const doses = db
     .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? ORDER BY dose_number ASC")
@@ -115,7 +119,7 @@ vaccinesRouter.get("/", (req, res) => {
           .all(account, profileId)
       : db.prepare("SELECT * FROM vaccines WHERE account = ? ORDER BY sort_order ASC").all(account)
   ) as unknown as VaccineRow[];
-  res.json(vaccines.map((v) => ({ ...v, ...getVaccineExtras(v.id, v) })));
+  res.json(vaccines.map((v) => ({ ...mapVaccine(v), ...getVaccineExtras(v.id, v) })));
 });
 
 // profileId không bắt buộc — khi bỏ qua, trả về mũi sắp tới trên TẤT CẢ các sổ tiêm
@@ -161,7 +165,7 @@ vaccinesRouter.get("/:id", (req, res) => {
     .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? ORDER BY dose_number ASC")
     .all(id) as unknown as VaccineDoseRow[];
   const doseCount = doses.filter((d) => d.planned !== 1).length;
-  res.json({ ...vaccine, doses: doses.map(mapDose), nextDue: getNextDue(id, vaccine, doseCount) });
+  res.json({ ...mapVaccine(vaccine), doses: doses.map(mapDose), nextDue: getNextDue(id, vaccine, doseCount) });
 });
 
 vaccinesRouter.post("/", (req, res) => {
@@ -197,7 +201,7 @@ vaccinesRouter.post("/", (req, res) => {
   const vaccineId = result.lastInsertRowid as number;
   recalcExpiry(vaccineId);
   const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(vaccineId) as unknown as VaccineRow;
-  res.status(201).json({ ...vaccine, ...getVaccineExtras(vaccineId, vaccine) });
+  res.status(201).json({ ...mapVaccine(vaccine), ...getVaccineExtras(vaccineId, vaccine) });
 });
 
 vaccinesRouter.put("/:id", (req, res) => {
@@ -228,7 +232,7 @@ vaccinesRouter.put("/:id", (req, res) => {
   );
   recalcExpiry(id);
   const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(id) as unknown as VaccineRow;
-  res.json({ ...vaccine, ...getVaccineExtras(id, vaccine) });
+  res.json({ ...mapVaccine(vaccine), ...getVaccineExtras(id, vaccine) });
 });
 
 vaccinesRouter.delete("/:id", (req, res) => {
@@ -276,6 +280,25 @@ vaccinesRouter.post("/:id/reorder", (req, res) => {
   res.json({ success: true });
 });
 
+// Trạng thái theo dõi/bỏ theo dõi lưu ở server (không phải localStorage) để đồng bộ
+// giữa mọi thiết bị đang đăng nhập cùng 1 tài khoản.
+vaccinesRouter.post("/:id/follow", (req, res) => {
+  const id = Number(req.params.id);
+  const { account, following } = req.body as { account?: string; following?: boolean };
+  if (!isValidAccountId(account) || typeof following !== "boolean") {
+    res.status(400).json({ error: "Thiếu tham số" });
+    return;
+  }
+  const existing = getVaccineForAccount(id, account);
+  if (!existing) {
+    res.status(404).json({ error: "Không tìm thấy vắc-xin" });
+    return;
+  }
+  db.prepare("UPDATE vaccines SET followed = ? WHERE id = ?").run(following ? 1 : 0, id);
+  const vaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(id) as unknown as VaccineRow;
+  res.json({ ...mapVaccine(vaccine), ...getVaccineExtras(id, vaccine) });
+});
+
 vaccinesRouter.post("/:id/confirm-dose", (req, res) => {
   const id = Number(req.params.id);
   const { account, date } = req.body as { account?: string; date?: string };
@@ -307,7 +330,7 @@ vaccinesRouter.post("/:id/confirm-dose", (req, res) => {
   recalcExpiry(id);
 
   const updatedVaccine = db.prepare("SELECT * FROM vaccines WHERE id = ?").get(id) as unknown as VaccineRow;
-  res.json({ ...updatedVaccine, ...getVaccineExtras(id, updatedVaccine) });
+  res.json({ ...mapVaccine(updatedVaccine), ...getVaccineExtras(id, updatedVaccine) });
 });
 
 interface DoseBody {

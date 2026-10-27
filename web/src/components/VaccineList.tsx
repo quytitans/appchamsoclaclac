@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { confirmVaccineDose, fetchVaccines, reorderVaccine } from "../api";
+import { confirmVaccineDose, fetchVaccines, reorderVaccine, setVaccineFollow } from "../api";
 import { todayDateStr } from "../dateUtils";
 import { colorIndexForId } from "../colorUtils";
 import VaccineDetailCard from "./VaccineDetailCard";
@@ -15,19 +15,6 @@ interface Props {
   account: string;
   profileId: number;
   focusRequest?: FocusRequest | null;
-}
-
-function unfollowedStorageKey(account: string, profileId: number): string {
-  return `vaccine_unfollowed_${account}_${profileId}`;
-}
-
-function loadUnfollowedIds(account: string, profileId: number): Set<number> {
-  try {
-    const raw = localStorage.getItem(unfollowedStorageKey(account, profileId));
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch {
-    return new Set();
-  }
 }
 
 function FollowToggle({
@@ -57,9 +44,6 @@ export default function VaccineList({ account, profileId, focusRequest }: Props)
   const [loading, setLoading] = useState(true);
   const [modalId, setModalId] = useState<number | null>(null);
   const [detailRefreshSignal, setDetailRefreshSignal] = useState(0);
-  const [unfollowedIds, setUnfollowedIds] = useState<Set<number>>(() =>
-    loadUnfollowedIds(account, profileId)
-  );
 
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [confirmDate, setConfirmDate] = useState("");
@@ -71,26 +55,17 @@ export default function VaccineList({ account, profileId, focusRequest }: Props)
     nextDoseNumber: number;
   } | null>(null);
 
-  useEffect(() => {
-    setUnfollowedIds(loadUnfollowedIds(account, profileId));
-  }, [account, profileId]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(unfollowedStorageKey(account, profileId), JSON.stringify([...unfollowedIds]));
-    } catch {
-      // ignore storage errors (private mode, quota, etc.)
-    }
-  }, [account, profileId, unfollowedIds]);
-
-  function toggleFollow(id: number, e?: MouseEvent) {
+  // Lưu ở server (không phải localStorage) để đồng bộ giữa mọi thiết bị đăng nhập
+  // cùng 1 tài khoản — cập nhật lạc quan trên UI, phục hồi nếu request lỗi.
+  async function toggleFollow(v: VaccineSummary, e?: MouseEvent) {
     e?.stopPropagation();
-    setUnfollowedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    const nextFollowing = !v.followed;
+    setVaccines((prev) => prev.map((x) => (x.id === v.id ? { ...x, followed: nextFollowing } : x)));
+    try {
+      await setVaccineFollow(v.id, account, nextFollowing);
+    } catch {
+      setVaccines((prev) => prev.map((x) => (x.id === v.id ? { ...x, followed: !nextFollowing } : x)));
+    }
   }
 
   const filteredVaccines = useMemo(() => {
@@ -101,14 +76,8 @@ export default function VaccineList({ account, profileId, focusRequest }: Props)
     );
   }, [vaccines, search]);
 
-  const gridVaccines = useMemo(
-    () => filteredVaccines.filter((v) => !unfollowedIds.has(v.id)),
-    [filteredVaccines, unfollowedIds]
-  );
-  const collapsedVaccines = useMemo(
-    () => filteredVaccines.filter((v) => unfollowedIds.has(v.id)),
-    [filteredVaccines, unfollowedIds]
-  );
+  const gridVaccines = useMemo(() => filteredVaccines.filter((v) => v.followed), [filteredVaccines]);
+  const collapsedVaccines = useMemo(() => filteredVaccines.filter((v) => !v.followed), [filteredVaccines]);
 
   const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const prevRectsRef = useRef<Map<number, DOMRect> | null>(null);
@@ -228,7 +197,7 @@ export default function VaccineList({ account, profileId, focusRequest }: Props)
                   >
                     ▼
                   </button>
-                  <FollowToggle following={!unfollowedIds.has(v.id)} onToggle={(e) => toggleFollow(v.id, e)} />
+                  <FollowToggle following={v.followed} onToggle={(e) => toggleFollow(v, e)} />
                 </div>
               </button>
 
@@ -275,7 +244,7 @@ export default function VaccineList({ account, profileId, focusRequest }: Props)
               </button>
               <div className="vaccine-collapsed-follow">
                 <span className="vaccine-collapsed-follow-label">Theo dõi lại</span>
-                <FollowToggle following={false} onToggle={(e) => toggleFollow(v.id, e)} />
+                <FollowToggle following={false} onToggle={(e) => toggleFollow(v, e)} />
               </div>
             </div>
           ))}

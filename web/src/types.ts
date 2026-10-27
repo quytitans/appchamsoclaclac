@@ -179,6 +179,7 @@ export interface VaccineSummary {
   expiry_year: number | null;
   next_dose_date: string | null;
   note: string | null;
+  followed: boolean;
   sort_order: number;
   created_at: string;
   doseCount: number;

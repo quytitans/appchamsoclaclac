@@ -320,6 +320,14 @@ export function reorderVaccine(id: number, account: string, direction: "up" | "d
   }).then((res) => handleResponse<void>(res));
 }
 
+export function setVaccineFollow(id: number, account: string, following: boolean): Promise<VaccineSummary> {
+  return fetch(`${API_BASE}/vaccines/${id}/follow`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ account, following }),
+  }).then((res) => handleResponse<VaccineSummary>(res));
+}
+
 export function confirmVaccineDose(id: number, account: string, date: string): Promise<VaccineSummary> {
   return fetch(`${API_BASE}/vaccines/${id}/confirm-dose`, {
     method: "POST",

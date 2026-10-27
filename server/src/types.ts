@@ -89,6 +89,7 @@ export interface VaccineRow {
   expiry_year: number | null;
   next_dose_date: string | null;
   note: string | null;
+  followed: number;
   sort_order: number;
   created_at: string;
 }
