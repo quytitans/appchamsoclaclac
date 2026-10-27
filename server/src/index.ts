@@ -50,9 +50,25 @@ app.use("/api/uploads", uploadsRouter);
 app.use("/api/thawed-milk", thawedMilkRouter);
 app.use("/api/growth", growthRouter);
 
+// Vite hashes filenames under /assets/ on every build, so those can be cached forever;
+// index.html must never be cached (no Cache-Control before meant some mobile browsers/
+// edge proxies kept serving a stale index.html — and with it, the old hashed bundle —
+// long after a new version was deployed).
 const webDist = path.join(__dirname, "..", "..", "web", "dist");
-app.use(express.static(webDist));
+app.use(
+  express.static(webDist, {
+    index: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      } else {
+        res.setHeader("Cache-Control", "no-cache");
+      }
+    },
+  })
+);
 app.get(/^\/(?!api).*/, (_req, res) => {
+  res.setHeader("Cache-Control", "no-cache");
   res.sendFile(path.join(webDist, "index.html"));
 });
 
