@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { confirmVaccineDose, fetchVaccines, reorderVaccine } from "../api";
 import { todayDateStr } from "../dateUtils";
+import { colorIndexForId } from "../colorUtils";
 import VaccineDetailCard from "./VaccineDetailCard";
+import NextDoseModal from "./NextDoseModal";
 import type { VaccineSummary } from "../types";
 
 interface FocusRequest {
@@ -11,16 +13,17 @@ interface FocusRequest {
 
 interface Props {
   account: string;
+  profileId: number;
   focusRequest?: FocusRequest | null;
 }
 
-function unfollowedStorageKey(account: string): string {
-  return `vaccine_unfollowed_${account}`;
+function unfollowedStorageKey(account: string, profileId: number): string {
+  return `vaccine_unfollowed_${account}_${profileId}`;
 }
 
-function loadUnfollowedIds(account: string): Set<number> {
+function loadUnfollowedIds(account: string, profileId: number): Set<number> {
   try {
-    const raw = localStorage.getItem(unfollowedStorageKey(account));
+    const raw = localStorage.getItem(unfollowedStorageKey(account, profileId));
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch {
     return new Set();
@@ -49,29 +52,36 @@ function FollowToggle({
   );
 }
 
-export default function VaccineList({ account, focusRequest }: Props) {
+export default function VaccineList({ account, profileId, focusRequest }: Props) {
   const [vaccines, setVaccines] = useState<VaccineSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalId, setModalId] = useState<number | null>(null);
   const [detailRefreshSignal, setDetailRefreshSignal] = useState(0);
-  const [unfollowedIds, setUnfollowedIds] = useState<Set<number>>(() => loadUnfollowedIds(account));
+  const [unfollowedIds, setUnfollowedIds] = useState<Set<number>>(() =>
+    loadUnfollowedIds(account, profileId)
+  );
 
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [confirmDate, setConfirmDate] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [search, setSearch] = useState("");
+  const [nextDosePrompt, setNextDosePrompt] = useState<{
+    vaccineId: number;
+    vaccineName: string;
+    nextDoseNumber: number;
+  } | null>(null);
 
   useEffect(() => {
-    setUnfollowedIds(loadUnfollowedIds(account));
-  }, [account]);
+    setUnfollowedIds(loadUnfollowedIds(account, profileId));
+  }, [account, profileId]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(unfollowedStorageKey(account), JSON.stringify([...unfollowedIds]));
+      localStorage.setItem(unfollowedStorageKey(account, profileId), JSON.stringify([...unfollowedIds]));
     } catch {
       // ignore storage errors (private mode, quota, etc.)
     }
-  }, [account, unfollowedIds]);
+  }, [account, profileId, unfollowedIds]);
 
   function toggleFollow(id: number, e?: MouseEvent) {
     e?.stopPropagation();
@@ -105,10 +115,10 @@ export default function VaccineList({ account, focusRequest }: Props) {
 
   const load = useCallback(() => {
     setLoading(true);
-    return fetchVaccines(account)
+    return fetchVaccines(account, profileId)
       .then(setVaccines)
       .finally(() => setLoading(false));
-  }, [account]);
+  }, [account, profileId]);
 
   useEffect(() => {
     load();
@@ -156,10 +166,15 @@ export default function VaccineList({ account, focusRequest }: Props) {
   async function handleConfirm(id: number) {
     setConfirming(true);
     try {
-      await confirmVaccineDose(id, account, confirmDate);
+      const updated = await confirmVaccineDose(id, account, confirmDate);
       setConfirmingId(null);
       setDetailRefreshSignal((k) => k + 1);
       await load();
+      setNextDosePrompt({
+        vaccineId: id,
+        vaccineName: updated.vaccine_name,
+        nextDoseNumber: updated.doseCount + 1,
+      });
     } finally {
       setConfirming(false);
     }
@@ -186,37 +201,34 @@ export default function VaccineList({ account, focusRequest }: Props) {
           return (
             <div
               key={v.id}
-              className="vaccine-list-card"
+              className={`vaccine-list-card vaccine-color-${colorIndexForId(v.id)}`}
               ref={(el) => {
                 if (el) itemRefs.current.set(v.id, el);
                 else itemRefs.current.delete(v.id);
               }}
             >
               <button className="vaccine-list-item" onClick={() => setModalId(v.id)}>
-                <div className="vaccine-card-top">
-                  <span className="vaccine-list-icon">💉</span>
-                  <div className="vaccine-list-reorder">
-                    <button
-                      className="date-nav-button"
-                      disabled={idx === 0}
-                      onClick={(e) => handleMove(v.id, "up", e)}
-                    >
-                      ▲
-                    </button>
-                    <button
-                      className="date-nav-button"
-                      disabled={idx === gridVaccines.length - 1}
-                      onClick={(e) => handleMove(v.id, "down", e)}
-                    >
-                      ▼
-                    </button>
-                    <FollowToggle following={!unfollowedIds.has(v.id)} onToggle={(e) => toggleFollow(v.id, e)} />
-                  </div>
-                </div>
+                <span className="vaccine-list-icon">💉</span>
                 <div className="vaccine-list-info">
                   <div className="vaccine-list-name">{v.vaccine_name}</div>
                   <div className="vaccine-list-disease">{v.disease_name}</div>
-                  <div className="vaccine-card-spacer" />
+                </div>
+                <div className="vaccine-list-reorder">
+                  <button
+                    className="date-nav-button"
+                    disabled={idx === 0}
+                    onClick={(e) => handleMove(v.id, "up", e)}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    className="date-nav-button"
+                    disabled={idx === gridVaccines.length - 1}
+                    onClick={(e) => handleMove(v.id, "down", e)}
+                  >
+                    ▼
+                  </button>
+                  <FollowToggle following={!unfollowedIds.has(v.id)} onToggle={(e) => toggleFollow(v.id, e)} />
                 </div>
               </button>
 
@@ -287,6 +299,20 @@ export default function VaccineList({ account, focusRequest }: Props) {
             />
           </div>
         </div>
+      )}
+
+      {nextDosePrompt && (
+        <NextDoseModal
+          account={account}
+          vaccineId={nextDosePrompt.vaccineId}
+          vaccineName={nextDosePrompt.vaccineName}
+          nextDoseNumber={nextDosePrompt.nextDoseNumber}
+          onClose={() => setNextDosePrompt(null)}
+          onCreated={() => {
+            setDetailRefreshSignal((k) => k + 1);
+            load();
+          }}
+        />
       )}
     </div>
   );

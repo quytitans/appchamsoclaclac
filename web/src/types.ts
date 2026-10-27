@@ -130,6 +130,24 @@ export interface UpcomingDose {
 }
 
 export type VaccineDurationType = "lifetime" | "limited" | "yearly";
+export type VaccineProfileType = "baby" | "male" | "female" | "cat" | "dog";
+
+export interface VaccineProfile {
+  id: number;
+  account: string;
+  name: string;
+  profileType: VaccineProfileType;
+  reminderEmails: string[];
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface VaccineProfilePayload {
+  account: string;
+  name: string;
+  profileType: VaccineProfileType;
+  reminderEmails?: string[];
+}
 
 export interface VaccineDose {
   id: number;
@@ -151,6 +169,7 @@ export interface NextDue {
 export interface VaccineSummary {
   id: number;
   account: string;
+  profile_id: number | null;
   disease_name: string;
   vaccine_name: string;
   total_doses: number | null;
@@ -173,6 +192,7 @@ export interface VaccineDetail extends Omit<VaccineSummary, "doseCount" | "lates
 
 export interface VaccinePayload {
   account: string;
+  profileId?: number;
   diseaseName: string;
   vaccineName: string;
   totalDoses?: number;
@@ -257,4 +277,11 @@ export interface UploadedImage {
   width: number | null;
   height: number | null;
   created_at: string;
+}
+
+export type FeatureKey = "NOTE_STATS" | "VACCINE" | "DIARY" | "GROWTH";
+
+export interface FeatureFlag {
+  key: FeatureKey;
+  enabled: boolean;
 }

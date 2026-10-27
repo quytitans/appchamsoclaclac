@@ -2,12 +2,14 @@ import { Router } from "express";
 import { db } from "../db/index.js";
 import { isValidAccountId } from "../hash.js";
 import { todayStr } from "../dateUtils.js";
+import { getProfileForAccount } from "./vaccineProfiles.js";
 import type { NextDue, VaccineDoseRow, VaccineDurationType, VaccineRow } from "../types.js";
 
 export const vaccinesRouter = Router();
 
 interface VaccineBody {
   account?: string;
+  profileId?: number;
   diseaseName?: string;
   vaccineName?: string;
   totalDoses?: number;
@@ -30,6 +32,12 @@ function validateVaccineBody(body: VaccineBody): string | null {
     }
   }
   if (typeof body.totalDoses === "number" && body.totalDoses < 0) return "Tổng số mũi không được âm";
+  return null;
+}
+
+function validateProfileId(account: string, profileId: unknown): string | null {
+  if (typeof profileId !== "number") return "Thiếu sổ tiêm chủng";
+  if (!getProfileForAccount(profileId, account)) return "Không tìm thấy sổ tiêm chủng";
   return null;
 }
 
@@ -95,23 +103,35 @@ function recalcExpiry(vaccineId: number) {
 
 vaccinesRouter.get("/", (req, res) => {
   const account = req.query.account as string | undefined;
+  const profileId = req.query.profileId ? Number(req.query.profileId) : undefined;
   if (!isValidAccountId(account)) {
     res.status(400).json({ error: "Thiếu tham số account" });
     return;
   }
-  const vaccines = db
-    .prepare("SELECT * FROM vaccines WHERE account = ? ORDER BY sort_order ASC")
-    .all(account) as unknown as VaccineRow[];
+  const vaccines = (
+    profileId != null
+      ? db
+          .prepare("SELECT * FROM vaccines WHERE account = ? AND profile_id = ? ORDER BY sort_order ASC")
+          .all(account, profileId)
+      : db.prepare("SELECT * FROM vaccines WHERE account = ? ORDER BY sort_order ASC").all(account)
+  ) as unknown as VaccineRow[];
   res.json(vaccines.map((v) => ({ ...v, ...getVaccineExtras(v.id, v) })));
 });
 
+// profileId không bắt buộc — khi bỏ qua, trả về mũi sắp tới trên TẤT CẢ các sổ tiêm
+// chủng của account (dùng cho cảnh báo "đến hạn" ở trang chủ, không gắn 1 sổ cụ thể).
 vaccinesRouter.get("/upcoming-doses", (req, res) => {
   const account = req.query.account as string | undefined;
+  const profileId = req.query.profileId ? Number(req.query.profileId) : undefined;
   if (!isValidAccountId(account)) {
     res.status(400).json({ error: "Thiếu tham số account" });
     return;
   }
-  const vaccines = db.prepare("SELECT * FROM vaccines WHERE account = ?").all(account) as unknown as VaccineRow[];
+  const vaccines = (
+    profileId != null
+      ? db.prepare("SELECT * FROM vaccines WHERE account = ? AND profile_id = ?").all(account, profileId)
+      : db.prepare("SELECT * FROM vaccines WHERE account = ?").all(account)
+  ) as unknown as VaccineRow[];
 
   const results: { vaccineId: number; vaccineName: string; doseNumber: number; date: string; overdue: boolean }[] = [];
   for (const v of vaccines) {
@@ -146,22 +166,23 @@ vaccinesRouter.get("/:id", (req, res) => {
 
 vaccinesRouter.post("/", (req, res) => {
   const body = req.body as VaccineBody;
-  const error = validateVaccineBody(body);
+  const error = validateVaccineBody(body) ?? validateProfileId(body.account as string, body.profileId);
   if (error) {
     res.status(400).json({ error });
     return;
   }
   const maxOrder = db
-    .prepare("SELECT COALESCE(MAX(sort_order), -1) AS m FROM vaccines WHERE account = ?")
-    .get(body.account as string) as unknown as { m: number };
+    .prepare("SELECT COALESCE(MAX(sort_order), -1) AS m FROM vaccines WHERE profile_id = ?")
+    .get(body.profileId as number) as unknown as { m: number };
 
   const result = db
     .prepare(
-      `INSERT INTO vaccines (account, disease_name, vaccine_name, total_doses, duration_type, duration_years, expiry_month, expiry_year, next_dose_date, note, sort_order, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?)`
+      `INSERT INTO vaccines (account, profile_id, disease_name, vaccine_name, total_doses, duration_type, duration_years, expiry_month, expiry_year, next_dose_date, note, sort_order, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?)`
     )
     .run(
       body.account as string,
+      body.profileId as number,
       body.diseaseName!.trim(),
       body.vaccineName!.trim(),
       body.totalDoses ?? null,
@@ -242,10 +263,10 @@ vaccinesRouter.post("/:id/reorder", (req, res) => {
   const neighbor = db
     .prepare(
       direction === "up"
-        ? "SELECT * FROM vaccines WHERE account = ? AND sort_order < ? ORDER BY sort_order DESC LIMIT 1"
-        : "SELECT * FROM vaccines WHERE account = ? AND sort_order > ? ORDER BY sort_order ASC LIMIT 1"
+        ? "SELECT * FROM vaccines WHERE account = ? AND profile_id = ? AND sort_order < ? ORDER BY sort_order DESC LIMIT 1"
+        : "SELECT * FROM vaccines WHERE account = ? AND profile_id = ? AND sort_order > ? ORDER BY sort_order ASC LIMIT 1"
     )
-    .get(account, current.sort_order) as VaccineRow | undefined;
+    .get(account, current.profile_id, current.sort_order) as VaccineRow | undefined;
   if (!neighbor) {
     res.json({ success: true });
     return;

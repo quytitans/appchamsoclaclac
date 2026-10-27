@@ -20,7 +20,10 @@ import type {
   VaccineDetail,
   VaccineDose,
   VaccinePayload,
+  VaccineProfile,
+  VaccineProfilePayload,
   VaccineSummary,
+  FeatureFlag,
 } from "./types";
 
 const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/+/g, "/");
@@ -228,16 +231,57 @@ export function adminDeleteAccount(token: string, targetAccount: string): Promis
   }).then((res) => handleResponse<void>(res));
 }
 
-export function fetchVaccines(account: string): Promise<VaccineSummary[]> {
-  return fetch(`${API_BASE}/vaccines?account=${encodeURIComponent(account)}`).then((res) =>
-    handleResponse<VaccineSummary[]>(res)
+export function fetchVaccines(account: string, profileId: number): Promise<VaccineSummary[]> {
+  return fetch(
+    `${API_BASE}/vaccines?account=${encodeURIComponent(account)}&profileId=${profileId}`
+  ).then((res) => handleResponse<VaccineSummary[]>(res));
+}
+
+export function fetchUpcomingDoses(account: string, profileId?: number): Promise<UpcomingDose[]> {
+  const profileParam = profileId != null ? `&profileId=${profileId}` : "";
+  return fetch(`${API_BASE}/vaccines/upcoming-doses?account=${encodeURIComponent(account)}${profileParam}`).then(
+    (res) => handleResponse<UpcomingDose[]>(res)
   );
 }
 
-export function fetchUpcomingDoses(account: string): Promise<UpcomingDose[]> {
-  return fetch(`${API_BASE}/vaccines/upcoming-doses?account=${encodeURIComponent(account)}`).then((res) =>
-    handleResponse<UpcomingDose[]>(res)
+export function fetchVaccineProfiles(account: string): Promise<VaccineProfile[]> {
+  return fetch(`${API_BASE}/vaccine-profiles?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<VaccineProfile[]>(res)
   );
+}
+
+export function createVaccineProfile(payload: VaccineProfilePayload): Promise<VaccineProfile> {
+  return fetch(`${API_BASE}/vaccine-profiles`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<VaccineProfile>(res));
+}
+
+export function updateVaccineProfile(id: number, payload: VaccineProfilePayload): Promise<VaccineProfile> {
+  return fetch(`${API_BASE}/vaccine-profiles/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<VaccineProfile>(res));
+}
+
+export function deleteVaccineProfile(id: number, account: string): Promise<void> {
+  return fetch(`${API_BASE}/vaccine-profiles/${id}?account=${encodeURIComponent(account)}`, {
+    method: "DELETE",
+  }).then((res) => handleResponse<void>(res));
+}
+
+export function fetchFeatures(): Promise<FeatureFlag[]> {
+  return fetch(`${API_BASE}/features`).then((res) => handleResponse<FeatureFlag[]>(res));
+}
+
+export function adminToggleFeature(token: string, key: string, enabled: boolean): Promise<void> {
+  return fetch(`${API_BASE}/features/toggle`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, key, enabled }),
+  }).then((res) => handleResponse<void>(res));
 }
 
 export function fetchVaccineDetail(id: number, account: string): Promise<VaccineDetail> {

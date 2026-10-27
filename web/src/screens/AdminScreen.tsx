@@ -10,9 +10,18 @@ import {
   adminResetPin,
   adminSetActive,
   adminSetPremium,
+  adminToggleFeature,
+  fetchFeatures,
 } from "../api";
-import type { AccountSummary, ErrorLogEntry, Session, UsageLogEntry } from "../types";
+import type { AccountSummary, ErrorLogEntry, FeatureFlag, FeatureKey, Session, UsageLogEntry } from "../types";
 import type { Screen } from "../App";
+
+const FEATURE_LABELS: Record<FeatureKey, { icon: string; label: string }> = {
+  NOTE_STATS: { icon: "📝📊", label: "Note Thông Tin & Xem Thống Kê" },
+  VACCINE: { icon: "💉", label: "Sổ Tiêm Chủng Online" },
+  DIARY: { icon: "📔", label: "Nhật Ký Của Mẹ" },
+  GROWTH: { icon: "📏", label: "Chiều Cao Cân Nặng" },
+};
 
 interface Props {
   session: Session;
@@ -50,6 +59,10 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
   const [usageLogs, setUsageLogs] = useState<UsageLogEntry[]>([]);
   const [usageLogsLoading, setUsageLogsLoading] = useState(false);
   const [showUsageLogs, setShowUsageLogs] = useState(false);
+
+  const [features, setFeatures] = useState<FeatureFlag[]>([]);
+  const [featuresLoading, setFeaturesLoading] = useState(true);
+  const [togglingFeature, setTogglingFeature] = useState<string | null>(null);
 
   const filteredAccounts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -96,6 +109,31 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
     const next = !showUsageLogs;
     setShowUsageLogs(next);
     if (next) loadUsageLogs();
+  }
+
+  const loadFeatures = useCallback(() => {
+    setFeaturesLoading(true);
+    return fetchFeatures()
+      .then(setFeatures)
+      .catch((err) => setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" }))
+      .finally(() => setFeaturesLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadFeatures();
+  }, [loadFeatures]);
+
+  async function handleToggleFeature(key: FeatureKey, nextEnabled: boolean) {
+    setTogglingFeature(key);
+    setMessage(null);
+    try {
+      await adminToggleFeature(session.token, key, nextEnabled);
+      setFeatures((prev) => prev.map((f) => (f.key === key ? { ...f, enabled: nextEnabled } : f)));
+    } catch (err) {
+      setMessage({ kind: "error", text: err instanceof Error ? err.message : "Đã có lỗi xảy ra" });
+    } finally {
+      setTogglingFeature(null);
+    }
   }
 
   async function handleCreate() {
@@ -313,6 +351,29 @@ export default function AdminScreen({ session, onNavigate, onSessionUpdate }: Pr
             ))}
         </section>
       )}
+
+      <section className="month-section">
+        <h3 className="month-section-title">⚙️ Quản lý chức năng trang chủ</h3>
+        <p className="admin-feature-hint">Tắt chức năng nào thì chức năng đó sẽ ẩn khỏi trang chủ của mọi tài khoản.</p>
+        {featuresLoading && <p className="loading-text">Đang tải...</p>}
+        {!featuresLoading &&
+          features.map((f) => (
+            <div key={f.key} className="account-row admin-feature-row">
+              <div className="account-row-info">
+                <div className="account-row-name">
+                  {FEATURE_LABELS[f.key]?.icon} {FEATURE_LABELS[f.key]?.label ?? f.key}
+                </div>
+              </div>
+              <button
+                className={`account-active-toggle ${f.enabled ? "active" : "inactive"}`}
+                onClick={() => handleToggleFeature(f.key, !f.enabled)}
+                disabled={togglingFeature === f.key}
+              >
+                {f.enabled ? "🟢 Đang bật" : "🔴 Đang tắt"}
+              </button>
+            </div>
+          ))}
+      </section>
 
       <section className="month-section">
         <h3 className="month-section-title">👥 Danh sách tài khoản</h3>

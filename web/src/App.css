@@ -179,32 +179,39 @@ body {
   font-size: 28px;
 }
 
-.vaccine-button-slot {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.vaccine-home-warning {
-  background: #e53935;
-  color: var(--white);
-  font-size: 14px;
-  font-weight: 800;
-  text-align: center;
-  padding: 10px 12px;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.4);
-  animation: vaccine-pulse 1.4s ease-in-out infinite;
+/* Có mũi tiêm quá hạn/đến hạn — thay vì banner cảnh báo riêng, đổi màu nền của chính
+   nút "Sổ Tiêm Chủng Online" và gắn ruy băng chéo góc trên-phải ghi "Quá hạn". */
+.big-card-button.big-card-button-overdue {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ff6b6b, #b71c1c);
+  animation: vaccine-pulse 1.6s ease-in-out infinite;
 }
 
 @keyframes vaccine-pulse {
   0%,
   100% {
-    opacity: 1;
+    box-shadow: var(--shadow);
   }
   50% {
-    opacity: 0.65;
+    box-shadow: 0 4px 18px rgba(183, 28, 28, 0.55);
   }
+}
+
+.overdue-ribbon {
+  position: absolute;
+  top: 13px;
+  right: -32px;
+  width: 120px;
+  transform: rotate(45deg);
+  background: #7f1010;
+  color: var(--white);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-align: center;
+  padding: 3px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .big-card-button {
@@ -844,15 +851,15 @@ body {
 .upcoming-dose-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
   border: none;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
   background: var(--soft-bg);
-  border-radius: 12px;
-  padding: 7px 10px;
+  border-radius: 14px;
+  padding: 10px 12px;
   transition: transform 0.12s ease;
 }
 
@@ -860,13 +867,34 @@ body {
   transform: scale(0.98);
 }
 
+/* Mỗi dòng 1 nền gradient riêng (cùng bảng màu với thẻ vắc-xin ở sổ, theo id vắc-xin)
+   — chữ chuyển trắng/đậm để luôn nổi bật, dễ đọc trên nền màu. */
+.upcoming-dose-color-0 {
+  background: linear-gradient(135deg, #ff8fc0, #c2185b);
+}
+.upcoming-dose-color-1 {
+  background: linear-gradient(135deg, #b39bff, #6d28d9);
+}
+.upcoming-dose-color-2 {
+  background: linear-gradient(135deg, #6fb6ff, #1d4ed8);
+}
+.upcoming-dose-color-3 {
+  background: linear-gradient(135deg, #4fdba0, #047857);
+}
+.upcoming-dose-color-4 {
+  background: linear-gradient(135deg, #ffb366, #c2410c);
+}
+.upcoming-dose-color-5 {
+  background: linear-gradient(135deg, #ff8a80, #b91c1c);
+}
+
 .upcoming-dose-item.overdue {
-  background: color-mix(in srgb, #e53935 10%, white);
+  background: linear-gradient(135deg, #ff6b6b, #b91c1c);
 }
 
 .upcoming-dose-icon {
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .upcoming-dose-text {
@@ -874,37 +902,37 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .upcoming-dose-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-dark);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--white);
 }
 
 .upcoming-dose-num {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .upcoming-dose-date {
   flex-shrink: 0;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--deep-pink);
   background: var(--white);
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
 }
 
 .upcoming-dose-item.overdue .upcoming-dose-date {
-  color: var(--white);
-  background: #e53935;
+  color: #b91c1c;
+  background: var(--white);
 }
 
 .kpi-value {
@@ -2044,38 +2072,30 @@ body {
 }
 
 .vaccine-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .vaccine-list-card {
   background: var(--white);
-  border-radius: 16px;
+  border-radius: 14px;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
 
-/* Khung vuông cho mỗi thẻ vắc-xin trong lưới 2 cột */
+/* Mỗi vắc-xin 1 hàng nhỏ, đầy đủ icon + tên/bệnh + nút sắp xếp/theo dõi */
 .vaccine-list-item {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  aspect-ratio: 1 / 1;
   background: var(--white);
   border: none;
   font-family: inherit;
-  padding: 12px;
+  padding: 10px 12px;
   text-align: left;
   cursor: pointer;
-}
-
-.vaccine-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 8px;
 }
 
 .vaccine-list-icon {
@@ -2092,9 +2112,10 @@ body {
 
 .vaccine-list-info {
   flex: 1;
-  min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .vaccine-list-name {
@@ -2102,24 +2123,17 @@ body {
   font-size: 13.5px;
   line-height: 1.25;
   color: var(--text-dark);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.vaccine-list-disease {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.vaccine-card-spacer {
-  flex: 1;
-  min-height: 6px;
+.vaccine-list-disease {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .vaccine-list-latest {
@@ -2145,6 +2159,50 @@ body {
 .vaccine-list-next.overdue {
   color: #c62828;
   font-weight: 800;
+}
+
+/* Mỗi vắc-xin 1 nền gradient riêng (theo id, ổn định) để phân biệt nhanh trong lưới —
+   chữ chuyển sang trắng/bán trong để luôn nổi bật & dễ đọc trên nền màu. */
+.vaccine-color-0 .vaccine-list-item {
+  background: linear-gradient(135deg, #ff8fc0, #c2185b);
+}
+.vaccine-color-1 .vaccine-list-item {
+  background: linear-gradient(135deg, #b39bff, #6d28d9);
+}
+.vaccine-color-2 .vaccine-list-item {
+  background: linear-gradient(135deg, #6fb6ff, #1d4ed8);
+}
+.vaccine-color-3 .vaccine-list-item {
+  background: linear-gradient(135deg, #4fdba0, #047857);
+}
+.vaccine-color-4 .vaccine-list-item {
+  background: linear-gradient(135deg, #ffb366, #c2410c);
+}
+.vaccine-color-5 .vaccine-list-item {
+  background: linear-gradient(135deg, #ff8a80, #b91c1c);
+}
+
+.vaccine-list-card[class*="vaccine-color-"] .vaccine-list-name {
+  color: var(--white);
+}
+
+.vaccine-list-card[class*="vaccine-color-"] .vaccine-list-disease,
+.vaccine-list-card[class*="vaccine-color-"] .vaccine-list-latest,
+.vaccine-list-card[class*="vaccine-color-"] .vaccine-list-next {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.vaccine-list-card[class*="vaccine-color-"] .vaccine-list-next.overdue {
+  color: #fff3cd;
+}
+
+.vaccine-list-card[class*="vaccine-color-"] .vaccine-list-icon {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.vaccine-list-card[class*="vaccine-color-"] .vaccine-list-reorder .date-nav-button {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-dark);
 }
 
 .vaccine-confirm-row {
@@ -2179,8 +2237,10 @@ body {
 }
 
 .vaccine-list-reorder {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 2px;
 }
 
@@ -3321,4 +3381,99 @@ body {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-dark);
+}
+
+/* Chọn sổ tiêm chủng (nhiều hồ sơ/account) */
+.vaccine-profile-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vaccine-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.vaccine-profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 1 / 1;
+  border: none;
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  padding: 16px 10px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.vaccine-profile-card:active {
+  transform: scale(0.97);
+}
+
+.vaccine-profile-icon {
+  font-size: 38px;
+  line-height: 1;
+}
+
+.vaccine-profile-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+.vaccine-profile-type {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.vaccine-profile-add {
+  background: var(--soft-bg);
+  border: 3px dashed var(--deep-pink);
+  box-shadow: none;
+}
+
+.vaccine-profile-add .vaccine-profile-icon {
+  color: var(--deep-pink);
+}
+
+.vaccine-profile-add .vaccine-profile-name {
+  color: var(--deep-pink);
+}
+
+.vaccine-profile-type-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.vaccine-switch-profile-button {
+  margin-left: auto;
+}
+
+.field-hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+/* Trang admin — bật/tắt chức năng trang chủ */
+.admin-feature-hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: -4px 0 10px;
+}
+
+.admin-feature-row {
+  align-items: center;
+}
+
+/* Hàng chỉ còn 1 nút (do admin tắt chức năng kia) thì không chia 2 cột để tránh khoảng trống */
+.home-actions-row:has(> :only-child) {
+  grid-template-columns: 1fr;
 }

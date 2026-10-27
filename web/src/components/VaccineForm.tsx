@@ -5,13 +5,15 @@ import { createVaccine } from "../api";
 
 interface Props {
   account: string;
+  profileId: number;
   onCreated?: (id: number) => void;
   onConfirmedSaved?: () => void;
 }
 
-export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Props) {
+export default function VaccineForm({ account, profileId, onCreated, onConfirmedSaved }: Props) {
   const [fields, setFields] = useState<VaccineFieldsState>(emptyVaccineFields());
   const [currentId, setCurrentId] = useState<number | null>(null);
+  const [currentVaccineName, setCurrentVaccineName] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -35,6 +37,7 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
     try {
       const created = await createVaccine({
         account,
+        profileId,
         diseaseName: fields.diseaseName.trim(),
         vaccineName: fields.vaccineName.trim(),
         totalDoses: fields.totalDoses ? Number(fields.totalDoses) : undefined,
@@ -43,6 +46,7 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
         note: fields.note.trim() || undefined,
       });
       setCurrentId(created.id);
+      setCurrentVaccineName(created.vaccine_name);
       onCreated?.(created.id);
       setShowConfirm(false);
       onConfirmedSaved?.();
@@ -78,7 +82,9 @@ export default function VaccineForm({ account, onCreated, onConfirmedSaved }: Pr
         </button>
       </div>
 
-      {currentId != null && <DoseHistorySection account={account} vaccineId={currentId} />}
+      {currentId != null && (
+        <DoseHistorySection account={account} vaccineId={currentId} vaccineName={currentVaccineName} />
+      )}
 
       {showConfirm && (
         <div className="modal-overlay">

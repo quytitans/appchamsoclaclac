@@ -8,7 +8,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "drive:auth": "tsx scripts/getGoogleRefreshToken.ts"
+    "drive:auth": "tsx scripts/getGoogleRefreshToken.ts",
+    "seed:vaccines": "tsx scripts/seedVaccineProfiles.ts"
   },
   "dependencies": {
     "@googleapis/drive": "^20.2.0",

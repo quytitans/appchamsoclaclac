@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { addVaccineDose, deleteVaccineDose, fetchVaccineDetail, updateVaccineDose } from "../api";
 import { todayDateStr } from "../dateUtils";
+import NextDoseModal from "./NextDoseModal";
 import type { VaccineDose } from "../types";
 
 interface Props {
   account: string;
   vaccineId: number;
+  vaccineName: string;
   onChanged?: () => void;
   refreshSignal?: number;
 }
@@ -22,10 +24,11 @@ function emptyDoseForm(nextNumber: number): DoseFormState {
   return { doseNumber: String(nextNumber), location: "", date: todayDateStr(), note: "", planned: false };
 }
 
-export default function DoseHistorySection({ account, vaccineId, onChanged, refreshSignal }: Props) {
+export default function DoseHistorySection({ account, vaccineId, vaccineName, onChanged, refreshSignal }: Props) {
   const [doses, setDoses] = useState<VaccineDose[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [nextDosePrompt, setNextDosePrompt] = useState<number | null>(null);
 
   const [doseEditorOpen, setDoseEditorOpen] = useState(false);
   const [editingDoseId, setEditingDoseId] = useState<number | null>(null);
@@ -119,6 +122,7 @@ export default function DoseHistorySection({ account, vaccineId, onChanged, refr
       });
       setDoses((prev) => prev.map((d) => (d.id === dose.id ? updated : d)));
       onChanged?.();
+      setNextDosePrompt(updated.dose_number + 1);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
     }
@@ -203,6 +207,20 @@ export default function DoseHistorySection({ account, vaccineId, onChanged, refr
         <button className="secondary-button add-dose-button" onClick={openAddDose}>
           ➕ Thêm mũi tiêm
         </button>
+      )}
+
+      {nextDosePrompt != null && (
+        <NextDoseModal
+          account={account}
+          vaccineId={vaccineId}
+          vaccineName={vaccineName}
+          nextDoseNumber={nextDosePrompt}
+          onClose={() => setNextDosePrompt(null)}
+          onCreated={() => {
+            load();
+            onChanged?.();
+          }}
+        />
       )}
     </section>
   );

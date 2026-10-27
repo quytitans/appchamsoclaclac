@@ -170,6 +170,97 @@ db.exec(`
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccine_doses_vaccine_id ON vaccine_doses(vaccine_id)`);
 
+// Một account có thể quản lý nhiều "sổ tiêm chủng" (nhiều người/pet khác nhau) —
+// mỗi sổ là 1 vaccine_profiles row, vaccines được gán vào 1 profile qua profile_id.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS vaccine_profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT NOT NULL,
+    name TEXT NOT NULL,
+    profile_type TEXT NOT NULL,
+    sort_order INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccine_profiles_account ON vaccine_profiles(account)`);
+
+{
+  const existingProfileColumns = db
+    .prepare("PRAGMA table_info(vaccine_profiles)")
+    .all()
+    .map((row: any) => row.name as string);
+  if (!existingProfileColumns.includes("reminder_emails")) {
+    db.exec(`ALTER TABLE vaccine_profiles ADD COLUMN reminder_emails TEXT`);
+  }
+}
+
+{
+  const existingVaccineColumns2 = db
+    .prepare("PRAGMA table_info(vaccines)")
+    .all()
+    .map((row: any) => row.name as string);
+  if (!existingVaccineColumns2.includes("profile_id")) {
+    db.exec(`ALTER TABLE vaccines ADD COLUMN profile_id INTEGER`);
+  }
+}
+
+// Vắc-xin tạo trước khi có khái niệm "sổ tiêm chủng" (nhiều sổ/account) đều thuộc
+// về 1 sổ mặc định (loại "baby", tên lấy theo baby_name) — gán profile_id cho các
+// vắc-xin cũ chưa có profile. Idempotent: chỉ ảnh hưởng vaccine còn NULL profile_id.
+function backfillVaccineProfiles() {
+  const orphanAccounts = db
+    .prepare("SELECT DISTINCT account FROM vaccines WHERE profile_id IS NULL")
+    .all() as { account: string }[];
+  for (const { account } of orphanAccounts) {
+    let profile = db
+      .prepare("SELECT id FROM vaccine_profiles WHERE account = ? ORDER BY sort_order ASC LIMIT 1")
+      .get(account) as { id: number } | undefined;
+    if (!profile) {
+      const accountRow = db.prepare("SELECT baby_name FROM accounts WHERE id = ?").get(account) as
+        | { baby_name: string }
+        | undefined;
+      const result = db
+        .prepare(
+          `INSERT INTO vaccine_profiles (account, name, profile_type, sort_order, created_at) VALUES (?, ?, 'baby', 0, ?)`
+        )
+        .run(account, accountRow?.baby_name ?? account, new Date().toISOString());
+      profile = { id: result.lastInsertRowid as number };
+    }
+    db.prepare("UPDATE vaccines SET profile_id = ? WHERE account = ? AND profile_id IS NULL").run(
+      profile.id,
+      account
+    );
+  }
+}
+
+backfillVaccineProfiles();
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccines_profile_id ON vaccines(profile_id)`);
+
+// Cờ bật/tắt từng chức năng ở trang chủ — admin tắt thì ẩn khỏi mọi tài khoản.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS feature_flags (
+    key TEXT PRIMARY KEY,
+    enabled INTEGER NOT NULL DEFAULT 1
+  )
+`);
+
+function seedFeatureFlag(key: string) {
+  const existing = db.prepare("SELECT key FROM feature_flags WHERE key = ?").get(key);
+  if (!existing) {
+    db.prepare("INSERT INTO feature_flags (key, enabled) VALUES (?, 1)").run(key);
+  }
+}
+
+// "Note Thông Tin" và "Xem Thống Kê" luôn hiển thị cùng nhau trên trang chủ nên
+// gộp chung 1 cờ NOTE_STATS — dọn 2 khóa tách rời cũ (nếu còn sót từ bản trước).
+db.prepare("DELETE FROM feature_flags WHERE key IN ('NOTE', 'STATS')").run();
+
+for (const key of ["NOTE_STATS", "VACCINE", "DIARY", "GROWTH"]) {
+  seedFeatureFlag(key);
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS diary_entries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

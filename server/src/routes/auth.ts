@@ -297,6 +297,7 @@ authRouter.post("/admin/delete-account", (req, res) => {
     db.prepare("DELETE FROM vaccine_doses WHERE vaccine_id = ?").run(v.id);
   }
   db.prepare("DELETE FROM vaccines WHERE account = ?").run(target.id);
+  db.prepare("DELETE FROM vaccine_profiles WHERE account = ?").run(target.id);
   db.prepare("DELETE FROM records WHERE account = ?").run(target.id);
   db.prepare("DELETE FROM accounts WHERE id = ?").run(target.id);
   res.json({ success: true });

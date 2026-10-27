@@ -59,10 +59,27 @@ export interface AccountRow {
 }
 
 export type VaccineDurationType = "lifetime" | "limited" | "yearly";
+export type VaccineProfileType = "baby" | "male" | "female" | "cat" | "dog";
+
+export interface VaccineProfileRow {
+  id: number;
+  account: string;
+  name: string;
+  profile_type: VaccineProfileType;
+  reminder_emails: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface FeatureFlagRow {
+  key: string;
+  enabled: number;
+}
 
 export interface VaccineRow {
   id: number;
   account: string;
+  profile_id: number | null;
   disease_name: string;
   vaccine_name: string;
   total_doses: number | null;

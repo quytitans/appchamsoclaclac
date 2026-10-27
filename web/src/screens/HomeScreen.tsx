@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Screen } from "../App";
-import type { Session } from "../types";
+import type { FeatureKey, Session } from "../types";
 import ChangePinModal from "../components/ChangePinModal";
-import { fetchVaccines } from "../api";
+import { fetchFeatures, fetchUpcomingDoses } from "../api";
 
 interface Props {
   session: Session;
@@ -14,14 +14,28 @@ interface Props {
 export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpdate }: Props) {
   const [showChangePin, setShowChangePin] = useState(false);
   const [hasOverdueVaccine, setHasOverdueVaccine] = useState(false);
+  const [features, setFeatures] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetchFeatures()
+      .then((flags) => {
+        setFeatures(Object.fromEntries(flags.map((f) => [f.key, f.enabled])));
+      })
+      .catch(() => {});
+  }, []);
+
+  // Cờ chưa tải xong (chưa có key) coi như bật, tránh nháy ẩn nút khi mới vào trang.
+  function isEnabled(key: FeatureKey): boolean {
+    return features[key] ?? true;
+  }
 
   useEffect(() => {
     if (session.isAdmin) return;
 
     function checkOverdue() {
-      fetchVaccines(session.account)
-        .then((vaccines) => {
-          setHasOverdueVaccine(vaccines.some((v) => v.nextDue?.overdue ?? false));
+      fetchUpcomingDoses(session.account)
+        .then((doses) => {
+          setHasOverdueVaccine(doses.some((d) => d.overdue));
         })
         .catch(() => {});
     }
@@ -68,6 +82,11 @@ export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpd
     );
   }
 
+  const showNoteStats = isEnabled("NOTE_STATS");
+  const showVaccine = isEnabled("VACCINE");
+  const showDiary = isEnabled("DIARY");
+  const showGrowth = isEnabled("GROWTH");
+
   return (
     <div className="screen home-screen">
       <div className="home-corner-actions">
@@ -80,43 +99,52 @@ export default function HomeScreen({ session, onNavigate, onLogout, onSessionUpd
       </div>
 
       <div className="home-hero">
-        <div className="home-emoji">🍼</div>
-        <h1 className="app-title">{session.babyName} Bé Yêu</h1>
+        <div className="home-emoji">📔</div>
+        <h1 className="app-title">Trộm Vía Trộm Vía</h1>
         <p className="app-subtitle">Ghi nhật ký mỗi ngày của bé</p>
       </div>
 
       <div className="home-actions">
-        <div className="home-actions-group">
-          <button className="big-card-button" onClick={() => onNavigate("NOTE")}>
-            <span className="big-card-icon">📝</span>
-            <span className="big-card-label">Note Thông Tin</span>
-          </button>
-          <button className="big-card-button" onClick={() => onNavigate("STATS")}>
-            <span className="big-card-icon">📊</span>
-            <span className="big-card-label">Xem Thống Kê</span>
-          </button>
-        </div>
-        <div className="home-actions-row">
-          <div className="vaccine-button-slot">
-            {hasOverdueVaccine && (
-              <div className="vaccine-home-warning">⚠️ Có mũi tiêm đến hạn hoặc quá hạn!</div>
-            )}
-            <button className="big-card-button" onClick={() => onNavigate("VACCINE")}>
-              <span className="big-card-icon">💉</span>
-              <span className="big-card-label">Sổ Tiêm Chủng Online</span>
+        {showNoteStats && (
+          <div className="home-actions-group">
+            <button className="big-card-button" onClick={() => onNavigate("NOTE")}>
+              <span className="big-card-icon">📝</span>
+              <span className="big-card-label">Note Thông Tin</span>
+            </button>
+            <button className="big-card-button" onClick={() => onNavigate("STATS")}>
+              <span className="big-card-icon">📊</span>
+              <span className="big-card-label">Xem Thống Kê</span>
             </button>
           </div>
-          <button className="big-card-button" onClick={() => onNavigate("DIARY")}>
-            <span className="big-card-icon">📔</span>
-            <span className="big-card-label">Nhật Ký Của Mẹ</span>
-          </button>
-        </div>
-        <div className="home-actions-row">
-          <button className="big-card-button" onClick={() => onNavigate("GROWTH")}>
-            <span className="big-card-icon">📏</span>
-            <span className="big-card-label">Chiều Cao Cân Nặng</span>
-          </button>
-        </div>
+        )}
+        {(showVaccine || showDiary) && (
+          <div className="home-actions-row">
+            {showVaccine && (
+              <button
+                className={`big-card-button ${hasOverdueVaccine ? "big-card-button-overdue" : ""}`}
+                onClick={() => onNavigate("VACCINE")}
+              >
+                {hasOverdueVaccine && <span className="overdue-ribbon">Quá hạn</span>}
+                <span className="big-card-icon">💉</span>
+                <span className="big-card-label">Sổ Tiêm Chủng Online</span>
+              </button>
+            )}
+            {showDiary && (
+              <button className="big-card-button" onClick={() => onNavigate("DIARY")}>
+                <span className="big-card-icon">📔</span>
+                <span className="big-card-label">Nhật Ký Của Mẹ</span>
+              </button>
+            )}
+          </div>
+        )}
+        {showGrowth && (
+          <div className="home-actions-row">
+            <button className="big-card-button" onClick={() => onNavigate("GROWTH")}>
+              <span className="big-card-icon">📏</span>
+              <span className="big-card-label">Chiều Cao Cân Nặng</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {showChangePin && (

@@ -190,6 +190,7 @@ export default function VaccineDetailCard({ account, vaccineId, onChanged, refre
       <DoseHistorySection
         account={account}
         vaccineId={vaccineId}
+        vaccineName={detail.vaccine_name}
         onChanged={() => {
           load();
           onChanged();
