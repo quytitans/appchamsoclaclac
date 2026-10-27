@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { addVaccineDose, deleteVaccineDose, fetchVaccineDetail, updateVaccineDose } from "../api";
 import { todayDateStr } from "../dateUtils";
+import ConfirmDoseModal from "./ConfirmDoseModal";
 import NextDoseModal from "./NextDoseModal";
 import type { VaccineDose } from "../types";
 
@@ -28,6 +29,7 @@ export default function DoseHistorySection({ account, vaccineId, vaccineName, on
   const [doses, setDoses] = useState<VaccineDose[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [confirmDose, setConfirmDose] = useState<VaccineDose | null>(null);
   const [nextDosePrompt, setNextDosePrompt] = useState<number | null>(null);
 
   const [doseEditorOpen, setDoseEditorOpen] = useState(false);
@@ -110,24 +112,6 @@ export default function DoseHistorySection({ account, vaccineId, vaccineName, on
     }
   }
 
-  async function handleMarkGiven(dose: VaccineDose) {
-    try {
-      const updated = await updateVaccineDose(vaccineId, dose.id, {
-        account,
-        doseNumber: dose.dose_number,
-        location: dose.location ?? undefined,
-        date: dose.date,
-        note: dose.note ?? undefined,
-        planned: false,
-      });
-      setDoses((prev) => prev.map((d) => (d.id === dose.id ? updated : d)));
-      onChanged?.();
-      setNextDosePrompt(updated.dose_number + 1);
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
-    }
-  }
-
   if (loading) return <p className="loading-text">Đang tải...</p>;
 
   return (
@@ -149,7 +133,13 @@ export default function DoseHistorySection({ account, vaccineId, vaccineName, on
             saving={savingDose}
           />
         ) : (
-          <div key={dose.id} className={`dose-card ${dose.planned ? "dose-upcoming" : ""} ${isOverdue ? "dose-overdue" : ""}`}>
+          <div
+            key={dose.id}
+            className={`dose-card ${dose.planned ? "dose-upcoming dose-clickable" : ""} ${
+              isOverdue ? "dose-overdue" : ""
+            }`}
+            onClick={dose.planned ? () => setConfirmDose(dose) : undefined}
+          >
             <div className="dose-card-header">
               <span className="dose-number-badge">Mũi {dose.dose_number}</span>
               {dose.planned && (
@@ -159,19 +149,12 @@ export default function DoseHistorySection({ account, vaccineId, vaccineName, on
               )}
               <span className="dose-date">{dose.date}</span>
               <div className="dose-icon-actions">
-                {dose.planned && (
-                  <button
-                    className="dose-icon-button"
-                    onClick={() => handleMarkGiven(dose)}
-                    aria-label="Đánh dấu đã tiêm"
-                    title="Đánh dấu đã tiêm"
-                  >
-                    ✅
-                  </button>
-                )}
                 <button
                   className="dose-icon-button"
-                  onClick={() => openEditDose(dose)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditDose(dose);
+                  }}
                   aria-label="Sửa mũi tiêm"
                   title="Sửa"
                 >
@@ -179,7 +162,10 @@ export default function DoseHistorySection({ account, vaccineId, vaccineName, on
                 </button>
                 <button
                   className="dose-icon-button dose-icon-delete"
-                  onClick={() => handleDeleteDose(dose.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteDose(dose.id);
+                  }}
                   aria-label="Xóa mũi tiêm"
                   title="Xóa"
                 >
@@ -189,6 +175,7 @@ export default function DoseHistorySection({ account, vaccineId, vaccineName, on
             </div>
             {dose.location && <div className="dose-detail">📍 {dose.location}</div>}
             {dose.note && <div className="dose-detail">📝 {dose.note}</div>}
+            {dose.planned && <div className="dose-confirm-hint">👉 Bấm vào để xác nhận đã tiêm</div>}
           </div>
         );
       })}
@@ -207,6 +194,24 @@ export default function DoseHistorySection({ account, vaccineId, vaccineName, on
         <button className="secondary-button add-dose-button" onClick={openAddDose}>
           ➕ Thêm mũi tiêm
         </button>
+      )}
+
+      {confirmDose && (
+        <ConfirmDoseModal
+          account={account}
+          vaccineId={vaccineId}
+          vaccineName={vaccineName}
+          doseNumber={confirmDose.dose_number}
+          plannedDate={confirmDose.date}
+          plannedLocation={confirmDose.location}
+          plannedNote={confirmDose.note}
+          onClose={() => setConfirmDose(null)}
+          onConfirmed={(doseCount) => {
+            load();
+            onChanged?.();
+            setNextDosePrompt(doseCount + 1);
+          }}
+        />
       )}
 
       {nextDosePrompt != null && (

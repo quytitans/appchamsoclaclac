@@ -15,6 +15,7 @@ interface Props {
   account: string;
   profileId: number;
   focusRequest?: FocusRequest | null;
+  refreshToken?: number;
 }
 
 function FollowToggle({
@@ -39,7 +40,7 @@ function FollowToggle({
   );
 }
 
-export default function VaccineList({ account, profileId, focusRequest }: Props) {
+export default function VaccineList({ account, profileId, focusRequest, refreshToken }: Props) {
   const [vaccines, setVaccines] = useState<VaccineSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalId, setModalId] = useState<number | null>(null);
@@ -91,7 +92,8 @@ export default function VaccineList({ account, profileId, focusRequest }: Props)
 
   useEffect(() => {
     load();
-  }, [load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load, refreshToken]);
 
   useEffect(() => {
     if (!focusRequest) return;

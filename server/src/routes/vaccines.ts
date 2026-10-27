@@ -72,7 +72,13 @@ function getNextDue(vaccineId: number, vaccine: VaccineRow, doseCount: number): 
     .prepare("SELECT * FROM vaccine_doses WHERE vaccine_id = ? AND planned = 1 ORDER BY date ASC LIMIT 1")
     .get(vaccineId) as VaccineDoseRow | undefined;
   if (plannedDose) {
-    return { date: plannedDose.date, doseNumber: plannedDose.dose_number, overdue: plannedDose.date <= today };
+    return {
+      date: plannedDose.date,
+      doseNumber: plannedDose.dose_number,
+      overdue: plannedDose.date <= today,
+      location: plannedDose.location,
+      note: plannedDose.note,
+    };
   }
   if (vaccine.next_dose_date) {
     return { date: vaccine.next_dose_date, doseNumber: doseCount + 1, overdue: vaccine.next_dose_date <= today };
@@ -137,12 +143,28 @@ vaccinesRouter.get("/upcoming-doses", (req, res) => {
       : db.prepare("SELECT * FROM vaccines WHERE account = ?").all(account)
   ) as unknown as VaccineRow[];
 
-  const results: { vaccineId: number; vaccineName: string; doseNumber: number; date: string; overdue: boolean }[] = [];
+  const results: {
+    vaccineId: number;
+    vaccineName: string;
+    doseNumber: number;
+    date: string;
+    overdue: boolean;
+    location?: string | null;
+    note?: string | null;
+  }[] = [];
   for (const v of vaccines) {
     const { doseCount } = getDosesSummary(v.id);
     const nextDue = getNextDue(v.id, v, doseCount);
     if (nextDue) {
-      results.push({ vaccineId: v.id, vaccineName: v.vaccine_name, doseNumber: nextDue.doseNumber, date: nextDue.date, overdue: nextDue.overdue });
+      results.push({
+        vaccineId: v.id,
+        vaccineName: v.vaccine_name,
+        doseNumber: nextDue.doseNumber,
+        date: nextDue.date,
+        overdue: nextDue.overdue,
+        location: nextDue.location,
+        note: nextDue.note,
+      });
     }
   }
   results.sort((a, b) => a.date.localeCompare(b.date));

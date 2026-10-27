@@ -127,6 +127,8 @@ export interface UpcomingDose {
   doseNumber: number;
   date: string;
   overdue: boolean;
+  location?: string | null;
+  note?: string | null;
 }
 
 export type VaccineDurationType = "lifetime" | "limited" | "yearly";
@@ -138,6 +140,7 @@ export interface VaccineProfile {
   name: string;
   profileType: VaccineProfileType;
   reminderEmails: string[];
+  hasOverdueDose?: boolean;
   sortOrder: number;
   createdAt: string;
 }
@@ -164,6 +167,8 @@ export interface NextDue {
   date: string;
   doseNumber: number;
   overdue: boolean;
+  location?: string | null;
+  note?: string | null;
 }
 
 export interface VaccineSummary {

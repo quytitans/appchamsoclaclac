@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { isValidAccountId } from "../hash.js";
+import { todayStr } from "../dateUtils.js";
 import type { VaccineProfileRow, VaccineProfileType } from "../types.js";
 
 export const vaccineProfilesRouter = Router();
@@ -54,6 +55,31 @@ export function getProfileForAccount(id: number, account: string): VaccineProfil
     | undefined;
 }
 
+// Quá hạn nếu: có mũi "dự kiến" (planned) với ngày <= hôm nay, HOẶC vắc-xin không có
+// mũi dự kiến nào nhưng next_dose_date (đặt tay) đã <= hôm nay — khớp logic getNextDue
+// bên vaccines.ts (mũi dự kiến luôn được ưu tiên hơn next_dose_date).
+function profileHasOverdueDose(profileId: number): boolean {
+  const today = todayStr();
+  const overduePlanned = db
+    .prepare(
+      `SELECT 1 FROM vaccine_doses d
+       JOIN vaccines v ON v.id = d.vaccine_id
+       WHERE v.profile_id = ? AND d.planned = 1 AND d.date <= ?
+       LIMIT 1`
+    )
+    .get(profileId, today);
+  if (overduePlanned) return true;
+  const overdueNextDate = db
+    .prepare(
+      `SELECT 1 FROM vaccines v
+       WHERE v.profile_id = ? AND v.next_dose_date IS NOT NULL AND v.next_dose_date <= ?
+       AND NOT EXISTS (SELECT 1 FROM vaccine_doses d WHERE d.vaccine_id = v.id AND d.planned = 1)
+       LIMIT 1`
+    )
+    .get(profileId, today);
+  return !!overdueNextDate;
+}
+
 vaccineProfilesRouter.get("/", (req, res) => {
   const account = req.query.account as string | undefined;
   if (!isValidAccountId(account)) {
@@ -63,7 +89,7 @@ vaccineProfilesRouter.get("/", (req, res) => {
   const rows = db
     .prepare("SELECT * FROM vaccine_profiles WHERE account = ? ORDER BY sort_order ASC")
     .all(account) as unknown as VaccineProfileRow[];
-  res.json(rows.map(mapProfile));
+  res.json(rows.map((p) => ({ ...mapProfile(p), hasOverdueDose: profileHasOverdueDose(p.id) })));
 });
 
 vaccineProfilesRouter.post("/", (req, res) => {

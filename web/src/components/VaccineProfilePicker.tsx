@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { createVaccineProfile, fetchVaccineProfiles } from "../api";
+import { useEffect, useState, type MouseEvent } from "react";
+import { createVaccineProfile, deleteVaccineProfile, fetchVaccineProfiles, updateVaccineProfile } from "../api";
 import { PROFILE_TYPE_META, PROFILE_TYPE_ORDER, profileIcon, profileTypeLabel } from "../vaccineProfileMeta";
 import type { VaccineProfile, VaccineProfileType } from "../types";
 
@@ -8,15 +8,24 @@ interface Props {
   onSelect: (profile: VaccineProfile) => void;
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function parseEmails(raw: string): string[] {
+  return [...new Set(raw.split(/[,;\n]/).map((e) => e.trim()).filter(Boolean))];
+}
+
 export default function VaccineProfilePicker({ account, onSelect }: Props) {
   const [profiles, setProfiles] = useState<VaccineProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<VaccineProfile | null>(null);
   const [name, setName] = useState("");
   const [profileType, setProfileType] = useState<VaccineProfileType>("baby");
   const [emailsInput, setEmailsInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<VaccineProfile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   function load() {
     setLoading(true);
@@ -31,25 +40,31 @@ export default function VaccineProfilePicker({ account, onSelect }: Props) {
   }, [account]);
 
   function openCreate() {
+    setEditingProfile(null);
     setName("");
     setProfileType("baby");
     setEmailsInput("");
     setError(null);
-    setShowCreate(true);
+    setShowForm(true);
   }
 
-  function parseEmails(raw: string): string[] {
-    return [...new Set(raw.split(/[,;\n]/).map((e) => e.trim()).filter(Boolean))];
+  function openEdit(p: VaccineProfile, e: MouseEvent) {
+    e.stopPropagation();
+    setEditingProfile(p);
+    setName(p.name);
+    setProfileType(p.profileType);
+    setEmailsInput(p.reminderEmails.join(", "));
+    setError(null);
+    setShowForm(true);
   }
 
-  async function handleCreate() {
+  async function handleSave() {
     if (!name.trim()) {
       setError("Vui lòng đặt tên cho sổ tiêm chủng");
       return;
     }
     const reminderEmails = parseEmails(emailsInput);
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const invalidEmail = reminderEmails.find((e) => !emailRe.test(e));
+    const invalidEmail = reminderEmails.find((e) => !EMAIL_RE.test(e));
     if (invalidEmail) {
       setError(`Email không hợp lệ: ${invalidEmail}`);
       return;
@@ -57,19 +72,34 @@ export default function VaccineProfilePicker({ account, onSelect }: Props) {
     setSaving(true);
     setError(null);
     try {
-      const created = await createVaccineProfile({
-        account,
-        name: name.trim(),
-        profileType,
-        reminderEmails,
-      });
-      setShowCreate(false);
-      await load();
-      onSelect(created);
+      if (editingProfile) {
+        await updateVaccineProfile(editingProfile.id, { account, name: name.trim(), profileType, reminderEmails });
+        setShowForm(false);
+        await load();
+      } else {
+        const created = await createVaccineProfile({ account, name: name.trim(), profileType, reminderEmails });
+        setShowForm(false);
+        await load();
+        onSelect(created);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteVaccineProfile(deleteTarget.id, account);
+      setDeleteTarget(null);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -79,7 +109,36 @@ export default function VaccineProfilePicker({ account, onSelect }: Props) {
       {!loading && (
         <div className="vaccine-profile-grid">
           {profiles.map((p) => (
-            <button key={p.id} type="button" className="vaccine-profile-card" onClick={() => onSelect(p)}>
+            <button
+              key={p.id}
+              type="button"
+              className={`vaccine-profile-card ${p.hasOverdueDose ? "vaccine-profile-card-overdue" : ""}`}
+              onClick={() => onSelect(p)}
+            >
+              {p.hasOverdueDose && <span className="overdue-ribbon">Quá hạn</span>}
+              <div className="vaccine-profile-card-actions">
+                <button
+                  type="button"
+                  className="vaccine-profile-icon-btn"
+                  onClick={(e) => openEdit(p, e)}
+                  aria-label="Sửa sổ"
+                  title="Sửa"
+                >
+                  ✏️
+                </button>
+                <button
+                  type="button"
+                  className="vaccine-profile-icon-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(p);
+                  }}
+                  aria-label="Xóa sổ"
+                  title="Xóa"
+                >
+                  🗑️
+                </button>
+              </div>
               <span className="vaccine-profile-icon">{profileIcon(p.profileType)}</span>
               <span className="vaccine-profile-name">{p.name}</span>
               <span className="vaccine-profile-type">{profileTypeLabel(p.profileType)}</span>
@@ -92,11 +151,11 @@ export default function VaccineProfilePicker({ account, onSelect }: Props) {
         </div>
       )}
 
-      {showCreate && (
-        <div className="modal-overlay" onClick={() => setShowCreate(false)}>
+      {showForm && (
+        <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📔 Tạo sổ tiêm chủng mới</h3>
+              <h3>📔 {editingProfile ? "Sửa sổ tiêm chủng" : "Tạo sổ tiêm chủng mới"}</h3>
             </div>
             <div className="field">
               <label className="field-label">Tên</label>
@@ -135,11 +194,33 @@ export default function VaccineProfilePicker({ account, onSelect }: Props) {
             </div>
             {error && <div className="message error">{error}</div>}
             <div className="modal-actions">
-              <button className="secondary-button" onClick={() => setShowCreate(false)} disabled={saving}>
+              <button className="secondary-button" onClick={() => setShowForm(false)} disabled={saving}>
                 Hủy
               </button>
-              <button className="save-button" onClick={handleCreate} disabled={saving}>
-                {saving ? "Đang tạo..." : "Tạo sổ"}
+              <button className="save-button" onClick={handleSave} disabled={saving}>
+                {saving ? "Đang lưu..." : editingProfile ? "Lưu thay đổi" : "Tạo sổ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🗑️ Xóa sổ tiêm chủng?</h3>
+            </div>
+            <p className="pin-step-label">
+              Sổ "{deleteTarget.name}" và toàn bộ vắc-xin, lịch sử các mũi tiêm trong sổ này sẽ bị xóa vĩnh viễn.
+            </p>
+            {error && <div className="message error">{error}</div>}
+            <div className="modal-actions">
+              <button className="secondary-button" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+                Hủy
+              </button>
+              <button className="save-button vaccine-delete-confirm" onClick={handleDelete} disabled={deleting}>
+                {deleting ? "Đang xóa..." : "Xác nhận xóa"}
               </button>
             </div>
           </div>

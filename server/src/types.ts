@@ -109,6 +109,8 @@ export interface NextDue {
   date: string;
   doseNumber: number;
   overdue: boolean;
+  location?: string | null;
+  note?: string | null;
 }
 
 export interface DiaryEntryRow {

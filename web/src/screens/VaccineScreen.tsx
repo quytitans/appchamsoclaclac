@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AppHeader from "../components/AppHeader";
 import VaccineForm from "../components/VaccineForm";
 import VaccineList from "../components/VaccineList";
 import VaccineProfilePicker from "../components/VaccineProfilePicker";
+import ConfirmDoseModal from "../components/ConfirmDoseModal";
+import NextDoseModal from "../components/NextDoseModal";
 import { fetchLatestGrowth, fetchUpcomingDoses } from "../api";
 import { formatDateVN } from "../dateUtils";
 import { colorIndexForId } from "../colorUtils";
@@ -15,18 +17,19 @@ interface Props {
   onNavigate: (screen: Screen) => void;
 }
 
-interface FocusRequest {
-  vaccineId: number;
-  nonce: number;
-}
-
 export default function VaccineScreen({ session, onNavigate }: Props) {
   const [profile, setProfile] = useState<VaccineProfile | null>(null);
   const [activeTab, setActiveTab] = useState<"entry" | "book">("book");
   const [entryKey, setEntryKey] = useState(0);
   const [growth, setGrowth] = useState<LatestGrowth | null>(null);
   const [upcomingDoses, setUpcomingDoses] = useState<UpcomingDose[]>([]);
-  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
+  const [confirmPrompt, setConfirmPrompt] = useState<UpcomingDose | null>(null);
+  const [nextDosePrompt, setNextDosePrompt] = useState<{
+    vaccineId: number;
+    vaccineName: string;
+    nextDoseNumber: number;
+  } | null>(null);
+  const [listRefreshToken, setListRefreshToken] = useState(0);
 
   const isBaby = profile?.profileType === "baby";
 
@@ -40,12 +43,16 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
       .catch(() => {});
   }, [session.account, profile, isBaby]);
 
-  useEffect(() => {
+  const refreshUpcoming = useCallback(() => {
     if (!profile) return;
     fetchUpcomingDoses(session.account, profile.id)
       .then(setUpcomingDoses)
       .catch(() => {});
-  }, [session.account, profile, activeTab]);
+  }, [session.account, profile]);
+
+  useEffect(() => {
+    refreshUpcoming();
+  }, [refreshUpcoming, activeTab]);
 
   function handleSwitchTab(tab: "entry" | "book") {
     if (tab === "entry") setEntryKey((k) => k + 1);
@@ -130,12 +137,13 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
                         className={`upcoming-dose-item upcoming-dose-color-${colorIndexForId(d.vaccineId)} ${
                           d.overdue ? "overdue" : ""
                         }`}
-                        onClick={() => setFocusRequest({ vaccineId: d.vaccineId, nonce: Date.now() })}
+                        onClick={() => setConfirmPrompt(d)}
                       >
                         <span className="upcoming-dose-icon">{d.overdue ? "⚠️" : "📅"}</span>
                         <div className="upcoming-dose-text">
                           <span className="upcoming-dose-name">{d.vaccineName}</span>
                           <span className="upcoming-dose-num">Mũi {d.doseNumber}</span>
+                          <span className="upcoming-dose-hint">Bấm vào để xác nhận đã tiêm</span>
                         </div>
                         <span className="upcoming-dose-date">{formatDateVN(d.date)}</span>
                       </button>
@@ -155,7 +163,43 @@ export default function VaccineScreen({ session, onNavigate }: Props) {
             />
           )}
           {activeTab === "book" && (
-            <VaccineList account={session.account} profileId={profile.id} focusRequest={focusRequest} />
+            <VaccineList account={session.account} profileId={profile.id} refreshToken={listRefreshToken} />
+          )}
+
+          {confirmPrompt && (
+            <ConfirmDoseModal
+              account={session.account}
+              vaccineId={confirmPrompt.vaccineId}
+              vaccineName={confirmPrompt.vaccineName}
+              doseNumber={confirmPrompt.doseNumber}
+              plannedDate={confirmPrompt.date}
+              plannedLocation={confirmPrompt.location}
+              plannedNote={confirmPrompt.note}
+              onClose={() => setConfirmPrompt(null)}
+              onConfirmed={(doseCount) => {
+                setNextDosePrompt({
+                  vaccineId: confirmPrompt.vaccineId,
+                  vaccineName: confirmPrompt.vaccineName,
+                  nextDoseNumber: doseCount + 1,
+                });
+                refreshUpcoming();
+                setListRefreshToken((k) => k + 1);
+              }}
+            />
+          )}
+
+          {nextDosePrompt && (
+            <NextDoseModal
+              account={session.account}
+              vaccineId={nextDosePrompt.vaccineId}
+              vaccineName={nextDosePrompt.vaccineName}
+              nextDoseNumber={nextDosePrompt.nextDoseNumber}
+              onClose={() => setNextDosePrompt(null)}
+              onCreated={() => {
+                refreshUpcoming();
+                setListRefreshToken((k) => k + 1);
+              }}
+            />
           )}
         </>
       )}
