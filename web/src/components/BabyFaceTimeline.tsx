@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import PhotoLightbox from "./PhotoLightbox";
 import { createBabyFace, deleteBabyFace, deleteUpload, fetchBabyFaces, updateBabyFace, uploadImage } from "../api";
-import { compressForUpload } from "../imageCompress";
+import FaceCropper, { type FaceCropperHandle } from "./FaceCropper";
 import { todayDateStr } from "../dateUtils";
 import type { BabyFace, Session } from "../types";
 
@@ -27,16 +27,19 @@ export default function BabyFaceTimeline({ session }: Props) {
 
   // Thêm ảnh mới
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cropperRef = useRef<FaceCropperHandle>(null);
   const [adding, setAdding] = useState(false);
   const [newFile, setNewFile] = useState<File | null>(null);
-  const [newPreview, setNewPreview] = useState<string | null>(null);
   const [newDate, setNewDate] = useState(todayDateStr());
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   // Xem / sửa ngày / xoá ảnh đã có
   const [selected, setSelected] = useState<BabyFace | null>(null);
+  const [editing, setEditing] = useState(false);
   const [editDate, setEditDate] = useState("");
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -48,16 +51,9 @@ export default function BabyFaceTimeline({ session }: Props) {
       .finally(() => setLoading(false));
   }, [account, refresh]);
 
-  useEffect(() => {
-    return () => {
-      if (newPreview) URL.revokeObjectURL(newPreview);
-    };
-  }, [newPreview]);
-
   function openAdd() {
     setAdding(true);
     setNewFile(null);
-    setNewPreview(null);
     setNewDate(todayDateStr());
     setMessage(null);
   }
@@ -66,7 +62,6 @@ export default function BabyFaceTimeline({ session }: Props) {
     if (saving) return;
     setAdding(false);
     setNewFile(null);
-    setNewPreview(null);
     setMessage(null);
   }
 
@@ -75,7 +70,6 @@ export default function BabyFaceTimeline({ session }: Props) {
     e.target.value = "";
     if (!file) return;
     setNewFile(file);
-    setNewPreview(URL.createObjectURL(file));
     setMessage(null);
   }
 
@@ -94,13 +88,12 @@ export default function BabyFaceTimeline({ session }: Props) {
     setMessage(null);
     let uploadedId: number | null = null;
     try {
-      const compressed = await compressForUpload(newFile);
+      const compressed = await cropperRef.current!.crop();
       const uploaded = await uploadImage(compressed, account, session.token);
       uploadedId = uploaded.id;
       await createBabyFace({ account, faceDate: newDate, photoUploadId: uploaded.id });
       setAdding(false);
       setNewFile(null);
-      setNewPreview(null);
       setRefresh((k) => k + 1);
     } catch (err) {
       if (uploadedId !== null) deleteUpload(uploadedId, account, session.token).catch(() => {});
@@ -110,29 +103,62 @@ export default function BabyFaceTimeline({ session }: Props) {
     }
   }
 
+  function resetEdit(face: BabyFace) {
+    setEditing(false);
+    setEditDate(face.face_date);
+    setEditFile(null);
+    setMessage(null);
+  }
+
   function openFace(face: BabyFace) {
     setSelected(face);
-    setEditDate(face.face_date);
+    resetEdit(face);
     setShowDeleteConfirm(false);
-    setMessage(null);
   }
 
   function closeFace() {
     if (busy) return;
     setSelected(null);
+    setEditing(false);
+    setEditFile(null);
     setShowDeleteConfirm(false);
     setMessage(null);
   }
 
-  async function handleSaveDate() {
-    if (!selected || !editDate) return;
+  function handleEditFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setEditFile(file);
+    setMessage(null);
+  }
+
+  // Đổi ảnh: upload ảnh mới trước rồi mới PUT — server tự dọn ảnh cũ trên Drive khi id đổi.
+  // Nếu PUT lỗi thì xoá ảnh vừa upload để không mồ côi; ảnh cũ vẫn giữ nguyên.
+  async function handleSaveEdit() {
+    if (!selected) return;
+    if (!editDate) {
+      setMessage("Vui lòng chọn ngày chụp");
+      return;
+    }
     setBusy(true);
     setMessage(null);
+    let uploadedId: number | null = null;
     try {
-      await updateBabyFace(selected.id, { account, faceDate: editDate, photoUploadId: selected.photo.id });
-      setSelected(null);
+      let photoUploadId = selected.photo.id;
+      if (editFile) {
+        const compressed = await cropperRef.current!.crop();
+        const uploaded = await uploadImage(compressed, account, session.token);
+        uploadedId = uploaded.id;
+        photoUploadId = uploaded.id;
+      }
+      const updated = await updateBabyFace(selected.id, { account, faceDate: editDate, photoUploadId });
+      uploadedId = null;
+      setSelected(updated);
+      resetEdit(updated);
       setRefresh((k) => k + 1);
     } catch (err) {
+      if (uploadedId !== null) deleteUpload(uploadedId, account, session.token).catch(() => {});
       setMessage(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
     } finally {
       setBusy(false);
@@ -193,6 +219,7 @@ export default function BabyFaceTimeline({ session }: Props) {
       )}
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
+      <input ref={editFileInputRef} type="file" accept="image/*" onChange={handleEditFileChange} hidden />
 
       {adding && (
         <div className="modal-overlay" onClick={closeAdd}>
@@ -203,22 +230,22 @@ export default function BabyFaceTimeline({ session }: Props) {
                 ✕
               </button>
             </div>
-            <button
-              type="button"
-              className="face-pick-box"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={saving}
-            >
-              {newPreview ? (
-                <img src={newPreview} alt="Ảnh đã chọn" />
-              ) : (
+            {newFile ? (
+              <FaceCropper file={newFile} ref={cropperRef} />
+            ) : (
+              <button
+                type="button"
+                className="face-pick-box"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={saving}
+              >
                 <span className="face-pick-placeholder">
                   <span className="face-pick-icon">📷</span>
                   Chụp hoặc chọn 1 ảnh
                 </span>
-              )}
-            </button>
-            {newPreview && !saving && (
+              </button>
+            )}
+            {newFile && !saving && (
               <button type="button" className="face-pick-change" onClick={() => fileInputRef.current?.click()}>
                 Đổi ảnh khác
               </button>
@@ -245,21 +272,53 @@ export default function BabyFaceTimeline({ session }: Props) {
       {selected && (
         <div className="modal-overlay" onClick={closeFace}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>✨ {formatMonthLabel(selected.face_date)}</h3>
-              <button className="modal-close" onClick={closeFace} aria-label="Đóng" disabled={busy}>
-                ✕
-              </button>
+            <div className="modal-header diary-modal-header">
+              <h3>{editing ? "✏️ Sửa ảnh" : `✨ ${formatMonthLabel(selected.face_date)}`}</h3>
+              <div className="diary-modal-actions">
+                {!editing && !showDeleteConfirm && (
+                  <>
+                    <button
+                      className="dose-icon-button"
+                      onClick={() => setEditing(true)}
+                      aria-label="Sửa ảnh"
+                      title="Sửa"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="dose-icon-button dose-icon-delete"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      aria-label="Xóa ảnh"
+                      title="Xóa"
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
+                <button className="modal-close" onClick={closeFace} aria-label="Đóng" disabled={busy}>
+                  ✕
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              className="face-pick-box"
-              onClick={() => setLightboxIndex(faces.findIndex((f) => f.id === selected.id))}
-            >
-              <img src={selected.photo.thumb_url} alt="" />
-            </button>
-            {!showDeleteConfirm ? (
+            {editing ? (
               <>
+                {editFile ? (
+                  <FaceCropper file={editFile} ref={cropperRef} />
+                ) : (
+                  <button
+                    type="button"
+                    className="face-pick-box"
+                    onClick={() => editFileInputRef.current?.click()}
+                    disabled={busy}
+                  >
+                    <img src={selected.photo.thumb_url} alt="" />
+                  </button>
+                )}
+                {!busy && (
+                  <button type="button" className="face-pick-change" onClick={() => editFileInputRef.current?.click()}>
+                    📷 Chụp hoặc chọn ảnh khác
+                  </button>
+                )}
                 <div className="note-form">
                   <div className="field">
                     <label className="field-label">Ngày chụp</label>
@@ -268,19 +327,32 @@ export default function BabyFaceTimeline({ session }: Props) {
                 </div>
                 {message && <div className="message error">{message}</div>}
                 <div className="modal-actions">
-                  <button
-                    className="secondary-button vaccine-delete-confirm"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    disabled={busy}
-                  >
-                    🗑️ Xóa
+                  <button className="secondary-button" onClick={() => resetEdit(selected)} disabled={busy}>
+                    Hủy
                   </button>
                   <button
                     className="save-button"
-                    onClick={handleSaveDate}
-                    disabled={busy || !editDate || editDate === selected.face_date}
+                    onClick={handleSaveEdit}
+                    disabled={busy || !editDate || (!editFile && editDate === selected.face_date)}
                   >
-                    {busy ? "Đang lưu..." : "Lưu ngày"}
+                    {busy ? "Đang lưu..." : "Lưu"}
+                  </button>
+                </div>
+              </>
+            ) : !showDeleteConfirm ? (
+              <>
+                <button
+                  type="button"
+                  className="face-pick-box face-view-box"
+                  onClick={() => setLightboxIndex(faces.findIndex((f) => f.id === selected.id))}
+                >
+                  <img src={selected.photo.thumb_url} alt="" />
+                </button>
+                <div className="face-view-date">📅 {formatVNDate(selected.face_date)}</div>
+                {message && <div className="message error">{message}</div>}
+                <div className="modal-actions">
+                  <button className="save-button" onClick={closeFace}>
+                    Đóng
                   </button>
                 </div>
               </>

@@ -3842,3 +3842,91 @@ body {
   text-decoration: underline;
   cursor: pointer;
 }
+
+.face-pick-box.face-view-box {
+  border-style: solid;
+  border-color: #a8dfb8;
+}
+
+.face-view-date {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--deep-pink);
+  margin-bottom: 8px;
+}
+
+/* The Face — khung cắt ảnh vuông: kéo để dịch chuyển, chụm/thanh trượt để zoom */
+.face-cropper {
+  width: 100%;
+  max-width: 300px;
+  margin: 4px auto 8px;
+}
+
+.face-cropper-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #2b1f26;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 0 0 3px var(--dark-pink);
+}
+
+.face-cropper-frame:active {
+  cursor: grabbing;
+}
+
+.face-cropper-frame img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: none;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.face-cropper-guide {
+  position: absolute;
+  inset: 12%;
+  border: 2px dashed rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.face-cropper-zoom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.face-cropper-zoom input[type="range"] {
+  flex: 1;
+  accent-color: var(--deep-pink);
+}
+
+.face-cropper-zoom button {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 2px solid var(--main-pink);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--deep-pink);
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.face-cropper-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
