@@ -1,5 +1,7 @@
 import type {
   AccountSummary,
+  BabyFace,
+  BabyFacePayload,
   CreateRecordPayload,
   DiaryEntry,
   DiaryEntryPayload,
@@ -387,6 +389,34 @@ export function updateDiaryEntry(id: number, payload: DiaryEntryPayload): Promis
 
 export function deleteDiaryEntry(id: number, account: string): Promise<void> {
   return fetch(`${API_BASE}/diary/${id}?account=${encodeURIComponent(account)}`, {
+    method: "DELETE",
+  }).then((res) => handleResponse<void>(res));
+}
+
+export function fetchBabyFaces(account: string): Promise<BabyFace[]> {
+  return fetch(`${API_BASE}/faces?account=${encodeURIComponent(account)}`).then((res) =>
+    handleResponse<BabyFace[]>(res)
+  );
+}
+
+export function createBabyFace(payload: BabyFacePayload): Promise<BabyFace> {
+  return fetch(`${API_BASE}/faces`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<BabyFace>(res));
+}
+
+export function updateBabyFace(id: number, payload: BabyFacePayload): Promise<BabyFace> {
+  return fetch(`${API_BASE}/faces/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).then((res) => handleResponse<BabyFace>(res));
+}
+
+export function deleteBabyFace(id: number, account: string): Promise<void> {
+  return fetch(`${API_BASE}/faces/${id}?account=${encodeURIComponent(account)}`, {
     method: "DELETE",
   }).then((res) => handleResponse<void>(res));
 }

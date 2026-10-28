@@ -315,6 +315,19 @@ db.exec(`
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_diary_photos_entry ON diary_photos(diary_entry_id)`);
 
+// The Face: mỗi bản ghi là 1 ảnh chân dung của bé (thường 1 ảnh/tháng) để xem gương mặt thay đổi theo thời gian.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS baby_faces (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account TEXT NOT NULL,
+    face_date TEXT NOT NULL,
+    drive_upload_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+  )
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_baby_faces_account ON baby_faces(account)`);
+
 // Chỉ ghi các lỗi 5xx/không mong đợi (xem errorLog.ts) — không ghi lỗi validate 4xx
 // thường xuyên (sai PIN, thiếu field...) để tránh phình bảng vô ích.
 db.exec(`

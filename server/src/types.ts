@@ -123,6 +123,14 @@ export interface DiaryEntryRow {
   created_at: string;
 }
 
+export interface BabyFaceRow {
+  id: number;
+  account: string;
+  face_date: string;
+  drive_upload_id: number;
+  created_at: string;
+}
+
 export interface DriveUploadRow {
   id: number;
   account: string;

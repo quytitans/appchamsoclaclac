@@ -3,8 +3,12 @@ import ToggleGroup from "./ToggleGroup";
 import DiaryImportancePicker from "./DiaryImportancePicker";
 import PhotoPicker from "./PhotoPicker";
 import PhotoLightbox from "./PhotoLightbox";
-import { deleteDiaryEntry, fetchDiaryEntries, updateDiaryEntry } from "../api";
-import type { DiaryEntry, DiaryImportance, Session, UploadedImage } from "../types";
+import { deleteDiaryEntry, fetchBabyFaces, fetchDiaryEntries, updateDiaryEntry } from "../api";
+import type { BabyFace, DiaryEntry, DiaryImportance, Session, UploadedImage } from "../types";
+
+// Ảnh The Face được xen vào dây leo theo đúng ngày, nhưng hiển thị khác hẳn sự kiện thường:
+// gương mặt bé lộ ra luôn như một "quả" mọc ra từ thân cây.
+type VineItem = { kind: "entry"; date: string; entry: DiaryEntry } | { kind: "face"; date: string; face: BabyFace };
 
 interface Props {
   session: Session;
@@ -75,10 +79,15 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"timeline" | "gallery">("timeline");
 
+  const [faces, setFaces] = useState<BabyFace[]>([]);
+
   useEffect(() => {
     setLoading(true);
-    fetchDiaryEntries(account)
-      .then(setEntries)
+    Promise.all([fetchDiaryEntries(account), fetchBabyFaces(account).catch(() => [] as BabyFace[])])
+      .then(([entryList, faceList]) => {
+        setEntries(entryList);
+        setFaces(faceList);
+      })
       .finally(() => setLoading(false));
   }, [account, refreshKey, localRefresh]);
 
@@ -87,6 +96,15 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
     if (!q) return entries;
     return entries.filter((e) => e.title.toLowerCase().includes(q));
   }, [entries, search]);
+
+  // Đang tìm theo tên thì chỉ hiện nhật ký khớp — ảnh The Face không có tiêu đề nên ẩn đi.
+  const vineItems = useMemo<VineItem[]>(() => {
+    const items: VineItem[] = filteredEntries.map((entry) => ({ kind: "entry", date: entry.entry_date, entry }));
+    if (!search.trim()) {
+      faces.forEach((face) => items.push({ kind: "face", date: face.face_date, face }));
+    }
+    return items.sort((a, b) => b.date.localeCompare(a.date));
+  }, [filteredEntries, faces, search]);
 
   const galleryEntries = useMemo(() => filteredEntries.filter((e) => e.photos.length > 0), [filteredEntries]);
 
@@ -151,7 +169,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
   }
 
   if (loading) return <p className="loading-text">Đang tải...</p>;
-  if (entries.length === 0) {
+  if (entries.length === 0 && faces.length === 0) {
     return <p className="loading-text">Chưa có nhật ký nào. Hãy viết nhật ký đầu tiên! 🌱</p>;
   }
 
@@ -177,12 +195,44 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
       />
 
       {viewMode === "timeline" ? (
-        filteredEntries.length === 0 ? (
+        vineItems.length === 0 ? (
           <p className="loading-text">Không tìm thấy nhật ký nào phù hợp</p>
         ) : (
           <div className="diary-vine">
-            {filteredEntries.map((entry, idx) => {
+            {vineItems.map((item, idx) => {
               const side = idx % 2 === 0 ? "left" : "right";
+              if (item.kind === "face") {
+                const face = item.face;
+                return (
+                  <div key={`face-${face.id}`} className={`diary-leaf-row ${side} diary-face-row`}>
+                    <svg className="diary-vine-segment" viewBox="0 0 40 100" preserveAspectRatio="none" aria-hidden="true">
+                      <path
+                        className="diary-vine-path"
+                        d={side === "left" ? "M20,0 C5,30 5,70 20,100" : "M20,0 C35,30 35,70 20,100"}
+                      />
+                    </svg>
+                    <div className="diary-face-branch">
+                      <button
+                        type="button"
+                        className="diary-face-bud"
+                        onClick={() =>
+                          setLightbox({ photos: faces.map((f) => f.photo), index: faces.findIndex((f) => f.id === face.id) })
+                        }
+                        aria-label={`Gương mặt bé ngày ${formatVNDate(face.face_date)}`}
+                      >
+                        <img src={face.photo.thumb_url} alt="" />
+                        <span className="diary-face-date">{formatVNDate(face.face_date)}</span>
+                      </button>
+                      <svg className="diary-face-stem" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                        <path d={side === "left" ? "M100,20 C70,20 40,6 0,14" : "M0,20 C30,20 60,6 100,14"} />
+                      </svg>
+                      <span className="diary-face-leaf" aria-hidden="true">🌿</span>
+                    </div>
+                    <span className="diary-face-node" />
+                  </div>
+                );
+              }
+              const entry = item.entry;
               return (
                 <div key={entry.id} className={`diary-leaf-row ${side}`}>
                   <svg className="diary-vine-segment" viewBox="0 0 40 100" preserveAspectRatio="none" aria-hidden="true">

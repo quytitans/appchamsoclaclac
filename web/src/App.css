@@ -3552,3 +3552,293 @@ body {
 .home-actions-row:has(> :only-child) {
   grid-template-columns: 1fr;
 }
+
+/* Nhật Ký Của Mẹ — ảnh The Face mọc ra từ thân dây leo như một "quả" gương mặt */
+.diary-face-row {
+  min-height: 150px;
+}
+
+.diary-face-branch {
+  position: relative;
+  z-index: 1;
+  width: 50%;
+  display: flex;
+  align-items: center;
+}
+
+.diary-leaf-row.right .diary-face-branch {
+  flex-direction: row-reverse;
+}
+
+.diary-face-bud {
+  position: relative;
+  flex: 0 0 auto;
+  width: 118px;
+  height: 118px;
+  padding: 0;
+  border: 4px solid var(--white);
+  border-radius: 50%;
+  background: var(--main-pink);
+  box-shadow: 0 0 0 3px #a8dfb8, 0 6px 16px rgba(90, 61, 75, 0.3);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.diary-face-bud:active {
+  transform: scale(0.96);
+}
+
+.diary-face-bud img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.diary-face-date {
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  color: #2e7d4f;
+  background: var(--white);
+  padding: 2px 8px;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px #a8dfb8;
+}
+
+.diary-face-stem {
+  flex: 1 1 auto;
+  height: 40px;
+  min-width: 10px;
+  overflow: visible;
+}
+
+.diary-face-stem path {
+  fill: none;
+  stroke: #8fd4a4;
+  stroke-width: 3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.diary-face-leaf {
+  position: absolute;
+  top: calc(50% - 26px);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.diary-leaf-row.left .diary-face-leaf {
+  right: 22%;
+}
+
+.diary-leaf-row.right .diary-face-leaf {
+  left: 22%;
+  transform: scaleX(-1);
+}
+
+.diary-face-node {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #8fd4a4;
+  box-shadow: 0 0 0 3px var(--white);
+}
+
+/* The Face — 1 cột dọc, mỗi tháng 1 gương mặt, mới nhất ở trên, nối nhau bằng thân timeline */
+.face-intro {
+  text-align: center;
+  margin: 6px 0 12px;
+}
+
+.face-intro-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--deep-pink);
+}
+
+.face-intro-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.face-add-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto;
+  border: 3px dashed var(--dark-pink);
+  border-radius: 22px;
+  background: var(--white);
+  color: var(--deep-pink);
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.12s ease;
+}
+
+.face-add-tile:active {
+  transform: scale(0.96);
+}
+
+.face-add-plus {
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.face-add-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.face-trunk {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 28px;
+  padding-bottom: 12px;
+}
+
+.face-trunk::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 40px;
+  width: 4px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #a8dfb8, #ffd1dc);
+}
+
+.face-trunk-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 34px;
+}
+
+.face-trunk-photo {
+  position: relative;
+  width: min(72vw, 260px);
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 5px solid var(--white);
+  border-radius: 28px;
+  background: var(--main-pink);
+  box-shadow: 0 0 0 3px #a8dfb8, 0 8px 22px rgba(90, 61, 75, 0.25);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.face-trunk-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.face-trunk-latest {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--white);
+  background: var(--deep-pink);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.face-trunk-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+  padding: 4px 14px;
+  background: var(--white);
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px #a8dfb8;
+}
+
+.face-trunk-month {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--deep-pink);
+}
+
+.face-trunk-day {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.face-pick-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1 / 1;
+  margin: 4px auto 8px;
+  padding: 0;
+  border: 3px dashed var(--dark-pink);
+  border-radius: 24px;
+  background: var(--soft-bg);
+  overflow: hidden;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.face-pick-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.face-pick-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--deep-pink);
+}
+
+.face-pick-icon {
+  font-size: 40px;
+}
+
+.face-pick-change {
+  display: block;
+  margin: 0 auto 8px;
+  border: none;
+  background: none;
+  color: var(--deep-pink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}

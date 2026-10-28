@@ -285,7 +285,21 @@ export interface UploadedImage {
   created_at: string;
 }
 
-export type FeatureKey = "NOTE_STATS" | "VACCINE" | "DIARY" | "GROWTH";
+export interface BabyFace {
+  id: number;
+  account: string;
+  face_date: string;
+  created_at: string;
+  photo: UploadedImage;
+}
+
+export interface BabyFacePayload {
+  account: string;
+  faceDate: string;
+  photoUploadId: number;
+}
+
+export type FeatureKey ="NOTE_STATS" | "VACCINE" | "DIARY" | "GROWTH";
 
 export interface FeatureFlag {
   key: FeatureKey;
