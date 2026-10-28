@@ -225,20 +225,7 @@ export default function BabyFaceTimeline({ session }: Props) {
         <div className="face-intro-subtitle">Mỗi tháng 1 bức ảnh gương mặt — xem con lớn lên từng ngày</div>
       </div>
 
-      {session.isPremium ? (
-        <button type="button" className="face-add-tile" onClick={openAdd} aria-label="Thêm ảnh gương mặt">
-          <span className="face-add-plus">+</span>
-          <span className="face-add-label">Thêm ảnh</span>
-        </button>
-      ) : (
-        <div className="message error">Tính năng The Face chỉ dành cho tài khoản Premium</div>
-      )}
-
-      {loading ? (
-        <p className="loading-text">Đang tải...</p>
-      ) : faces.length === 0 ? (
-        <p className="loading-text">Chưa có ảnh nào. Chụp gương mặt đầu tiên của bé nhé! 👶</p>
-      ) : (
+      {!loading && faces.length > 0 && (
         <>
           <input
             type="text"
@@ -254,6 +241,24 @@ export default function BabyFaceTimeline({ session }: Props) {
                 : "Nhập ngày/tháng/năm (28/10/2026), tháng/năm (10/2026) hoặc năm (2026)"}
             </div>
           )}
+        </>
+      )}
+
+      {session.isPremium ? (
+        <button type="button" className="face-add-tile" onClick={openAdd} aria-label="Thêm ảnh gương mặt">
+          <span className="face-add-plus">+</span>
+          <span className="face-add-label">Thêm ảnh</span>
+        </button>
+      ) : (
+        <div className="message error">Tính năng The Face chỉ dành cho tài khoản Premium</div>
+      )}
+
+      {loading ? (
+        <p className="loading-text">Đang tải...</p>
+      ) : faces.length === 0 ? (
+        <p className="loading-text">Chưa có ảnh nào. Chụp gương mặt đầu tiên của bé nhé! 👶</p>
+      ) : (
+        <>
           {visibleFaces.length === 0 ? (
             dateFilter && <p className="loading-text">Không có ảnh nào trong thời gian này</p>
           ) : (

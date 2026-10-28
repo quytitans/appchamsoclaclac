@@ -3953,7 +3953,7 @@ body {
 
 /* The Face — ô tìm theo ngày/tháng/năm */
 .face-search-input {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .face-search-result {
@@ -3962,7 +3962,7 @@ body {
   font-weight: 700;
   color: #2e7d4f;
   margin-top: -2px;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 
 .face-search-result.face-search-invalid {
