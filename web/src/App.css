@@ -3930,3 +3930,23 @@ body {
   color: var(--text-muted);
   margin-top: 4px;
 }
+
+/* Báo có bản deploy mới khi người dùng đang gõ dở (xem versionCheck.ts) */
+.app-update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 1000;
+  max-width: calc(100% - 32px);
+  border: none;
+  border-radius: 20px;
+  padding: 10px 18px;
+  background: var(--deep-pink);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(90, 61, 75, 0.35);
+  cursor: pointer;
+}
