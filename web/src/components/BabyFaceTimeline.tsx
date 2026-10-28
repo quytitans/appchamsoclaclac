@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PhotoLightbox from "./PhotoLightbox";
 import { createBabyFace, deleteBabyFace, deleteUpload, fetchBabyFaces, updateBabyFace, uploadImage } from "../api";
 import FaceCropper, { type FaceCropperHandle } from "./FaceCropper";
@@ -17,6 +17,35 @@ function formatVNDate(dateStr: string): string {
 function formatMonthLabel(dateStr: string): string {
   const [y, m] = dateStr.split("-");
   return `Tháng ${Number(m)}/${y}`;
+}
+
+interface DateQuery {
+  year: number;
+  month?: number;
+  day?: number;
+}
+
+// Nhận "2026", "10/2026", "28/10/2026" (dấu phân cách / - . hoặc khoảng trắng), cả kiểu
+// ISO "2026-10" / "2026-10-28"; bỏ qua chữ thừa như "tháng", "ngày". Sai định dạng → null.
+function parseDateQuery(raw: string): DateQuery | null {
+  const parts = raw.trim().split(/[^0-9]+/).filter(Boolean).map(Number);
+  if (parts.length === 0) return null;
+  if (parts.length > 1 && String(parts[0]).length === 4) parts.reverse();
+  const year = parts[parts.length - 1];
+  if (year < 1000 || year > 9999) return null;
+  let q: DateQuery | null = null;
+  if (parts.length === 1) q = { year };
+  else if (parts.length === 2) q = { year, month: parts[0] };
+  else if (parts.length === 3) q = { year, month: parts[1], day: parts[0] };
+  if (!q) return null;
+  if (q.month !== undefined && (q.month < 1 || q.month > 12)) return null;
+  if (q.day !== undefined && (q.day < 1 || q.day > 31)) return null;
+  return q;
+}
+
+function matchesDateQuery(dateStr: string, q: DateQuery): boolean {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return y === q.year && (q.month === undefined || m === q.month) && (q.day === undefined || d === q.day);
 }
 
 export default function BabyFaceTimeline({ session }: Props) {
@@ -43,6 +72,14 @@ export default function BabyFaceTimeline({ session }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+
+  const dateFilter = useMemo(() => parseDateQuery(search), [search]);
+  const visibleFaces = useMemo(() => {
+    if (!search.trim()) return faces;
+    if (!dateFilter) return [];
+    return faces.filter((f) => matchesDateQuery(f.face_date, dateFilter));
+  }, [faces, search, dateFilter]);
 
   useEffect(() => {
     setLoading(true);
@@ -202,12 +239,30 @@ export default function BabyFaceTimeline({ session }: Props) {
       ) : faces.length === 0 ? (
         <p className="loading-text">Chưa có ảnh nào. Chụp gương mặt đầu tiên của bé nhé! 👶</p>
       ) : (
+        <>
+          <input
+            type="text"
+            className="account-search-input face-search-input"
+            placeholder="🔍 Tìm theo ngày: 28/10/2026, 10/2026 hoặc 2026"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search.trim() && (
+            <div className={`face-search-result${dateFilter ? "" : " face-search-invalid"}`}>
+              {dateFilter
+                ? `Tìm thấy ${visibleFaces.length} ảnh`
+                : "Nhập ngày/tháng/năm (28/10/2026), tháng/năm (10/2026) hoặc năm (2026)"}
+            </div>
+          )}
+          {visibleFaces.length === 0 ? (
+            dateFilter && <p className="loading-text">Không có ảnh nào trong thời gian này</p>
+          ) : (
         <div className="face-trunk">
-          {faces.map((face, idx) => (
+          {visibleFaces.map((face) => (
             <div key={face.id} className="face-trunk-item">
               <button type="button" className="face-trunk-photo" onClick={() => openFace(face)}>
                 <img src={face.photo.thumb_url} alt={`Gương mặt bé ngày ${formatVNDate(face.face_date)}`} />
-                {idx === 0 && <span className="face-trunk-latest">Mới nhất</span>}
+                {face.id === faces[0].id && <span className="face-trunk-latest">Mới nhất</span>}
               </button>
               <div className="face-trunk-date">
                 <span className="face-trunk-month">{formatMonthLabel(face.face_date)}</span>
@@ -216,6 +271,8 @@ export default function BabyFaceTimeline({ session }: Props) {
             </div>
           ))}
         </div>
+          )}
+        </>
       )}
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
