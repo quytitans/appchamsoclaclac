@@ -233,6 +233,7 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                 );
               }
               const entry = item.entry;
+              const cover = entry.photos[0];
               return (
                 <div key={entry.id} className={`diary-leaf-row ${side}`}>
                   <svg className="diary-vine-segment" viewBox="0 0 40 100" preserveAspectRatio="none" aria-hidden="true">
@@ -243,10 +244,17 @@ export default function DiaryTimeline({ session, refreshKey }: Props) {
                   </svg>
                   <span className="diary-leaf-node">{importanceIcon(entry)}</span>
                   <button
-                    className={`diary-leaf-card ${importanceLeafClass(entry)}`}
+                    className={`diary-leaf-card ${importanceLeafClass(entry)}${cover ? " diary-leaf-card-has-cover" : ""}`}
                     onClick={() => openEntry(entry)}
                   >
-                    {entry.photos.length > 0 && <span className="diary-leaf-photo-badge">📷</span>}
+                    {cover && (
+                      <span className="diary-leaf-cover">
+                        <img src={cover.thumb_url} alt="" loading="lazy" />
+                        {entry.photos.length > 1 && (
+                          <span className="diary-leaf-photo-badge">📷 {entry.photos.length}</span>
+                        )}
+                      </span>
+                    )}
                     <span className="diary-leaf-date">{formatVNDate(entry.entry_date)}</span>
                     <span className="diary-leaf-title">{entry.title}</span>
                   </button>
