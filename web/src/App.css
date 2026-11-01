@@ -2616,21 +2616,33 @@ body {
   transform: scale(0.97);
 }
 
-/* Ảnh đầu tiên của sự kiện làm ảnh bìa tròn, cùng cỡ với "quả" gương mặt The Face (.diary-face-bud) */
+/* Ảnh đầu tiên của sự kiện làm ảnh bìa tròn; thẻ có ảnh hẹp hơn thẻ thường nhưng vẫn nằm sát thân dây leo */
 .diary-leaf-card.diary-leaf-card-has-cover {
+  width: 33%;
+  min-width: 118px;
   align-items: center;
   text-align: center;
-  padding: 10px 8px 11px;
+  padding: 8px 8px 9px;
+}
+
+.diary-leaf-row.left .diary-leaf-card-has-cover {
+  margin-left: auto;
+  margin-right: 56%;
+}
+
+.diary-leaf-row.right .diary-leaf-card-has-cover {
+  margin-left: 56%;
+  margin-right: auto;
 }
 
 .diary-leaf-cover {
   position: relative;
   display: block;
-  width: 118px;
+  width: 88px;
   max-width: 100%;
   aspect-ratio: 1 / 1;
-  margin-bottom: 6px;
-  border: 4px solid var(--white);
+  margin-bottom: 5px;
+  border: 3px solid var(--white);
   border-radius: 50%;
   background: var(--main-pink);
   box-shadow: 0 4px 12px rgba(90, 61, 75, 0.25);
