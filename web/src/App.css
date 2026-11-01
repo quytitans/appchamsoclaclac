@@ -2536,7 +2536,12 @@ body {
   align-items: center;
   width: 100%;
   min-height: 92px;
-  margin-bottom: 26px;
+  /* Thẻ so le 2 bên nên hàng sau được lồng lên hàng trước; 40px vẫn chừa khe giữa 2 thẻ cùng bên kể cả khi xen giữa là hàng thấp nhất (92px) */
+  margin-bottom: -40px;
+}
+
+.diary-leaf-row:last-child {
+  margin-bottom: 0;
 }
 
 .diary-leaf-row.left {
@@ -2550,11 +2555,11 @@ body {
 .diary-vine-segment {
   position: absolute;
   left: 50%;
-  top: -13px;
-  bottom: -13px;
+  /* Trừ đúng phần lồng của hàng (20px mỗi đầu) để các đoạn dây nối tiếp nhau, không chồng lên nhau */
+  top: 20px;
   width: 32px;
   /* SVG không tự giãn theo top/bottom nên phải đặt height, để dây vẫn liền mạch khi hàng cao lên vì có ảnh */
-  height: calc(100% + 26px);
+  height: calc(100% - 40px);
   transform: translateX(-50%);
   z-index: 0;
   overflow: visible;
