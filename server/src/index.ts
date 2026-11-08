@@ -16,6 +16,7 @@ import { thawedMilkRouter } from "./routes/thawedMilk.js";
 import { growthRouter } from "./routes/growth.js";
 import { logError } from "./errorLog.js";
 import { logUsage } from "./usageLog.js";
+import { startVaccineReminderScheduler } from "./reminders/scheduler.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -86,4 +87,5 @@ app.use((err: unknown, req: express.Request, res: express.Response, _next: expre
 
 app.listen(PORT, () => {
   console.log(`Lạc Lạc Bé Yêu server đang chạy tại http://localhost:${PORT}`);
+  startVaccineReminderScheduler();
 });

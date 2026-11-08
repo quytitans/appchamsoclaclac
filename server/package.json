@@ -9,19 +9,22 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "drive:auth": "tsx scripts/getGoogleRefreshToken.ts",
-    "seed:vaccines": "tsx scripts/seedVaccineProfiles.ts"
+    "seed:vaccines": "tsx scripts/seedVaccineProfiles.ts",
+    "mail:test": "tsx scripts/sendTestMail.ts"
   },
   "dependencies": {
     "@googleapis/drive": "^20.2.0",
     "dotenv": "^17.4.2",
     "express": "^4.19.2",
     "multer": "^2.2.0",
+    "nodemailer": "^10.4.0",
     "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.5.0",
+    "@types/nodemailer": "^8.0.2",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4"
   }

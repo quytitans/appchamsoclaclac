@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 import { hashPin, randomToken } from "../hash.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = path.join(__dirname, "..", "..", "database.sqlite");
+// DB_PATH override exists only so test scripts can run against a throwaway copy —
+// production never sets it.
+const dbPath = process.env.DB_PATH || path.join(__dirname, "..", "..", "database.sqlite");
 
 export const db = new DatabaseSync(dbPath);
 
@@ -240,6 +242,25 @@ function backfillVaccineProfiles() {
 backfillVaccineProfiles();
 
 db.exec(`CREATE INDEX IF NOT EXISTS idx_vaccines_profile_id ON vaccines(profile_id)`);
+
+// Mỗi dòng = 1 lần đã gửi mail nhắc thành công cho 1 mũi tiêm ở 1 mốc (7/3/1 ngày).
+// UNIQUE đảm bảo không bao giờ gửi trùng cùng mốc, kể cả khi job chạy lại/restart server.
+// due_date nằm trong khoá nên nếu người dùng dời lịch tiêm, các mốc nhắc được tính lại từ đầu.
+// dose_id = 0 nghĩa là mốc lấy từ vaccines.next_dose_date (không có mũi "dự kiến" nào).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS vaccine_reminder_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profile_id INTEGER NOT NULL,
+    vaccine_id INTEGER NOT NULL,
+    dose_id INTEGER NOT NULL,
+    due_date TEXT NOT NULL,
+    tier INTEGER NOT NULL,
+    recipients_sent INTEGER NOT NULL,
+    recipients_failed INTEGER NOT NULL,
+    sent_at TEXT NOT NULL,
+    UNIQUE (vaccine_id, dose_id, due_date, tier)
+  )
+`);
 
 // Cờ bật/tắt từng chức năng ở trang chủ — admin tắt thì ẩn khỏi mọi tài khoản.
 db.exec(`
